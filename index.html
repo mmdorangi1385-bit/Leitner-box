@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="جعبه لایتنر">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#14161f">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>جعبه لایتنر آلمانی</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #14161f; --panel: #1e2230; --panel2: #262b3d; --ivory: #ede6d6;
+    --ink: #2b2a28; --muted: #9aa0b4; --brass: #c9a66b; --brass-dark: #a9824f;
+    --wine: #b65c5c; --sage: #8fa37a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: 'Vazirmatn', Tahoma, sans-serif;
+    background: radial-gradient(ellipse at 50% -10%, #232841 0%, var(--bg) 55%);
+    color: var(--ivory);
+    min-height: 100vh;
+    padding: 20px 16px 40px;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; }
+
+  .app-header { text-align: center; margin-bottom: 6px; }
+  .app-title { font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; }
+  .app-sub { font-family: 'Fraunces', Georgia, serif; font-style: italic; color: var(--brass); font-size: 14px; margin-top: 2px; direction: ltr; }
+  .app-note { font-size: 11px; color: var(--muted); margin-top: 8px; margin-bottom: 14px; text-align: center; }
+
+  .nav-row { display: flex; gap: 8px; background: var(--panel); border: 1px solid #333854; border-radius: 14px; padding: 6px; margin-bottom: 20px; }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; background: transparent; border: none; color: var(--muted); padding: 9px 4px; border-radius: 10px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 11.5px; cursor: pointer; }
+  .nav-btn.active { background: var(--panel2); color: var(--brass); }
+
+  .panel { background: var(--panel); border: 1px solid #333854; border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+
+  .stat-row { display: flex; gap: 12px; margin-bottom: 18px; }
+  .stat-box { flex: 1; background: var(--panel); border: 1px solid #333854; border-radius: 14px; padding: 14px; text-align: center; }
+  .stat-num { font-family: 'JetBrains Mono', Consolas, monospace; font-size: 26px; color: var(--brass); font-weight: 600; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .drawer-cabinet { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .drawer { display: flex; align-items: center; background: linear-gradient(90deg, var(--panel2), var(--panel)); border-radius: 10px; overflow: hidden; border: 1px solid #333854; height: 54px; }
+  .drawer-tab { width: 46px; height: 100%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', Consolas, monospace; font-weight: 600; font-size: 17px; color: #1a1712; flex-shrink: 0; }
+  .drawer-mid { flex: 1; padding: 0 12px; overflow: hidden; }
+  .drawer-title { font-size: 13.5px; color: var(--ivory); }
+  .drawer-interval { font-size: 11px; color: var(--muted); margin-top: 1px; }
+  .drawer-count { padding: 0 14px; text-align: center; flex-shrink: 0; }
+  .drawer-count-num { font-family: 'JetBrains Mono', Consolas, monospace; font-size: 16px; color: var(--ivory); }
+  .drawer-due-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--brass); margin-inline-end: 5px; box-shadow: 0 0 6px var(--brass); }
+
+  .btn-primary { width: 100%; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; border: none; border-radius: 12px; padding: 15px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-weight: 700; font-size: 15.5px; cursor: pointer; }
+  .btn-primary:disabled { opacity: 0.35; cursor: default; }
+  .btn-secondary { width: 100%; background: var(--panel2); color: var(--ivory); border: 1px solid #3c4260; border-radius: 12px; padding: 13px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-weight: 600; font-size: 14.5px; cursor: pointer; margin-top: 10px; }
+
+  .empty-state { text-align: center; padding: 30px 10px; color: var(--muted); }
+  .empty-state svg { color: var(--brass); margin-bottom: 10px; }
+
+  textarea { width: 100%; background: var(--panel2); border: 1px solid #3c4260; border-radius: 12px; color: var(--ivory); padding: 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 14px; resize: vertical; min-height: 130px; direction: rtl; }
+  textarea::placeholder { color: #6b7189; }
+  textarea[readonly] { opacity: 0.6; }
+  .guess-box { min-height: 70px; margin-bottom: 12px; direction: ltr; text-align: left; font-family: 'Fraunces', Georgia, serif; }
+  .hint-text { font-size: 12.5px; color: var(--muted); line-height: 1.9; margin-bottom: 10px; }
+  .hint-text code { font-family: 'JetBrains Mono', Consolas, monospace; background: var(--panel2); padding: 1px 5px; border-radius: 4px; direction: ltr; display: inline-block; }
+
+  .preview-list { max-height: 220px; overflow-y: auto; margin: 12px 0; border: 1px solid #333854; border-radius: 10px; }
+  .preview-row { display: flex; justify-content: space-between; gap: 10px; padding: 9px 12px; border-bottom: 1px solid #292d40; font-size: 13.5px; }
+  .preview-row:last-child { border-bottom: none; }
+  .preview-de { font-family: 'Fraunces', Georgia, serif; direction: ltr; text-align: left; flex: 1; }
+  .preview-fa { color: var(--brass); flex: 1; text-align: right; }
+  .preview-warn { color: var(--wine); font-size: 12.5px; margin-top: 8px; }
+
+  .progress-track { height: 5px; background: var(--panel2); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+  .progress-fill { height: 100%; background: var(--brass); }
+  .progress-label { text-align: center; font-size: 12.5px; color: var(--muted); margin-bottom: 18px; font-family: 'JetBrains Mono', Consolas, monospace; }
+
+  .flip-scene { perspective: 1600px; height: 230px; margin-bottom: 18px; }
+  .flip-card { position: relative; width: 100%; height: 100%; transition: transform 0.55s cubic-bezier(.4,.2,.2,1); transform-style: preserve-3d; }
+  .flip-card.is-flipped { transform: rotateY(180deg); }
+  .flip-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+  .flip-front { background: var(--ivory); color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+  .flip-back { background: var(--ivory); color: var(--ink); transform: rotateY(180deg); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+  .card-box-tag { position: absolute; top: 12px; right: 14px; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 11px; color: #201a10; padding: 3px 9px; border-radius: 20px; font-weight: 600; }
+  .card-fa-big { font-size: 24px; font-weight: 700; line-height: 1.5; }
+  .card-hint { font-size: 12.5px; color: #6b6558; margin-top: 12px; }
+  .card-de-big { font-family: 'Fraunces', Georgia, serif; font-size: 27px; font-weight: 600; direction: ltr; line-height: 1.35; }
+  .card-fa-small { font-size: 13.5px; color: #8a8375; margin-top: 12px; }
+
+  .answer-row { display: flex; gap: 10px; }
+  .answer-btn { flex: 1; padding: 14px; border-radius: 12px; border: none; font-family: 'Vazirmatn', Tahoma, sans-serif; font-weight: 700; font-size: 14.5px; cursor: pointer; }
+  .answer-correct { background: var(--sage); color: #16241a; }
+  .answer-wrong { background: var(--wine); color: #2a1414; }
+
+  .manage-row { display: flex; align-items: center; gap: 10px; padding: 11px 12px; border-bottom: 1px solid #292d40; }
+  .manage-row:last-child { border-bottom: none; }
+  .box-chip { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; color: #201a10; font-weight: 700; flex-shrink: 0; }
+  .manage-text { flex: 1; min-width: 0; }
+  .manage-de { font-family: 'Fraunces', Georgia, serif; direction: ltr; font-size: 14px; }
+  .manage-fa { color: var(--brass); font-size: 12.5px; margin-top: 2px; }
+  .manage-when { font-size: 11px; color: var(--muted); flex-shrink: 0; }
+  .del-btn { background: none; border: none; color: #6b7189; cursor: pointer; padding: 6px; flex-shrink: 0; }
+  .confirm-row { display: flex; gap: 6px; flex-shrink: 0; }
+  .confirm-row button { font-size: 11px; padding: 5px 9px; border-radius: 6px; border: none; cursor: pointer; font-family: 'Vazirmatn', Tahoma, sans-serif; }
+
+  .spin { animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .install-banner { display: flex; align-items: center; gap: 12px; width: 100%; background: var(--panel2); border: 1px solid var(--brass); border-radius: 12px; padding: 12px 14px; margin-bottom: 16px; cursor: pointer; text-align: right; font-family: 'Vazirmatn', Tahoma, sans-serif; }
+  .install-banner-icon { color: var(--brass); flex-shrink: 0; }
+  .install-banner-text b { color: var(--brass); display: block; font-size: 14px; margin-bottom: 2px; }
+  .install-banner-text span { font-size: 12px; color: var(--muted); }
+
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(10,11,17,0.75); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 50; }
+  .modal-panel { background: var(--panel); border: 1px solid var(--brass); border-radius: 16px; padding: 22px; max-width: 360px; width: 100%; }
+  .modal-title { font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; margin-bottom: 16px; color: var(--brass); }
+  .modal-step { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 12px; line-height: 1.6; }
+  .step-num { width: 24px; height: 24px; border-radius: 50%; background: var(--brass); color: #201a10; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 12px; font-weight: 700; flex-shrink: 0; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+  const STORAGE_KEY = 'leitner_de_fa_cards_v1';
+  const BOX_COLORS = { 1: '#B65C5C', 2: '#C97B4A', 3: '#C9A66B', 4: '#8FA37A', 5: '#6B8F9E' };
+  const BOX_INTERVALS = { 1: 1, 2: 2, 3: 4, 4: 8, 5: 16 };
+  const FA_DIGITS = { '0':'۰','1':'۱','2':'۲','3':'۳','4':'۴','5':'۵','6':'۶','7':'۷','8':'۸','9':'۹' };
+
+  let state = { cards: [], view: 'home', preview: null, inputText: '', confirmDeleteId: null,
+    sessionQueue: [], sessionIndex: 0, revealed: false, sessionStats: {correct:0, wrong:0}, showImport: false, showInstallGuide: false };
+
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+
+  function faNum(n){ return String(n).replace(/[0-9]/g, d => FA_DIGITS[d]); }
+  function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function todayStr(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function addDays(dateStr, days){ const d = new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+days); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+  function relativeDay(dateStr){
+    const diff = Math.round((new Date(dateStr+'T00:00:00') - new Date(todayStr()+'T00:00:00')) / 86400000);
+    if (diff <= 0) return 'امروز';
+    if (diff === 1) return 'فردا';
+    return `${faNum(diff)} روز دیگر`;
+  }
+  function intervalLabel(box){ const n = BOX_INTERVALS[box]; return n===1 ? 'هر روز' : `هر ${faNum(n)} روز`; }
+  function dueCount(){ const t = todayStr(); return state.cards.filter(c => c.nextReview <= t).length; }
+  function boxCounts(){ const o={1:0,2:0,3:0,4:0,5:0}; state.cards.forEach(c => o[c.box]=(o[c.box]||0)+1); return o; }
+
+  function parseInput(text){
+    const lines = text.split('\n'); const parsed=[]; const failed=[];
+    for (const raw of lines){
+      const line = raw.trim();
+      if (!line) continue;
+      let sep = null;
+      if (line.includes('\t')) sep = '\t';
+      else if (line.includes(' - ')) sep = ' - ';
+      else if (line.includes(' – ')) sep = ' – ';
+      else if (line.includes(':')) sep = ':';
+      else if (line.includes('=')) sep = '=';
+      if (!sep) { failed.push(line); continue; }
+      const idx = line.indexOf(sep);
+      const de = line.slice(0, idx).trim();
+      const fa = line.slice(idx + sep.length).trim();
+      if (!de || !fa) { failed.push(line); continue; }
+      parsed.push({ de, fa });
+    }
+    return { parsed, failed };
+  }
+  function shuffle(arr){ const a=[...arr]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+  function loadCards(){ try { const raw = localStorage.getItem(STORAGE_KEY); if (raw) state.cards = JSON.parse(raw); } catch(e){ console.error(e); } }
+  function persistCards(){ try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state.cards)); } catch(e){ console.error(e); } }
+
+  function svgIcon(inner, size){ return `<svg width="${size||18}" height="${size||18}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`; }
+  const PATHS = {
+    home: '<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>',
+    plus: '<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',
+    book: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+    archive: '<rect x="2" y="3" width="20" height="5" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><line x1="10" y1="12" x2="14" y2="12"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/>',
+    loader: '<path d="M21 12a9 9 0 1 1-6.219-8.56"/>',
+  };
+  function icon(name, size){ return svgIcon(PATHS[name], size); }
+
+  function render(){
+    document.getElementById('app').innerHTML = `
+      <div class="wrap">
+        <div class="app-header">
+          <h1 class="app-title">جعبه لایتنر</h1>
+          <div class="app-sub">Deutsch Karteikasten</div>
+        </div>
+        <div class="app-note">کارت‌هات فقط روی همین مرورگر/گوشی ذخیره می‌شن</div>
+        ${renderNav()}
+        ${state.view==='home' ? renderHome() : state.view==='add' ? renderAdd() : state.view==='study' ? renderStudy() : renderManage()}
+      </div>
+      ${state.showInstallGuide ? renderInstallGuide() : ''}
+    `;
+  }
+
+  function renderNav(){
+    return `
+      <div class="nav-row">
+        <button class="nav-btn ${state.view==='home'?'active':''}" onclick="goHome()">${icon('home')}خانه</button>
+        <button class="nav-btn ${state.view==='add'?'active':''}" onclick="goAdd()">${icon('plus')}افزودن</button>
+        <button class="nav-btn ${state.view==='study'?'active':''}" onclick="goStudyTab()">${icon('book')}تمرین</button>
+        <button class="nav-btn ${state.view==='manage'?'active':''}" onclick="goManage()">${icon('archive')}مدیریت</button>
+      </div>
+    `;
+  }
+
+  function renderHome(){
+    const bc = boxCounts();
+    const dc = dueCount();
+    let drawers = '';
+    if (state.cards.length === 0){
+      drawers = `<div class="panel empty-state">${icon('archive',30)}<div>هنوز کلمه‌ای اضافه نکرده‌ای.</div><div>از تب «افزودن» چند کلمه یا جمله آلمانی وارد کن.</div></div>`;
+    } else {
+      const today = todayStr();
+      drawers = '<div class="drawer-cabinet">' + [1,2,3,4,5].map(box => {
+        const dueInBox = state.cards.filter(c => c.box===box && c.nextReview<=today).length;
+        return `
+          <div class="drawer">
+            <div class="drawer-tab" style="background:${BOX_COLORS[box]}">${faNum(box)}</div>
+            <div class="drawer-mid">
+              <div class="drawer-title">جعبه ${faNum(box)}</div>
+              <div class="drawer-interval">${intervalLabel(box)}</div>
+            </div>
+            <div class="drawer-count">
+              ${dueInBox>0 ? '<span class="drawer-due-dot"></span>' : ''}
+              <span class="drawer-count-num">${faNum(bc[box])}</span>
+            </div>
+          </div>`;
+      }).join('') + '</div>';
+    }
+    return `
+      <div class="install-banner" onclick="installApp()">
+        <span class="install-banner-icon">${icon('home', 22)}</span>
+        <span class="install-banner-text"><b>افزودن به صفحه اصلی گوشی</b><span>یه آیکون رو صفحه اصلی می‌سازه</span></span>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num">${faNum(state.cards.length)}</div><div class="stat-label">کل کارت‌ها</div></div>
+        <div class="stat-box"><div class="stat-num">${faNum(dc)}</div><div class="stat-label">آماده مرور امروز</div></div>
+      </div>
+      ${drawers}
+      <button class="btn-primary" ${dc===0?'disabled':''} onclick="startSession()">${dc===0 ? 'امروز چیزی برای مرور نیست' : 'شروع تمرین (' + faNum(dc) + ' کارت)'}</button>
+    `;
+  }
+
+  function renderAdd(){
+    const hasPreview = !!state.preview;
+    let previewHtml = '';
+    if (hasPreview){
+      previewHtml = `
+        <div class="preview-list">
+          ${state.preview.parsed.map(p => `<div class="preview-row"><div class="preview-de">${esc(p.de)}</div><div class="preview-fa">${esc(p.fa)}</div></div>`).join('')}
+        </div>
+        ${state.preview.failed.length>0 ? `<div class="preview-warn">${faNum(state.preview.failed.length)} خط قابل تشخیص نبود و اضافه نمی‌شود (فرمت را چک کن).</div>` : ''}
+        <button class="btn-primary" style="margin-top:12px" ${state.preview.parsed.length===0?'disabled':''} onclick="confirmAdd()">افزودن ${faNum(state.preview.parsed.length)} کارت به جعبه ۱</button>
+        <button class="btn-secondary" onclick="cancelPreview()">ویرایش متن</button>
+      `;
+    }
+    return `
+      <div class="panel">
+        <div class="hint-text">هر خط یک کلمه یا جمله، به این شکل بنویس (آلمانی، خط تیره، معنی فارسی):<br><code>Guten Morgen - صبح بخیر</code></div>
+        <textarea id="addTextarea" ${hasPreview?'readonly':''} placeholder="Guten Morgen - صبح بخیر
+das Buch - کتاب
+Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفاً">${esc(state.inputText)}</textarea>
+        ${!hasPreview ? `<button class="btn-primary" style="margin-top:12px" onclick="parsePreview()">بررسی و پیش‌نمایش</button>` : previewHtml}
+      </div>
+    `;
+  }
+
+  function renderStudy(){
+    if (state.sessionQueue.length === 0){
+      const msg = state.cards.length===0 ? 'اول چند کلمه اضافه کن تا بتونی تمرین کنی.' : 'امروز کارتی برای مرور نداری. فردا دوباره سر بزن.';
+      return `<div class="panel"><div class="empty-state">${icon('book',30)}<div>${msg}</div></div></div>`;
+    }
+    if (state.sessionIndex >= state.sessionQueue.length){
+      return `
+        <div class="panel">
+          <div class="empty-state">
+            ${icon('book',30)}
+            <div>این دوره تمرین تموم شد!</div>
+            <div style="margin-top:8px;color:var(--ivory)">${faNum(state.sessionStats.correct)} درست &nbsp;·&nbsp; ${faNum(state.sessionStats.wrong)} نیاز به مرور بیشتر</div>
+            <button class="btn-primary" style="margin-top:16px" onclick="goHome()">بازگشت به خانه</button>
+          </div>
+        </div>
+      `;
+    }
+    const card = state.cards.find(c => c.id === state.sessionQueue[state.sessionIndex]);
+    if (!card) { state.sessionIndex++; render(); return ''; }
+    const progressPct = (state.sessionIndex / state.sessionQueue.length) * 100;
+    const bottom = state.revealed
+      ? `<div class="answer-row">
+           <button class="answer-btn answer-correct" onclick="answer(true)">بلد بودم ✓</button>
+           <button class="answer-btn answer-wrong" onclick="answer(false)">بلد نبودم ✗</button>
+         </div>`
+      : `<textarea class="guess-box" placeholder="به آلمانی بنویسش... (اختیاری)"></textarea>
+         <button class="btn-primary" onclick="reveal()">نمایش پاسخ</button>`;
+    return `
+      <div class="panel">
+        <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%"></div></div>
+        <div class="progress-label">کارت ${faNum(state.sessionIndex+1)} از ${faNum(state.sessionQueue.length)}</div>
+        <div class="flip-scene">
+          <div class="flip-card ${state.revealed?'is-flipped':''}">
+            <div class="flip-face flip-front">
+              <div class="card-box-tag" style="background:${BOX_COLORS[card.box]}">جعبه ${faNum(card.box)}</div>
+              <div class="card-fa-big">${esc(card.fa)}</div>
+              <div class="card-hint">به آلمانی چطور می‌شه؟</div>
+            </div>
+            <div class="flip-face flip-back">
+              <div class="card-de-big">${esc(card.de)}</div>
+              <div class="card-fa-small">${esc(card.fa)}</div>
+            </div>
+          </div>
+        </div>
+        ${bottom}
+      </div>
+    `;
+  }
+
+  function renderManage(){
+    const list = [...state.cards].sort((a,b) => (a.nextReview < b.nextReview ? -1 : 1) || a.box - b.box);
+    let rows = '';
+    if (list.length === 0){
+      rows = `<div class="empty-state">${icon('archive',30)}<div>هنوز کارتی ثبت نشده.</div></div>`;
+    } else {
+      rows = list.map(c => `
+        <div class="manage-row">
+          <div class="box-chip" style="background:${BOX_COLORS[c.box]}">${faNum(c.box)}</div>
+          <div class="manage-text"><div class="manage-de">${esc(c.de)}</div><div class="manage-fa">${esc(c.fa)}</div></div>
+          <div class="manage-when">${relativeDay(c.nextReview)}</div>
+          ${state.confirmDeleteId===c.id
+            ? `<div class="confirm-row"><button style="background:var(--wine);color:#fff" onclick="doDelete('${c.id}')">حذف</button><button style="background:var(--panel2);color:var(--ivory)" onclick="cancelDelete()">لغو</button></div>`
+            : `<button class="del-btn" onclick="askDelete('${c.id}')">${icon('trash',16)}</button>`}
+        </div>
+      `).join('');
+    }
+    return `
+      <div class="panel" style="padding:0">${rows}</div>
+      <div class="panel">
+        <div class="hint-text">چون اطلاعات فقط روی همین مرورگر ذخیره می‌شه، بهتره گاهی از کارت‌هات پشتیبان بگیری.</div>
+        <button class="btn-secondary" onclick="exportBackup()">پشتیبان‌گیری از کارت‌ها</button>
+        <button class="btn-secondary" onclick="toggleImport()">${state.showImport ? 'بستن بازیابی' : 'بازیابی از پشتیبان'}</button>
+        ${state.showImport ? `<textarea id="importTextarea" style="margin-top:10px;min-height:90px" placeholder="متن پشتیبان رو اینجا پیست کن..."></textarea><button class="btn-primary" style="margin-top:8px" onclick="doImport()">بازیابی</button>` : ''}
+      </div>
+    `;
+  }
+
+  // actions
+  function goHome(){ state.view='home'; render(); }
+  function goAdd(){ state.view='add'; state.preview=null; render(); }
+  function goStudyTab(){ if (dueCount() > 0) startSession(); else { state.view='study'; state.sessionQueue=[]; render(); } }
+  function goManage(){ state.view='manage'; state.confirmDeleteId=null; render(); }
+
+  function installApp(){
+    if (deferredPrompt){
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(() => { deferredPrompt = null; });
+    } else {
+      state.showInstallGuide = true;
+      render();
+    }
+  }
+  function closeInstallGuide(){ state.showInstallGuide = false; render(); }
+  function renderInstallGuide(){
+    return `
+      <div class="modal-backdrop" onclick="closeInstallGuide()">
+        <div class="modal-panel" onclick="event.stopPropagation()">
+          <div class="modal-title">افزودن به صفحه اصلی</div>
+          <div class="modal-step"><span class="step-num">۱</span><span>روی سه‌نقطه بالا-راست کروم (⋮) بزن</span></div>
+          <div class="modal-step"><span class="step-num">۲</span><span>گزینه «Add to Home screen» رو انتخاب کن</span></div>
+          <div class="modal-step"><span class="step-num">۳</span><span>روی «Add» بزن تا آیکونش رو صفحه اصلی گوشیت بشینه</span></div>
+          <button class="btn-primary" onclick="closeInstallGuide()">متوجه شدم</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function parsePreview(){
+    const ta = document.getElementById('addTextarea');
+    state.inputText = ta ? ta.value : '';
+    state.preview = parseInput(state.inputText);
+    render();
+  }
+  function cancelPreview(){ state.preview = null; render(); }
+  function confirmAdd(){
+    if (!state.preview || state.preview.parsed.length===0) return;
+    const now = new Date().toISOString();
+    const today = todayStr();
+    const newCards = state.preview.parsed.map((p,i) => ({
+      id: `${Date.now()}-${i}-${Math.random().toString(36).slice(2,7)}`,
+      de: p.de, fa: p.fa, box: 1, nextReview: today, createdAt: now
+    }));
+    state.cards = [...state.cards, ...newCards];
+    persistCards();
+    state.inputText=''; state.preview=null; state.view='home';
+    render();
+  }
+
+  function askDelete(id){ state.confirmDeleteId=id; render(); }
+  function cancelDelete(){ state.confirmDeleteId=null; render(); }
+  function doDelete(id){ state.cards = state.cards.filter(c=>c.id!==id); persistCards(); state.confirmDeleteId=null; render(); }
+
+  function startSession(){
+    const today = todayStr();
+    const due = state.cards.filter(c => c.nextReview <= today);
+    const sorted = shuffle(due).sort((a,b) => a.box - b.box);
+    state.sessionQueue = sorted.map(c => c.id);
+    state.sessionIndex = 0;
+    state.sessionStats = { correct:0, wrong:0 };
+    state.revealed = false;
+    state.view = 'study';
+    render();
+  }
+  function reveal(){ state.revealed = true; render(); }
+  function answer(correct){
+    const today = todayStr();
+    const cardId = state.sessionQueue[state.sessionIndex];
+    const card = state.cards.find(c => c.id === cardId);
+    if (!card) return;
+    const newBox = correct ? Math.min(card.box+1, 5) : 1;
+    const newNextReview = addDays(today, BOX_INTERVALS[newBox]);
+    state.cards = state.cards.map(c => c.id===card.id ? {...c, box:newBox, nextReview:newNextReview} : c);
+    persistCards();
+    state.sessionStats = { correct: state.sessionStats.correct+(correct?1:0), wrong: state.sessionStats.wrong+(correct?0:1) };
+    state.revealed = false;
+    state.sessionIndex += 1;
+    render();
+  }
+
+  function exportBackup(){
+    const json = JSON.stringify(state.cards);
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(json).then(() => alert('کپی شد. یه جای امن (مثلاً نوت‌ها) نگهش دار.')).catch(() => prompt('این متن رو کپی کن و یه جا نگه دار:', json));
+    } else {
+      prompt('این متن رو کپی کن و یه جا نگه دار:', json);
+    }
+  }
+  function toggleImport(){ state.showImport = !state.showImport; render(); }
+  function doImport(){
+    const ta = document.getElementById('importTextarea');
+    if (!ta) return;
+    try {
+      const parsed = JSON.parse(ta.value);
+      if (!Array.isArray(parsed)) throw new Error('invalid');
+      state.cards = parsed;
+      persistCards();
+      state.showImport = false;
+      render();
+      alert('بازیابی شد.');
+    } catch(e){ alert('این متن معتبر نیست.'); }
+  }
+
+  loadCards();
+  render();
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch((e) => console.error('SW registration failed', e));
+    });
+  }
+</script>
+</body>
+</html>
