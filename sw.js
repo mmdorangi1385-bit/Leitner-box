@@ -27,3 +27,25 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+self.addEventListener('periodicsync', (event) => {
+  if (event.tag === 'leitner-daily-reminder') {
+    event.waitUntil(
+      self.registration.showNotification('جعبه لایتنر', {
+        body: 'وقتشه یه دوره تمرین آلمانی داشته باشی!',
+        icon: 'icon-192.png',
+        badge: 'icon-192.png'
+      })
+    );
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  event.waitUntil(
+    clients.matchAll({ type: 'window' }).then((clientList) => {
+      for (const client of clientList) { if ('focus' in client) return client.focus(); }
+      if (clients.openWindow) return clients.openWindow('./index.html');
+    })
+  );
+});
