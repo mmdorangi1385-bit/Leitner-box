@@ -232,6 +232,37 @@
   .stats-bar-track { height: 8px; background: var(--panel2); border-radius: 5px; overflow: hidden; }
   .stats-bar-fill { height: 100%; }
 
+  /* daily goal progress */
+  .goal-progress { background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; margin-bottom: 16px; transition: border-color 0.2s ease; }
+  .goal-progress.reached { border-color: var(--sage); }
+  .goal-progress-head { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; color: var(--muted); margin-bottom: 6px; gap: 8px; }
+  .goal-progress-head span:first-child { display: flex; align-items: center; gap: 5px; }
+  .goal-progress-head span:last-child { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--text); flex-shrink: 0; }
+  .goal-progress-track { height: 6px; background: var(--panel); border-radius: 4px; overflow: hidden; }
+  .goal-progress-fill { height: 100%; transition: width 0.4s ease; }
+  .goal-progress-done { margin-top: 7px; font-size: 11.5px; color: var(--sage); text-align: center; }
+
+  .daily-goals-list { display: flex; flex-direction: column; gap: 12px; }
+  .daily-goal-row-head { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; margin-bottom: 5px; }
+  .daily-goal-row-head span:last-child { font-family: 'JetBrains Mono', Consolas, monospace; color: var(--muted); }
+
+  .goal-setting-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--divider); }
+  .goal-setting-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .goal-setting-label { font-size: 13.5px; font-weight: 700; }
+  .goal-setting-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .goal-setting-input { width: 60px; flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 8px 4px; text-align: center; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 14px; }
+
+  /* AI example-sentence generator (word box) */
+  .ai-sentence-box { margin-top: 14px; }
+  .ai-sentence-btn { width: 100%; background: linear-gradient(180deg, #9B7EC4, #6f5798); color: #fff; border: none; border-radius: 12px; padding: 13px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-weight: 700; font-size: 13.5px; cursor: pointer; }
+  .ai-sentence-btn:disabled { opacity: 0.6; cursor: default; }
+  .ai-sentence-error { margin-top: 10px; padding: 10px 12px; background: rgba(182,92,92,0.14); color: var(--wine); border-radius: 10px; font-size: 12.5px; text-align: center; line-height: 1.8; }
+  .ai-sentence-result { margin-top: 12px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 14px; padding: 14px; }
+  .ai-sentence-label { font-size: 10.5px; color: var(--violet); font-weight: 700; }
+  .ai-sentence-de { direction: ltr; text-align: left; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 14.5px; line-height: 1.7; color: var(--text); margin-top: 4px; }
+  .ai-sentence-fa { font-size: 13.5px; line-height: 1.9; color: var(--text); margin-top: 4px; }
+  .ai-sentence-actions { display: flex; gap: 16px; align-items: center; justify-content: center; margin-top: 10px; }
+
   .select-input { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13.5px; }
   .text-input { background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13.5px; }
   .link-btn { background: none; border: none; color: var(--brass); font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; padding: 6px 0; text-decoration: underline; display: block; margin: 0 auto; }
@@ -312,19 +343,20 @@
   .translate-result-box { margin-top: 14px; }
 
   /* AI assistant */
-  .ai-fab { position: fixed; bottom: 22px; left: 18px; width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer; z-index: 55; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #9B7EC4, #6f5798); color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.25); }
+  .ai-fab { position: fixed; bottom: 22px; left: 18px; width: 58px; height: 58px; border-radius: 50%; border: none; cursor: grab; z-index: 55; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #9B7EC4, #6f5798); color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.25); touch-action: none; user-select: none; -webkit-user-select: none; }
+  .ai-fab:active { cursor: grabbing; }
   .ai-fab-pulse { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid #9B7EC4; opacity: 0.55; animation: aiFabPulse 2.4s ease-out infinite; pointer-events: none; }
   @keyframes aiFabPulse { 0% { transform: scale(0.85); opacity: 0.55; } 100% { transform: scale(1.35); opacity: 0; } }
 
   .ai-page { position: fixed; inset: 0; background: radial-gradient(ellipse at 50% -10%, var(--bg-radial) 0%, var(--bg) 55%); z-index: 70; display: flex; flex-direction: column; }
-  .ai-page-header { display: flex; align-items: center; gap: 8px; padding: 16px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .ai-page-header { display: flex; align-items: center; gap: 7px; padding: 16px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .ai-page-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px; color: var(--violet); }
-  .ai-back-btn, .ai-key-btn, .ai-clear-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .ai-back-btn, .ai-settings-btn, .ai-history-btn, .ai-clear-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
   .ai-quick-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; }
   .ai-quick-chip { flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 8px 14px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
   .ai-quick-chip.active { background: var(--violet); color: #fff; border-color: var(--violet); }
-  .ai-messages { flex: 1; overflow-y: auto; padding: 6px 16px; display: flex; flex-direction: column; gap: 12px; }
-  .ai-msg { max-width: 86%; padding: 11px 14px; border-radius: 16px; font-size: 14px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+  .ai-messages { flex: 1; overflow-y: auto; padding: 6px 10px; display: flex; flex-direction: column; gap: 9px; }
+  .ai-msg { max-width: 92%; padding: 9px 12px; border-radius: 16px; font-size: 14px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
   .ai-msg-user { align-self: flex-start; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; }
   .ai-msg-model { align-self: flex-end; background: var(--panel2); border: 1px solid var(--border2); color: var(--text); }
   .ai-msg-copy { display: flex; justify-content: flex-end; margin-top: 6px; }
@@ -335,11 +367,21 @@
   @keyframes aiTyping { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-4px); opacity: 1; } }
   .ai-empty { text-align: center; color: var(--muted); padding: 34px 20px; font-size: 13px; line-height: 1.9; }
   .ai-empty svg { color: var(--violet); margin-bottom: 10px; }
-  .ai-input-row { display: flex; align-items: flex-end; gap: 8px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); flex-shrink: 0; }
+  .ai-input-row { display: flex; align-items: flex-end; gap: 8px; padding: 12px 10px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); flex-shrink: 0; }
   .ai-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; }
   .ai-send-btn { background: var(--violet); color: #fff; border: none; border-radius: 12px; width: 48px; height: 44px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .ai-send-btn:disabled { opacity: 0.4; cursor: default; }
   .ai-key-setup { padding: 16px; overflow-y: auto; }
+  .ai-history-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
+  .ai-history-item { display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
+  .ai-history-item.active { border-color: var(--violet); }
+  .ai-history-item-main { flex: 1; min-width: 0; }
+  .ai-history-item-title { font-size: 13.5px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ai-history-item-meta { font-size: 11px; color: var(--muted); margin-top: 3px; font-family: 'JetBrains Mono', Consolas, monospace; }
+  .ai-history-item-del { background: none; border: none; color: var(--muted); cursor: pointer; flex-shrink: 0; padding: 4px; display: flex; }
+  .ai-history-empty { text-align: center; color: var(--muted); padding: 20px; font-size: 13px; }
+  .ai-settings-section { margin-bottom: 14px; }
+  .ai-settings-section:last-child { margin-bottom: 0; }
 </style>
 </head>
 <body>
@@ -369,6 +411,12 @@
   const GOOGLE_SIGNIN_KEY = 'leitner_google_signed_in_v1';
   const ACTIVITY_KEY = 'leitner_activity_days_v1';
   const GEMINI_KEY_STORAGE = 'leitner_gemini_api_key_v1';
+  const AI_FAB_POS_KEY = 'leitner_ai_fab_pos_v1';
+  const AI_HISTORY_KEY = 'leitner_ai_history_v1';
+  const AI_HISTORY_MAX = 40;
+  const DAILY_GOALS_KEY = 'leitner_daily_goals_v1';
+  const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
+  const DEFAULT_DAILY_GOALS = { word: 10, sentence: 5, pronun: 10 };
 
   // --- Google Drive cloud sync config ---
   // To enable "sign in with Google" + Drive backup you must create your own OAuth
@@ -421,7 +469,9 @@
     translateInput: '', translateResult: null, translateError: null, translateLoading: false, translateIsToDe: false,
     showTranslateTypeModal: false, translateTypeChoice: 'word',
     aiOpen: false, geminiApiKey: '', aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
-    showAiKeyModal: false,
+    showAiSettingsModal: false, aiFabPos: null, aiHistory: [], aiSessionId: null, showAiHistoryModal: false,
+    dailyGoals: { ...DEFAULT_DAILY_GOALS }, dailyProgress: { date: '', word: 0, sentence: 0, pronun: 0 },
+    aiSentenceLoading: false, aiSentenceResult: null, aiSentenceError: null, aiSentenceCardId: null,
   };
 
   function faNum(n){ return String(n).replace(/[0-9]/g, d => FA_DIGITS[d]); }
@@ -571,6 +621,7 @@
       state.pronunFeedback = 'correct';
       state.stats.pronun.correct += 1;
       persistStats();
+      incrementDailyProgress('pronun');
       state.sessionStats = { correct: state.sessionStats.correct + 1, wrong: state.sessionStats.wrong };
     } else if (state.pronunAttempt >= PRONUN_MAX_ATTEMPTS){
       state.pronunFeedback = 'failed';
@@ -601,6 +652,7 @@
     state.pronunHeard = '';
     state.stats.pronun.correct += 1;
     persistStats();
+    incrementDailyProgress('pronun');
     state.sessionStats = { correct: state.sessionStats.correct + 1, wrong: state.sessionStats.wrong };
     render();
   }
@@ -905,6 +957,54 @@
   function persistStats(){ try { localStorage.setItem(STATS_KEY, JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); markActivityToday(); }
   function loadReminderState(){ state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1'; }
 
+  // --- daily goals (user-configurable target counts per section) ---
+  function loadDailyGoals(){
+    try {
+      const raw = localStorage.getItem(DAILY_GOALS_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      state.dailyGoals = {
+        word: (parsed && Number.isFinite(parsed.word)) ? parsed.word : DEFAULT_DAILY_GOALS.word,
+        sentence: (parsed && Number.isFinite(parsed.sentence)) ? parsed.sentence : DEFAULT_DAILY_GOALS.sentence,
+        pronun: (parsed && Number.isFinite(parsed.pronun)) ? parsed.pronun : DEFAULT_DAILY_GOALS.pronun,
+      };
+    } catch(e){ state.dailyGoals = { ...DEFAULT_DAILY_GOALS }; }
+  }
+  function persistDailyGoals(){ try { localStorage.setItem(DAILY_GOALS_KEY, JSON.stringify(state.dailyGoals)); } catch(e){ console.error(e); } }
+  function setDailyGoal(type, val){
+    const n = Math.max(0, Math.min(999, parseInt(val, 10) || 0));
+    state.dailyGoals = { ...state.dailyGoals, [type]: n };
+    persistDailyGoals();
+    render();
+  }
+
+  // --- daily progress (how many correct answers so far today, per section) ---
+  function loadDailyProgress(){
+    try {
+      const raw = localStorage.getItem(DAILY_PROGRESS_KEY);
+      const parsed = raw ? JSON.parse(raw) : null;
+      state.dailyProgress = (parsed && parsed.date) ? parsed : { date: todayStr(), word: 0, sentence: 0, pronun: 0 };
+    } catch(e){ state.dailyProgress = { date: todayStr(), word: 0, sentence: 0, pronun: 0 }; }
+    ensureDailyProgressFresh();
+  }
+  function persistDailyProgress(){ try { localStorage.setItem(DAILY_PROGRESS_KEY, JSON.stringify(state.dailyProgress)); } catch(e){ console.error(e); } }
+  function ensureDailyProgressFresh(){
+    const t = todayStr();
+    if (!state.dailyProgress || state.dailyProgress.date !== t){
+      state.dailyProgress = { date: t, word: 0, sentence: 0, pronun: 0 };
+      persistDailyProgress();
+    }
+  }
+  function incrementDailyProgress(type){
+    ensureDailyProgressFresh();
+    state.dailyProgress = { ...state.dailyProgress, [type]: (state.dailyProgress[type] || 0) + 1 };
+    persistDailyProgress();
+  }
+  function decrementDailyProgress(type){
+    ensureDailyProgressFresh();
+    state.dailyProgress = { ...state.dailyProgress, [type]: Math.max(0, (state.dailyProgress[type] || 0) - 1) };
+    persistDailyProgress();
+  }
+
   // --- daily activity tracking (counts reviews per day; day is "done" once reviewed twice) ---
   const DAILY_DONE_THRESHOLD = 2;
   function normalizeActivityDays(raw){
@@ -959,10 +1059,13 @@
     send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
     copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
     key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5L18 5l3 3-2.5 2.5"/>',
+    history: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
+    target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
   function render(){
+    ensureDailyProgressFresh();
     document.getElementById('app').innerHTML = `
       <div class="wrap">
         <div class="app-header-row">
@@ -1011,6 +1114,7 @@
   function renderHome(){
     const pronunCount = state.cards.filter(c => matchesCategory(c, state.studyCategoryFilter)).length;
     return `
+      ${renderDailyGoalsPanel()}
       ${renderCategoryQuickList()}
       ${renderDeckSection('word')}
       ${renderDeckSection('sentence')}
@@ -1251,6 +1355,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (state.sessionIndex >= state.sessionQueue.length){
       return `
         <div class="panel">
+          ${renderGoalBar(state.studyType)}
           <div class="empty-state">
             ${icon('book',30)}
             <div>این دوره تمرین تموم شد!</div>
@@ -1265,11 +1370,13 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (!card) { state.sessionIndex++; render(); return ''; }
     const progressPct = (state.sessionIndex / state.sessionQueue.length) * 100;
     const undoBtn = state.lastAction ? `<button class="link-btn" onclick="undoLastAnswer()">${icon('undo',13)} لغو آخرین جواب</button>` : '';
+    const aiSection = (state.studyType === 'word' && state.revealed) ? renderAiSentenceSection(card) : '';
     const bottom = state.revealed
-      ? `<div class="answer-row"><button class="answer-btn answer-correct" onclick="answer(true)">بلد بودم ✓</button><button class="answer-btn answer-wrong" onclick="answer(false)">بلد نبودم ✗</button></div>`
+      ? `<div class="answer-row"><button class="answer-btn answer-correct" onclick="answer(true)">بلد بودم ✓</button><button class="answer-btn answer-wrong" onclick="answer(false)">بلد نبودم ✗</button></div>${aiSection}`
       : `<textarea class="guess-box" placeholder="به آلمانی بنویسش... (اختیاری)"></textarea><button class="btn-primary" onclick="reveal()">نمایش پاسخ</button>`;
     return `
       <div class="panel">
+        ${renderGoalBar(state.studyType)}
         <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%;background:${colors[3]}"></div></div>
         <div class="progress-label">${typeLabel(state.studyType)} ${faNum(state.sessionIndex+1)} از ${faNum(state.sessionQueue.length)}</div>
         <div class="flip-scene">
@@ -1299,6 +1406,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (state.sessionIndex >= state.sessionQueue.length){
       return `
         <div class="panel">
+          ${renderGoalBar('pronun')}
           <div class="empty-state">
             ${icon('book',30)}
             <div>تمرین تلفظ تموم شد!</div>
@@ -1332,6 +1440,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     }
     return `
       <div class="panel">
+        ${renderGoalBar('pronun')}
         <div class="progress-track"><div class="progress-fill" style="width:${progressPct}%;background:var(--teal)"></div></div>
         <div class="progress-label">${faNum(state.sessionIndex+1)} از ${faNum(state.sessionQueue.length)}</div>
         <div class="pronun-card">
@@ -1428,8 +1537,70 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     return `<div class="panel">${renderStatBlock('word')}</div><div class="panel">${renderStatBlock('sentence')}</div><div class="panel">${renderStatBlock('pronun')}</div>`;
   }
 
+  // --- daily goal progress UI ---
+  function goalLabel(type){ return type==='sentence' ? 'جمله' : type==='pronun' ? 'تلفظ' : 'کلمه'; }
+  function goalColor(type){ return type==='pronun' ? 'var(--teal)' : colorsFor(type)[4]; }
+  function renderGoalBar(type){
+    const goal = state.dailyGoals[type] || 0;
+    if (!goal) return '';
+    const done = Math.min(state.dailyProgress[type] || 0, goal);
+    const pct = Math.round((done / goal) * 100);
+    const reached = done >= goal;
+    return `
+      <div class="goal-progress ${reached ? 'reached' : ''}">
+        <div class="goal-progress-head"><span>${icon('target',13)} هدف امروز · ${goalLabel(type)}</span><span>${faNum(done)} از ${faNum(goal)}</span></div>
+        <div class="goal-progress-track"><div class="goal-progress-fill" style="width:${pct}%;background:${goalColor(type)}"></div></div>
+        ${reached ? '<div class="goal-progress-done">🎉 به هدف امروز رسیدی!</div>' : ''}
+      </div>
+    `;
+  }
+  function renderDailyGoalsPanel(){
+    const g = state.dailyGoals;
+    const rows = ['word','sentence','pronun'].filter(t => g[t] > 0);
+    if (!rows.length) return '';
+    return `
+      <div class="panel">
+        <div class="deck-header"><span class="deck-title" style="color:var(--brass)">${icon('target',16)} هدف امروز</span><span class="deck-sub">با هر جواب درست پر می‌شه</span></div>
+        <div class="daily-goals-list">
+          ${rows.map(t => {
+            const goal = g[t];
+            const done = Math.min(state.dailyProgress[t] || 0, goal);
+            const pct = Math.round((done / goal) * 100);
+            const reached = done >= goal;
+            return `
+              <div class="daily-goal-row">
+                <div class="daily-goal-row-head"><span>${reached ? '🎉 ' : ''}${goalLabel(t)}</span><span>${faNum(done)} / ${faNum(goal)}</span></div>
+                <div class="goal-progress-track"><div class="goal-progress-fill" style="width:${pct}%;background:${goalColor(t)}"></div></div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  function renderDailyGoalSettings(){
+    const rows = [
+      { type: 'word', label: 'کلمه', sub: 'هدف روزانه در جعبه کلمه' },
+      { type: 'sentence', label: 'جمله', sub: 'هدف روزانه در جعبه جمله' },
+      { type: 'pronun', label: 'تلفظ', sub: 'هدف روزانه تمرین تلفظ' },
+    ];
+    return `
+      <div class="panel">
+        <div class="stats-title" style="margin-bottom:6px">${icon('target',16)} هدف روزانه</div>
+        <div class="hint-text" style="margin-bottom:10px">برای هر بخش، تعداد پاسخ درستی که می‌خوای هر روز بهش برسی رو مشخص کن. عدد صفر یعنی بدون هدف.</div>
+        ${rows.map(r => `
+          <div class="goal-setting-row">
+            <div><div class="goal-setting-label">${r.label}</div><div class="goal-setting-sub">${r.sub} · امروز ${faNum(state.dailyProgress[r.type] || 0)}</div></div>
+            <input type="number" min="0" max="999" class="goal-setting-input" dir="ltr" value="${state.dailyGoals[r.type]}" onchange="setDailyGoal('${r.type}', this.value)">
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
   function renderSettings(){
     return `
+      ${renderDailyGoalSettings()}
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px">یادآوری روزانه</div>
         <div class="action-row" style="margin-bottom:0">
@@ -1590,9 +1761,111 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
   function loadGeminiKey(){ try { state.geminiApiKey = localStorage.getItem(GEMINI_KEY_STORAGE) || ''; } catch(e){ state.geminiApiKey = ''; } }
 
+  // --- AI fab drag position (mouse + touch, via Pointer Events) ---
+  function loadAiFabPos(){
+    try {
+      const raw = localStorage.getItem(AI_FAB_POS_KEY);
+      state.aiFabPos = raw ? JSON.parse(raw) : null;
+    } catch(e){ state.aiFabPos = null; }
+  }
+  function clampFabPos(x, y){
+    const size = 58, margin = 6;
+    const maxX = Math.max(margin, window.innerWidth - size - margin);
+    const maxY = Math.max(margin, window.innerHeight - size - margin);
+    return { x: Math.min(Math.max(margin, x), maxX), y: Math.min(Math.max(margin, y), maxY) };
+  }
+  let aiFabDrag = null;
+  let aiFabJustDragged = false;
+  function aiFabPointerDown(e){
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    aiFabDrag = { startX: e.clientX, startY: e.clientY, origLeft: rect.left, origTop: rect.top, moved: false, pointerId: e.pointerId };
+    try { btn.setPointerCapture(e.pointerId); } catch(err){}
+  }
+  function aiFabPointerMove(e){
+    if (!aiFabDrag || e.pointerId !== aiFabDrag.pointerId) return;
+    const dx = e.clientX - aiFabDrag.startX;
+    const dy = e.clientY - aiFabDrag.startY;
+    if (!aiFabDrag.moved && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) aiFabDrag.moved = true;
+    if (!aiFabDrag.moved) return;
+    const btn = e.currentTarget;
+    const pos = clampFabPos(aiFabDrag.origLeft + dx, aiFabDrag.origTop + dy);
+    btn.style.left = pos.x + 'px';
+    btn.style.top = pos.y + 'px';
+    btn.style.right = 'auto';
+    btn.style.bottom = 'auto';
+  }
+  function aiFabPointerUp(e){
+    if (!aiFabDrag || e.pointerId !== aiFabDrag.pointerId) return;
+    const btn = e.currentTarget;
+    const moved = aiFabDrag.moved;
+    try { btn.releasePointerCapture(e.pointerId); } catch(err){}
+    if (moved){
+      const rect = btn.getBoundingClientRect();
+      state.aiFabPos = { x: rect.left, y: rect.top };
+      try { localStorage.setItem(AI_FAB_POS_KEY, JSON.stringify(state.aiFabPos)); } catch(err){}
+      aiFabJustDragged = true;
+    }
+    aiFabDrag = null;
+  }
+  function aiFabClick(e){
+    if (aiFabJustDragged){ aiFabJustDragged = false; if (e) e.preventDefault(); return; }
+    openAiPage();
+  }
+
+  // --- AI chat history (saved automatically per conversation) ---
+  function loadAiHistory(){
+    try { state.aiHistory = JSON.parse(localStorage.getItem(AI_HISTORY_KEY) || '[]'); } catch(e){ state.aiHistory = []; }
+  }
+  function persistAiHistory(){
+    try { localStorage.setItem(AI_HISTORY_KEY, JSON.stringify(state.aiHistory.slice(0, AI_HISTORY_MAX))); } catch(e){}
+  }
+  function aiSessionTitle(messages){
+    const firstUser = messages.find(m => m.role === 'user');
+    const t = firstUser ? firstUser.text.replace(/\s+/g, ' ').trim() : 'گفتگو';
+    return t.length > 42 ? t.slice(0, 42) + '…' : (t || 'گفتگو');
+  }
+  function saveCurrentAiSession(){
+    if (!state.aiMessages.length) return;
+    if (!state.aiSessionId) state.aiSessionId = `s-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;
+    const session = { id: state.aiSessionId, mode: state.aiMode, title: aiSessionTitle(state.aiMessages), messages: state.aiMessages, updatedAt: new Date().toISOString() };
+    const idx = state.aiHistory.findIndex(s => s.id === state.aiSessionId);
+    if (idx >= 0) state.aiHistory[idx] = session; else state.aiHistory = [session, ...state.aiHistory];
+    persistAiHistory();
+  }
+  function openAiHistoryModal(){ loadAiHistory(); state.showAiHistoryModal = true; render(); }
+  function closeAiHistoryModal(){ state.showAiHistoryModal = false; render(); }
+  function loadAiHistorySession(id){
+    const s = state.aiHistory.find(x => x.id === id);
+    if (!s) return;
+    state.aiMessages = s.messages;
+    state.aiMode = s.mode && AI_MODES[s.mode] ? s.mode : 'chat';
+    state.aiSessionId = s.id;
+    state.aiError = null;
+    state.showAiHistoryModal = false;
+    render();
+    setTimeout(scrollAiToBottom, 50);
+  }
+  function deleteAiHistorySession(id, ev){
+    if (ev) ev.stopPropagation();
+    if (!confirm('این گفتگو حذف بشه؟')) return;
+    state.aiHistory = state.aiHistory.filter(s => s.id !== id);
+    persistAiHistory();
+    if (state.aiSessionId === id){ state.aiMessages = []; state.aiSessionId = null; }
+    render();
+  }
+  function formatHistoryDate(iso){
+    try {
+      const d = new Date(iso);
+      return faNum(d.toLocaleDateString('fa-IR')) + ' - ' + faNum(d.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }));
+    } catch(e){ return ''; }
+  }
+
   function openAiPage(){
     stopListening();
     loadGeminiKey();
+    loadAiHistory();
     state.aiOpen = true;
     render();
     setTimeout(scrollAiToBottom, 50);
@@ -1619,7 +1892,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     syncAiInput();
     const text = (typeof presetText === 'string' ? presetText : state.aiInput).trim();
     if (!text) return;
-    if (!state.geminiApiKey){ openAiKeyModal(); return; }
+    if (!state.geminiApiKey){ openAiSettingsModal(); return; }
     state.aiMessages = [...state.aiMessages, { role: 'user', text }];
     state.aiInput = '';
     state.aiLoading = true;
@@ -1655,6 +1928,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       state.aiError = (e && e.message) || 'ارتباط با هوش مصنوعی برقرار نشد. اتصال اینترنتت رو چک کن.';
     }
     state.aiLoading = false;
+    saveCurrentAiSession();
     render();
     scrollAiToBottom();
   }
@@ -1673,21 +1947,22 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   }
 
   function clearAiChat(){
-    if (state.aiMessages.length && !confirm('گفتگوی فعلی پاک بشه؟')) return;
+    if (state.aiMessages.length && !confirm('گفتگوی فعلی پاک بشه؟ (توی تاریخچه می‌مونه)')) return;
     state.aiMessages = [];
     state.aiError = null;
+    state.aiSessionId = null;
     render();
   }
 
-  function openAiKeyModal(){ state.showAiKeyModal = true; render(); }
-  function closeAiKeyModal(){ state.showAiKeyModal = false; render(); }
+  function openAiSettingsModal(){ state.showAiSettingsModal = true; render(); }
+  function closeAiSettingsModal(){ state.showAiSettingsModal = false; render(); }
   function saveAiKey(inputId){
     const el = document.getElementById(inputId);
     const val = el ? el.value.trim() : '';
     if (!val) return;
     state.geminiApiKey = val;
     try { localStorage.setItem(GEMINI_KEY_STORAGE, val); } catch(e){}
-    state.showAiKeyModal = false;
+    state.showAiSettingsModal = false;
     render();
     const ta = document.getElementById('aiInput');
     if (ta) ta.focus();
@@ -1696,13 +1971,99 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (!confirm('کلید API پاک بشه؟')) return;
     state.geminiApiKey = '';
     try { localStorage.removeItem(GEMINI_KEY_STORAGE); } catch(e){}
-    state.showAiKeyModal = false;
+    state.showAiSettingsModal = false;
     render();
   }
 
-  function renderAiFab(){
+  // --- AI example-sentence generator (جعبه کلمه) ---
+  function renderAiSentenceSection(card){
+    const matches = state.aiSentenceCardId === card.id;
+    const result = matches ? state.aiSentenceResult : null;
+    const error = matches ? state.aiSentenceError : null;
+    const loading = matches && state.aiSentenceLoading;
     return `
-      <button class="ai-fab" onclick="openAiPage()" aria-label="دستیار هوشمند">
+      <div class="ai-sentence-box">
+        ${!result ? `<button class="ai-sentence-btn" onclick="generateAiExample()" ${loading?'disabled':''}>${loading ? '✨ در حال ساختن جمله...' : '✨ تولید جمله با AI'}</button>` : ''}
+        ${error ? `<div class="ai-sentence-error">${esc(error)}</div>` : ''}
+        ${result ? `
+          <div class="ai-sentence-result">
+            <div class="ai-sentence-label">جمله پیشنهادی AI</div>
+            <div class="ai-sentence-de">${esc(result.example)}</div>
+            <div class="ai-sentence-label" style="margin-top:10px">معنی</div>
+            <div class="ai-sentence-fa">${esc(result.meaning)}</div>
+            <div class="ai-sentence-actions">
+              <button class="speak-icon-btn" onclick="speakAiSentence()">${icon('volume',14)} شنیدن</button>
+              <button class="link-btn" style="margin:0" onclick="generateAiExample()">✨ جمله دیگه</button>
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }
+  async function generateAiExample(){
+    if (!state.geminiApiKey){
+      stopListening();
+      state.aiOpen = true;
+      state.showAiSettingsModal = true;
+      render();
+      return;
+    }
+    const cardId = state.sessionQueue[state.sessionIndex];
+    const card = state.cards.find(c => c.id === cardId);
+    if (!card) return;
+    state.aiSentenceCardId = card.id;
+    state.aiSentenceLoading = true;
+    state.aiSentenceError = null;
+    state.aiSentenceResult = null;
+    render();
+    try {
+      const prompt = `کلمه: "${card.de}"\nمعنی فارسی این کلمه: "${card.fa}"\nبا همین کلمه یک جمله طبیعی، روان و کاربردی به همون زبانِ کلمه (زبانی که کلمه بهش نوشته شده) بنویس؛ جمله باید بین ۱۰ تا ۱۵ کلمه باشه، نه خیلی کوتاه نه خیلی بلند، و مناسب یادگیری زبان باشه. سپس معنی کامل و روانِ همون جمله رو به فارسی بنویس.\nفقط و فقط یک آبجکت JSON خالص با همین دو کلید برگردون، بدون هیچ توضیح یا Markdown اضافه:\n{"example": "...", "meaning": "..."}`;
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': state.geminiApiKey },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.85, responseMimeType: 'application/json' }
+        })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok){
+        const msg = data && data.error && data.error.message;
+        if (res.status === 400 || res.status === 403) throw new Error('کلید API نامعتبره یا دسترسی نداره. از تنظیمات دستیار هوشمند چکش کن.');
+        if (res.status === 429) throw new Error('محدودیت درخواست رایگان پر شده؛ کمی صبر کن و دوباره امتحان کن.');
+        throw new Error(msg || 'خطا در ارتباط با هوش مصنوعی.');
+      }
+      const blockReason = data && data.promptFeedback && data.promptFeedback.blockReason;
+      if (blockReason) throw new Error('این درخواست توسط فیلتر ایمنی مسدود شد.');
+      const cand = data && data.candidates && data.candidates[0];
+      const replyText = cand && cand.content && cand.content.parts ? cand.content.parts.map(p => p.text || '').join('') : '';
+      if (!replyText) throw new Error('جوابی دریافت نشد، دوباره امتحان کن.');
+      let raw = replyText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '').trim();
+      let parsed = null;
+      try { parsed = JSON.parse(raw); } catch(e){ parsed = null; }
+      if (!parsed || !parsed.example) throw new Error('پاسخ هوش مصنوعی قابل خواندن نبود، دوباره امتحان کن.');
+      if (state.aiSentenceCardId === card.id){
+        state.aiSentenceResult = { example: String(parsed.example).trim(), meaning: String(parsed.meaning || '').trim() };
+      }
+    } catch(e){
+      if (state.aiSentenceCardId === card.id){
+        state.aiSentenceError = (e && e.message) || 'ارتباط با هوش مصنوعی برقرار نشد. اتصال اینترنتت رو چک کن.';
+      }
+    }
+    if (state.aiSentenceCardId === card.id) state.aiSentenceLoading = false;
+    render();
+  }
+  function speakAiSentence(){
+    if (state.aiSentenceResult && state.aiSentenceResult.example) speak(state.aiSentenceResult.example);
+  }
+
+  function renderAiFab(){
+    const posStyle = state.aiFabPos ? `left:${state.aiFabPos.x}px;top:${state.aiFabPos.y}px;right:auto;bottom:auto;` : '';
+    return `
+      <button id="aiFabBtn" class="ai-fab" style="${posStyle}"
+        onpointerdown="aiFabPointerDown(event)" onpointermove="aiFabPointerMove(event)"
+        onpointerup="aiFabPointerUp(event)" onpointercancel="aiFabPointerUp(event)"
+        onclick="aiFabClick(event)" aria-label="دستیار هوشمند">
         <span class="ai-fab-pulse"></span>
         ${icon('ai', 24)}
       </button>
@@ -1716,8 +2077,9 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         <div class="ai-page-header">
           <button class="ai-back-btn" onclick="closeAiPage()" aria-label="بازگشت">${icon('close', 18)}</button>
           <div class="ai-page-title">${icon('ai', 17)} دستیار هوشمند</div>
-          ${state.aiMessages.length ? `<button class="ai-clear-btn" onclick="clearAiChat()" title="پاک کردن گفتگو">${icon('trash', 16)}</button>` : ''}
-          <button class="ai-key-btn" onclick="openAiKeyModal()" title="تنظیم کلید API">${icon('key', 16)}</button>
+          ${state.aiMessages.length ? `<button class="ai-clear-btn" onclick="clearAiChat()" title="گفتگوی جدید">${icon('trash', 16)}</button>` : ''}
+          ${state.geminiApiKey ? `<button class="ai-history-btn" onclick="openAiHistoryModal()" title="گفتگوهای قبلی">${icon('history', 16)}</button>` : ''}
+          <button class="ai-settings-btn" onclick="openAiSettingsModal()" title="تنظیمات">${icon('settings', 16)}</button>
         </div>
         ${!state.geminiApiKey ? renderAiKeySetup() : `
           <div class="ai-quick-row">
@@ -1728,14 +2090,15 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             ${state.aiMessages.map((m, i) => renderAiMessage(m, i)).join('')}
             ${state.aiLoading ? `<div class="ai-msg ai-msg-model"><span class="ai-typing-dots"><span></span><span></span><span></span></span></div>` : ''}
           </div>
-          ${state.aiError ? `<div class="preview-warn" style="margin:0 16px 8px">${esc(state.aiError)}</div>` : ''}
+          ${state.aiError ? `<div class="preview-warn" style="margin:0 10px 8px">${esc(state.aiError)}</div>` : ''}
           <div class="ai-input-row">
             <textarea id="aiInput" rows="1" placeholder="${esc(modeCfg.placeholder)}" onkeydown="handleAiInputKeydown(event)">${esc(state.aiInput)}</textarea>
             <button class="ai-send-btn" onclick="sendAiMessage()" ${state.aiLoading?'disabled':''} aria-label="ارسال">${icon('send', 18)}</button>
           </div>
         `}
       </div>
-      ${renderAiKeyModal()}
+      ${renderAiSettingsModal()}
+      ${renderAiHistoryModal()}
     `;
   }
 
@@ -1767,19 +2130,49 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
-  function renderAiKeyModal(){
-    if (!state.showAiKeyModal) return '';
+  function renderAiSettingsModal(){
+    if (!state.showAiSettingsModal) return '';
     return `
-      <div class="modal-backdrop" onclick="closeAiKeyModal()">
+      <div class="modal-backdrop" onclick="closeAiSettingsModal()">
         <div class="modal-card" onclick="event.stopPropagation()">
           <div class="deck-header" style="margin-bottom:10px">
-            <span class="deck-title">کلید API جمینای</span>
-            <button class="modal-close-btn" onclick="closeAiKeyModal()">${icon('close', 15)}</button>
+            <span class="deck-title">تنظیمات دستیار هوشمند</span>
+            <button class="modal-close-btn" onclick="closeAiSettingsModal()">${icon('close', 15)}</button>
           </div>
-          <div class="hint-text" style="margin-bottom:10px">کلید رو از <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> بگیر و اینجا جایگزین کن.</div>
-          <input id="aiKeyInput" class="text-input" style="width:100%;direction:ltr;text-align:left;margin-bottom:12px" placeholder="AIzaSy..." value="${esc(state.geminiApiKey)}">
-          <button class="btn-primary" onclick="saveAiKey('aiKeyInput')">ذخیره</button>
-          ${state.geminiApiKey ? `<button class="btn-secondary" style="border-color:var(--wine);color:var(--wine)" onclick="clearAiKey()">حذف کلید</button>` : ''}
+          <div class="ai-settings-section">
+            <div class="hint-text" style="margin-bottom:10px">کلید API جمینای رو اینجا ویرایش یا جایگزین کن. کلید رو می‌تونی از <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> بگیری.</div>
+            <input id="aiKeyInput" class="text-input" style="width:100%;direction:ltr;text-align:left;margin-bottom:12px" placeholder="AIzaSy..." value="${esc(state.geminiApiKey)}">
+            <button class="btn-primary" onclick="saveAiKey('aiKeyInput')">ذخیره کلید</button>
+            ${state.geminiApiKey ? `<button class="btn-secondary" style="border-color:var(--wine);color:var(--wine)" onclick="clearAiKey()">حذف کلید</button>` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAiHistoryModal(){
+    if (!state.showAiHistoryModal) return '';
+    const sessions = state.aiHistory;
+    return `
+      <div class="modal-backdrop" onclick="closeAiHistoryModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:10px">
+            <span class="deck-title">گفتگوهای قبلی</span>
+            <button class="modal-close-btn" onclick="closeAiHistoryModal()">${icon('close', 15)}</button>
+          </div>
+          ${sessions.length === 0 ? `<div class="ai-history-empty">هنوز گفتگویی ذخیره نشده.</div>` : `
+            <div class="ai-history-list">
+              ${sessions.map(s => `
+                <div class="ai-history-item ${s.id===state.aiSessionId?'active':''}" onclick="loadAiHistorySession('${s.id}')">
+                  <div class="ai-history-item-main">
+                    <div class="ai-history-item-title">${esc(s.title)}</div>
+                    <div class="ai-history-item-meta">${esc(AI_MODES[s.mode] ? AI_MODES[s.mode].label : 'چت آزاد')} · ${formatHistoryDate(s.updatedAt)}</div>
+                  </div>
+                  <button class="ai-history-item-del" onclick="deleteAiHistorySession('${s.id}', event)" aria-label="حذف">${icon('trash', 14)}</button>
+                </div>
+              `).join('')}
+            </div>
+          `}
         </div>
       </div>
     `;
@@ -1932,6 +2325,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.sessionIndex = 0;
     state.sessionStats = { correct:0, wrong:0 };
     state.revealed = false;
+    state.aiSentenceCardId = null;
+    state.aiSentenceResult = null;
+    state.aiSentenceError = null;
+    state.aiSentenceLoading = false;
     state.view = 'study';
     render();
   }
@@ -1965,6 +2362,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[t].correct += correct ? 1 : 0;
     state.stats[t].wrong += correct ? 0 : 1;
     persistStats();
+    if (correct) incrementDailyProgress(t);
     state.sessionStats = { correct: state.sessionStats.correct+(correct?1:0), wrong: state.sessionStats.wrong+(correct?0:1) };
     state.lastAction = { cardId: card.id, prevBox, prevNextReview, correct, type: t, sessionIndex: state.sessionIndex };
     state.revealed = false;
@@ -1979,6 +2377,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[a.type].correct -= a.correct ? 1 : 0;
     state.stats[a.type].wrong -= a.correct ? 0 : 1;
     persistStats();
+    if (a.correct) decrementDailyProgress(a.type);
     state.sessionStats = { correct: state.sessionStats.correct-(a.correct?1:0), wrong: state.sessionStats.wrong-(a.correct?0:1) };
     state.sessionIndex = a.sessionIndex;
     state.revealed = true;
@@ -2102,8 +2501,21 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadReminderState();
   loadActivityDays();
   loadGeminiKey();
+  loadAiFabPos();
+  loadAiHistory();
+  loadDailyGoals();
+  loadDailyProgress();
   render();
   maybeNotifyComeback();
+
+  window.addEventListener('resize', () => {
+    if (!state.aiFabPos) return;
+    const pos = clampFabPos(state.aiFabPos.x, state.aiFabPos.y);
+    state.aiFabPos = pos;
+    try { localStorage.setItem(AI_FAB_POS_KEY, JSON.stringify(pos)); } catch(e){}
+    const btn = document.getElementById('aiFabBtn');
+    if (btn){ btn.style.left = pos.x + 'px'; btn.style.top = pos.y + 'px'; btn.style.right = 'auto'; btn.style.bottom = 'auto'; }
+  });
   checkMicPermission().then(() => render());
   whenGoogleReady(silentGoogleReauth);
 
