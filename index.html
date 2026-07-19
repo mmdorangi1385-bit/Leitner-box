@@ -118,22 +118,22 @@
 
   .app-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-top: 0; margin-bottom: 14px; }
   .app-header-right { display: flex; align-items: center; gap: 8px; }
-  .app-header-titles { text-align: right; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: -6px; }
-  .app-title { font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; }
-  .app-header-icon { width: 150px; height: 150px; border-radius: 42px; flex-shrink: 0; margin-top: 2px; object-fit: cover; display: block; }
-  .app-header-icon-wrap { position: relative; width: 150px; height: 150px; border-radius: 42px; overflow: hidden; flex-shrink: 0; margin-top: 2px; }
+  .app-header-titles { text-align: right; display: flex; flex-direction: row; align-items: center; gap: 12px; margin-top: -6px; }
+  .app-title { font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; text-shadow: 0 3px 6px rgba(0,0,0,0.45); }
+  .app-header-icon { width: 75px; height: 75px; border-radius: 16px; flex-shrink: 0; margin-top: 0; object-fit: contain; display: block; }
+  .app-header-icon-wrap { position: relative; width: 75px; height: 75px; border-radius: 16px; overflow: hidden; flex-shrink: 0; margin-top: 0; }
   .app-header-icon-wrap .app-header-icon { margin-top: 0; }
   .app-header-icon-wrap::after {
     content: ''; position: absolute; top: -60%; left: -70%; width: 15%; height: 220%;
     background: linear-gradient(75deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
     transform: rotate(18deg); opacity: 0; pointer-events: none;
-    animation: headerIconShine 7.2s ease-in-out infinite;
+    animation: headerIconShine 10s ease-in-out infinite;
   }
   @keyframes headerIconShine {
     0% { left: -70%; opacity: 0; }
-    3% { opacity: 1; }
-    90% { opacity: 1; left: 120%; }
-    97%, 100% { left: 120%; opacity: 0; }
+    2% { opacity: 1; }
+    65% { opacity: 1; left: 120%; }
+    70%, 100% { left: 120%; opacity: 0; }
   }
 
   .nav-row { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 6px; margin-bottom: 20px; }
@@ -944,7 +944,7 @@
               </div>
             </div>
           </div>
-          <div class="app-header-icon-wrap"><img src="icon-192.png" alt="" class="app-header-icon"></div>
+          <div class="app-header-icon-wrap"><img src="icon-header.png" alt="" class="app-header-icon"></div>
         </div>
         ${state.showHeaderMenu ? `<div class="menu-backdrop" onclick="closeHeaderMenu()"></div>` : ''}
         ${renderNav()}
