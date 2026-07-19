@@ -117,9 +117,9 @@
   }
 
   .app-header-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding-top: 0; margin-bottom: 14px; }
-  .app-header-right { display: flex; align-items: center; gap: 8px; }
-  .app-header-titles { text-align: right; display: flex; flex-direction: row; align-items: center; gap: 12px; margin-top: -6px; }
-  .app-title { font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; text-shadow: 0 3px 6px rgba(0,0,0,0.45); }
+  .app-header-right { display: flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-width: 0; }
+  .app-header-titles { position: relative; text-align: right; display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 12px; margin-top: -6px; }
+  .app-title { position: relative; z-index: 2; pointer-events: none; font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; text-shadow: 0 3px 5px rgba(0,0,0,0.35); }
   .app-header-icon { width: 75px; height: 75px; border-radius: 16px; flex-shrink: 0; margin-top: 0; object-fit: contain; display: block; }
   .app-header-icon-wrap { position: relative; width: 75px; height: 75px; border-radius: 16px; overflow: hidden; flex-shrink: 0; margin-top: 0; }
   .app-header-icon-wrap .app-header-icon { margin-top: 0; }
@@ -282,7 +282,7 @@
 
   /* header kebab menu */
   .kebab-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--muted); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-  .header-menu-wrap { position: relative; z-index: 56; }
+  .header-menu-wrap { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1; }
   .header-menu { position: absolute; top: 42px; right: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 176px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 57; }
   .header-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: var(--text); padding: 9px 10px; border-radius: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; cursor: pointer; text-align: right; }
   .header-menu-item svg { color: var(--brass); flex-shrink: 0; }
@@ -936,12 +936,12 @@
               <h1 class="app-title">جعبه لایتنر</h1>
               <div class="header-menu-wrap">
                 <button class="kebab-btn" onclick="toggleHeaderMenu()" aria-label="منوی بیشتر">${icon('kebab',18)}</button>
-                ${state.showHeaderMenu ? `
-                  <div class="header-menu">
-                    <button class="header-menu-item" onclick="openStreakModal()">${icon('calendar',16)} تقویم مرور</button>
-                  </div>
-                ` : ''}
               </div>
+              ${state.showHeaderMenu ? `
+                <div class="header-menu">
+                  <button class="header-menu-item" onclick="openStreakModal()">${icon('calendar',16)} تقویم مرور</button>
+                </div>
+              ` : ''}
             </div>
           </div>
           <div class="app-header-icon-wrap"><img src="icon-header.png" alt="" class="app-header-icon"></div>
