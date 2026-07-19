@@ -119,24 +119,19 @@
   .app-header-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-top: 0; margin-bottom: 14px; }
   .app-header-titles { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; }
   .app-title-glass { position: relative; display: inline-flex; align-items: center; justify-content: center; max-width: 100%; padding: 9px 22px; border-radius: 18px; overflow: hidden; background: linear-gradient(160deg, rgba(255,255,255,0.16), rgba(201,166,107,0.12) 55%, rgba(255,255,255,0.04)); border: 1px solid rgba(201,166,107,0.42); box-shadow: inset 0 1px 1px rgba(255,255,255,0.22), inset 0 -8px 16px rgba(0,0,0,0.18), 0 8px 20px rgba(0,0,0,0.25); backdrop-filter: blur(8px) saturate(150%); -webkit-backdrop-filter: blur(8px) saturate(150%); }
-  .app-title-glass::before { content: ''; position: absolute; top: -60%; left: -40%; width: 38%; height: 220%; background: linear-gradient(75deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.55) 50%, rgba(255,255,255,0) 100%); transform: rotate(18deg); opacity: 0; pointer-events: none; animation: titleGlassShine 8s ease-in-out infinite; }
-  @keyframes titleGlassShine { 0%, 4% { left: -40%; opacity: 0; } 8% { opacity: 0.9; } 42% { opacity: 0.9; left: 130%; } 48%, 100% { left: 130%; opacity: 0; } }
   [data-theme="light"] .app-title-glass { background: linear-gradient(160deg, rgba(255,255,255,0.6), rgba(201,166,107,0.16) 55%, rgba(255,255,255,0.35)); border-color: rgba(169,130,79,0.45); box-shadow: inset 0 1px 1px rgba(255,255,255,0.7), inset 0 -8px 16px rgba(0,0,0,0.05), 0 8px 18px rgba(0,0,0,0.08); }
   .app-title { position: relative; z-index: 2; pointer-events: none; font-family: 'Fraunces', Georgia, serif; font-size: 27px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; text-shadow: 0 3px 5px rgba(0,0,0,0.35); white-space: nowrap; }
-  .app-header-icon { width: 75px; height: 75px; border-radius: 16px; flex-shrink: 0; margin-top: 0; object-fit: contain; display: block; }
-  .app-header-icon-wrap { position: relative; width: 75px; height: 75px; border-radius: 16px; overflow: hidden; flex-shrink: 0; margin-top: 0; }
+  .app-header-icon { width: 75px; height: 75px; border-radius: 16px; flex-shrink: 0; margin-top: 0; object-fit: contain; display: block; position: relative; z-index: 1; }
+  .app-header-icon-wrap { position: relative; width: 75px; height: 75px; border-radius: 16px; overflow: visible; flex-shrink: 0; margin-top: 0; }
   .app-header-icon-wrap .app-header-icon { margin-top: 0; }
-  .app-header-icon-wrap::after {
-    content: ''; position: absolute; top: -60%; left: -70%; width: 15%; height: 220%;
-    background: linear-gradient(75deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
-    transform: rotate(18deg); opacity: 0; pointer-events: none;
-    animation: headerIconShine 10s ease-in-out infinite;
+  .app-header-icon-wrap::before {
+    content: ''; position: absolute; inset: -16px; border-radius: 50%; pointer-events: none;
+    background: radial-gradient(circle, rgba(201,166,107,0.55) 0%, rgba(201,166,107,0.22) 45%, rgba(201,166,107,0) 72%);
+    animation: headerIconHalo 4.5s ease-in-out infinite;
   }
-  @keyframes headerIconShine {
-    0% { left: -70%; opacity: 0; }
-    2% { opacity: 1; }
-    65% { opacity: 1; left: 120%; }
-    70%, 100% { left: 120%; opacity: 0; }
+  @keyframes headerIconHalo {
+    0%, 100% { opacity: 0.35; transform: scale(0.92); }
+    50% { opacity: 0.8; transform: scale(1.1); }
   }
 
   .nav-row { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 6px; margin-bottom: 20px; }
@@ -315,6 +310,36 @@
 
   /* translate */
   .translate-result-box { margin-top: 14px; }
+
+  /* AI assistant */
+  .ai-fab { position: fixed; bottom: 22px; left: 18px; width: 58px; height: 58px; border-radius: 50%; border: none; cursor: pointer; z-index: 55; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #9B7EC4, #6f5798); color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.25); }
+  .ai-fab-pulse { position: absolute; inset: -6px; border-radius: 50%; border: 2px solid #9B7EC4; opacity: 0.55; animation: aiFabPulse 2.4s ease-out infinite; pointer-events: none; }
+  @keyframes aiFabPulse { 0% { transform: scale(0.85); opacity: 0.55; } 100% { transform: scale(1.35); opacity: 0; } }
+
+  .ai-page { position: fixed; inset: 0; background: radial-gradient(ellipse at 50% -10%, var(--bg-radial) 0%, var(--bg) 55%); z-index: 70; display: flex; flex-direction: column; }
+  .ai-page-header { display: flex; align-items: center; gap: 8px; padding: 16px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .ai-page-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px; color: var(--violet); }
+  .ai-back-btn, .ai-key-btn, .ai-clear-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 38px; height: 38px; border-radius: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .ai-quick-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; }
+  .ai-quick-chip { flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 8px 14px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .ai-quick-chip.active { background: var(--violet); color: #fff; border-color: var(--violet); }
+  .ai-messages { flex: 1; overflow-y: auto; padding: 6px 16px; display: flex; flex-direction: column; gap: 12px; }
+  .ai-msg { max-width: 86%; padding: 11px 14px; border-radius: 16px; font-size: 14px; line-height: 1.85; white-space: pre-wrap; word-break: break-word; }
+  .ai-msg-user { align-self: flex-start; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; }
+  .ai-msg-model { align-self: flex-end; background: var(--panel2); border: 1px solid var(--border2); color: var(--text); }
+  .ai-msg-copy { display: flex; justify-content: flex-end; margin-top: 6px; }
+  .ai-msg-copy button { background: none; border: none; color: var(--muted); font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px; }
+  .ai-typing-dots span { display: inline-block; width: 6px; height: 6px; margin: 0 2px; border-radius: 50%; background: var(--muted); animation: aiTyping 1.2s infinite ease-in-out; }
+  .ai-typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+  .ai-typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes aiTyping { 0%, 80%, 100% { transform: translateY(0); opacity: 0.4; } 40% { transform: translateY(-4px); opacity: 1; } }
+  .ai-empty { text-align: center; color: var(--muted); padding: 34px 20px; font-size: 13px; line-height: 1.9; }
+  .ai-empty svg { color: var(--violet); margin-bottom: 10px; }
+  .ai-input-row { display: flex; align-items: flex-end; gap: 8px; padding: 12px 16px calc(16px + env(safe-area-inset-bottom)); border-top: 1px solid var(--border); flex-shrink: 0; }
+  .ai-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; }
+  .ai-send-btn { background: var(--violet); color: #fff; border: none; border-radius: 12px; width: 48px; height: 44px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .ai-send-btn:disabled { opacity: 0.4; cursor: default; }
+  .ai-key-setup { padding: 16px; overflow-y: auto; }
 </style>
 </head>
 <body>
@@ -343,6 +368,7 @@
   const LASTVISIT_KEY = 'leitner_last_visit';
   const GOOGLE_SIGNIN_KEY = 'leitner_google_signed_in_v1';
   const ACTIVITY_KEY = 'leitner_activity_days_v1';
+  const GEMINI_KEY_STORAGE = 'leitner_gemini_api_key_v1';
 
   // --- Google Drive cloud sync config ---
   // To enable "sign in with Google" + Drive backup you must create your own OAuth
@@ -394,6 +420,8 @@
     showHeaderMenu: false, showStreakModal: false, activityDays: {},
     translateInput: '', translateResult: null, translateError: null, translateLoading: false, translateIsToDe: false,
     showTranslateTypeModal: false, translateTypeChoice: 'word',
+    aiOpen: false, geminiApiKey: '', aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
+    showAiKeyModal: false,
   };
 
   function faNum(n){ return String(n).replace(/[0-9]/g, d => FA_DIGITS[d]); }
@@ -927,6 +955,10 @@
     calendar: '<rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>',
     close: '<line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>',
     translate: '<polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/>',
+    ai: '<path d="M12 2l1.8 5.2L19 9l-5.2 1.8L12 16l-1.8-5.2L5 9l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/>',
+    send: '<line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>',
+    copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+    key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5L18 5l3 3-2.5 2.5"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -954,6 +986,8 @@
         ${state.view==='home' ? renderHome() : state.view==='add' ? renderAdd() : state.view==='translate' ? renderTranslate() : state.view==='study' ? renderStudy() : state.view==='stats' ? renderStats() : state.view==='settings' ? renderSettings() : state.view==='categoryHome' ? renderCategoryHome() : renderManage()}
         ${renderStreakModal()}
       </div>
+      ${!state.aiOpen ? renderAiFab() : ''}
+      ${state.aiOpen ? renderAiPage() : ''}
     `;
   }
 
@@ -1525,6 +1559,232 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
+  // --- AI assistant (Google Gemini) ---
+  const AI_MODES = {
+    chat: {
+      label: 'چت آزاد',
+      placeholder: 'سوالت رو بپرس یا هر چیزی بنویس...',
+      system: 'تو یه دستیار هوشمند و دوست‌داشتنیِ داخل اپلیکیشن «جعبه لایتنر» هستی که به فارسی‌زبان‌هایی که دارن آلمانی یاد می‌گیرن کمک می‌کنی. به فارسیِ روان و خودمونی جواب بده مگه اینکه کاربر چیز دیگه‌ای خواسته باشه. جواب‌ها رو کوتاه و مفید نگه دار.'
+    },
+    translate: {
+      label: 'ترجمه متن',
+      placeholder: 'یه کلمه یا جمله (آلمانی یا فارسی) بنویس تا ترجمه‌ش کنم...',
+      system: 'تو یه مترجم حرفه‌ای آلمانی-فارسی هستی. هر متنی که کاربر می‌فرسته رو ترجمه کن (اگه آلمانیه به فارسی، اگه فارسیه به آلمانی)، و اگه لازم بود خیلی کوتاه نکته‌های گرامری یا تلفظی مهمش رو هم اشاره کن. جواب رو مختصر و مرتب بده.'
+    },
+    grammar: {
+      label: 'توضیح گرامر',
+      placeholder: 'یه جمله یا نکته گرامری آلمانی بنویس...',
+      system: 'تو یه معلم گرامر آلمانی هستی که برای فارسی‌زبان‌ها به فارسی توضیح می‌دی. وقتی کاربر یه جمله یا نکته گرامری می‌فرسته، ساختار رو بشکن، نقش هر بخش رو توضیح بده و یکی دو مثال مشابه بزن. ساده و روان بنویس.'
+    },
+    practice: {
+      label: 'تمرین زبان',
+      placeholder: 'به آلمانی جواب بده یا بنویس...',
+      system: 'تو یه هم‌زبونِ صبور برای تمرین مکالمه آلمانی هستی. با کاربر به آلمانیِ ساده (سطح مبتدی تا متوسط) گفتگو کن، اگه اشتباه گرامری یا واژگانی داشت با مهربونی و به فارسی کوتاه تصحیحش کن، بعد گفتگو رو ادامه بده. هر پیام رو کوتاه نگه دار.'
+    },
+    suggest: {
+      label: 'پیشنهاد جمله',
+      placeholder: '(اختیاری) موضوع یا سطح موردنظرت رو بنویس...',
+      system: 'تو کمک می‌کنی جمله‌های کاربردی آلمانی برای یادگیری پیشنهاد بدی. برای هر جمله، متن آلمانی و معنی فارسیش رو زیر هم بنویس. اگه کاربر موضوع یا سطح خاصی نگفت، ۵ جمله روزمره و کاربردی سطح مبتدی تا متوسط پیشنهاد بده.'
+    },
+  };
+
+  function loadGeminiKey(){ try { state.geminiApiKey = localStorage.getItem(GEMINI_KEY_STORAGE) || ''; } catch(e){ state.geminiApiKey = ''; } }
+
+  function openAiPage(){
+    stopListening();
+    loadGeminiKey();
+    state.aiOpen = true;
+    render();
+    setTimeout(scrollAiToBottom, 50);
+  }
+  function closeAiPage(){ state.aiOpen = false; render(); }
+
+  function setAiMode(mode){
+    state.aiMode = mode;
+    state.aiError = null;
+    render();
+    const ta = document.getElementById('aiInput');
+    if (ta) ta.focus();
+    if (mode === 'suggest') sendAiMessage('چند جمله کاربردی آلمانی برام پیشنهاد بده.');
+    if (mode === 'practice' && state.aiMessages.length === 0) sendAiMessage('بیا شروع کنیم، یه گفتگوی ساده آلمانی باهام شروع کن.');
+  }
+
+  function syncAiInput(){ const ta = document.getElementById('aiInput'); if (ta) state.aiInput = ta.value; }
+
+  function handleAiInputKeydown(e){
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendAiMessage(); }
+  }
+
+  async function sendAiMessage(presetText){
+    syncAiInput();
+    const text = (typeof presetText === 'string' ? presetText : state.aiInput).trim();
+    if (!text) return;
+    if (!state.geminiApiKey){ openAiKeyModal(); return; }
+    state.aiMessages = [...state.aiMessages, { role: 'user', text }];
+    state.aiInput = '';
+    state.aiLoading = true;
+    state.aiError = null;
+    render();
+    scrollAiToBottom();
+    try {
+      const modeCfg = AI_MODES[state.aiMode] || AI_MODES.chat;
+      const contents = state.aiMessages.map(m => ({ role: m.role === 'user' ? 'user' : 'model', parts: [{ text: m.text }] }));
+      const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': state.geminiApiKey },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: modeCfg.system }] },
+          contents,
+          generationConfig: { temperature: 0.7 }
+        })
+      });
+      const data = await res.json().catch(() => null);
+      if (!res.ok){
+        const msg = data && data.error && data.error.message;
+        if (res.status === 400 || res.status === 403) throw new Error('کلید API نامعتبره یا دسترسی نداره. از تنظیمات دوباره چکش کن.');
+        if (res.status === 429) throw new Error('محدودیت درخواست رایگان پر شده؛ کمی صبر کن و دوباره امتحان کن.');
+        throw new Error(msg || 'خطا در ارتباط با هوش مصنوعی.');
+      }
+      const blockReason = data && data.promptFeedback && data.promptFeedback.blockReason;
+      if (blockReason) throw new Error('این درخواست توسط فیلتر ایمنی مسدود شد.');
+      const cand = data && data.candidates && data.candidates[0];
+      const replyText = cand && cand.content && cand.content.parts ? cand.content.parts.map(p => p.text || '').join('') : '';
+      if (!replyText) throw new Error('جوابی دریافت نشد، دوباره امتحان کن.');
+      state.aiMessages = [...state.aiMessages, { role: 'model', text: replyText }];
+    } catch(e){
+      state.aiError = (e && e.message) || 'ارتباط با هوش مصنوعی برقرار نشد. اتصال اینترنتت رو چک کن.';
+    }
+    state.aiLoading = false;
+    render();
+    scrollAiToBottom();
+  }
+
+  function scrollAiToBottom(){
+    const el = document.getElementById('aiMessages');
+    if (el) el.scrollTop = el.scrollHeight;
+  }
+
+  function copyAiMessage(i){
+    const m = state.aiMessages[i];
+    if (!m) return;
+    if (navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(m.text).catch(() => {});
+    }
+  }
+
+  function clearAiChat(){
+    if (state.aiMessages.length && !confirm('گفتگوی فعلی پاک بشه؟')) return;
+    state.aiMessages = [];
+    state.aiError = null;
+    render();
+  }
+
+  function openAiKeyModal(){ state.showAiKeyModal = true; render(); }
+  function closeAiKeyModal(){ state.showAiKeyModal = false; render(); }
+  function saveAiKey(inputId){
+    const el = document.getElementById(inputId);
+    const val = el ? el.value.trim() : '';
+    if (!val) return;
+    state.geminiApiKey = val;
+    try { localStorage.setItem(GEMINI_KEY_STORAGE, val); } catch(e){}
+    state.showAiKeyModal = false;
+    render();
+    const ta = document.getElementById('aiInput');
+    if (ta) ta.focus();
+  }
+  function clearAiKey(){
+    if (!confirm('کلید API پاک بشه؟')) return;
+    state.geminiApiKey = '';
+    try { localStorage.removeItem(GEMINI_KEY_STORAGE); } catch(e){}
+    state.showAiKeyModal = false;
+    render();
+  }
+
+  function renderAiFab(){
+    return `
+      <button class="ai-fab" onclick="openAiPage()" aria-label="دستیار هوشمند">
+        <span class="ai-fab-pulse"></span>
+        ${icon('ai', 24)}
+      </button>
+    `;
+  }
+
+  function renderAiPage(){
+    const modeCfg = AI_MODES[state.aiMode] || AI_MODES.chat;
+    return `
+      <div class="ai-page">
+        <div class="ai-page-header">
+          <button class="ai-back-btn" onclick="closeAiPage()" aria-label="بازگشت">${icon('close', 18)}</button>
+          <div class="ai-page-title">${icon('ai', 17)} دستیار هوشمند</div>
+          ${state.aiMessages.length ? `<button class="ai-clear-btn" onclick="clearAiChat()" title="پاک کردن گفتگو">${icon('trash', 16)}</button>` : ''}
+          <button class="ai-key-btn" onclick="openAiKeyModal()" title="تنظیم کلید API">${icon('key', 16)}</button>
+        </div>
+        ${!state.geminiApiKey ? renderAiKeySetup() : `
+          <div class="ai-quick-row">
+            ${Object.keys(AI_MODES).filter(k => k !== 'chat').map(k => `<button class="ai-quick-chip ${state.aiMode===k?'active':''}" onclick="setAiMode('${k}')">${esc(AI_MODES[k].label)}</button>`).join('')}
+          </div>
+          <div class="ai-messages" id="aiMessages">
+            ${state.aiMessages.length === 0 ? `<div class="ai-empty">${icon('ai', 26)}<div>سلام! من دستیار هوشمند این اپم.<br>می‌تونی سوال بپرسی، متن ترجمه کنی، گرامر یاد بگیری، تمرین زبان کنی یا جمله پیشنهادی بگیری.</div></div>` : ''}
+            ${state.aiMessages.map((m, i) => renderAiMessage(m, i)).join('')}
+            ${state.aiLoading ? `<div class="ai-msg ai-msg-model"><span class="ai-typing-dots"><span></span><span></span><span></span></span></div>` : ''}
+          </div>
+          ${state.aiError ? `<div class="preview-warn" style="margin:0 16px 8px">${esc(state.aiError)}</div>` : ''}
+          <div class="ai-input-row">
+            <textarea id="aiInput" rows="1" placeholder="${esc(modeCfg.placeholder)}" onkeydown="handleAiInputKeydown(event)">${esc(state.aiInput)}</textarea>
+            <button class="ai-send-btn" onclick="sendAiMessage()" ${state.aiLoading?'disabled':''} aria-label="ارسال">${icon('send', 18)}</button>
+          </div>
+        `}
+      </div>
+      ${renderAiKeyModal()}
+    `;
+  }
+
+  function renderAiMessage(m, i){
+    const cls = m.role === 'user' ? 'ai-msg-user' : 'ai-msg-model';
+    return `
+      <div class="ai-msg ${cls}">
+        <div>${esc(m.text)}</div>
+        ${m.role === 'model' ? `<div class="ai-msg-copy"><button onclick="copyAiMessage(${i})">${icon('copy', 12)} کپی</button></div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderAiKeySetup(){
+    return `
+      <div class="ai-key-setup">
+        <div class="panel">
+          <div class="stats-title" style="margin-bottom:10px">${icon('key', 16)} اتصال به هوش مصنوعی (Gemini)</div>
+          <div class="hint-text" style="margin-bottom:12px">
+            برای استفاده از دستیار هوشمند، به یه کلید رایگان از Google Gemini نیاز داری:<br>
+            ۱) به <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> برو و با حساب گوگلت وارد شو.<br>
+            ۲) روی «Create API key» بزن و کلید ساخته‌شده رو کپی کن.<br>
+            ۳) کلید رو اینجا پیست کن و ذخیره کن. این کلید فقط توی همین گوشی (localStorage) ذخیره می‌شه و مستقیم از مرورگرت به گوگل فرستاده می‌شه؛ جای دیگه‌ای ذخیره نمی‌شه.
+          </div>
+          <input id="aiKeyInputInline" class="text-input" style="width:100%;direction:ltr;text-align:left;margin-bottom:10px" placeholder="AIzaSy...">
+          <button class="btn-primary" onclick="saveAiKey('aiKeyInputInline')">ذخیره و شروع</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderAiKeyModal(){
+    if (!state.showAiKeyModal) return '';
+    return `
+      <div class="modal-backdrop" onclick="closeAiKeyModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:10px">
+            <span class="deck-title">کلید API جمینای</span>
+            <button class="modal-close-btn" onclick="closeAiKeyModal()">${icon('close', 15)}</button>
+          </div>
+          <div class="hint-text" style="margin-bottom:10px">کلید رو از <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> بگیر و اینجا جایگزین کن.</div>
+          <input id="aiKeyInput" class="text-input" style="width:100%;direction:ltr;text-align:left;margin-bottom:12px" placeholder="AIzaSy..." value="${esc(state.geminiApiKey)}">
+          <button class="btn-primary" onclick="saveAiKey('aiKeyInput')">ذخیره</button>
+          ${state.geminiApiKey ? `<button class="btn-secondary" style="border-color:var(--wine);color:var(--wine)" onclick="clearAiKey()">حذف کلید</button>` : ''}
+        </div>
+      </div>
+    `;
+  }
+
   // navigation
   function goHome(){ stopListening(); state.view='home'; state.activeCategoryId=null; render(); }
   function goAdd(){ stopListening(); state.view='add'; state.preview=null; render(); }
@@ -1841,6 +2101,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadThemeMode();
   loadReminderState();
   loadActivityDays();
+  loadGeminiKey();
   render();
   maybeNotifyComeback();
   checkMicPermission().then(() => render());
