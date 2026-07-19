@@ -120,14 +120,14 @@
   .app-header-right { display: flex; align-items: center; gap: 8px; }
   .app-header-titles { text-align: right; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin-top: -6px; }
   .app-title { font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; margin: 0; letter-spacing: 0.5px; color: var(--brass); transition: color 0.2s ease; }
-  .app-header-icon { width: 42px; height: 42px; border-radius: 12px; flex-shrink: 0; margin-top: 2px; object-fit: cover; display: block; }
-  .app-header-icon-wrap { position: relative; width: 42px; height: 42px; border-radius: 12px; overflow: hidden; flex-shrink: 0; margin-top: 2px; }
+  .app-header-icon { width: 150px; height: 150px; border-radius: 42px; flex-shrink: 0; margin-top: 2px; object-fit: cover; display: block; }
+  .app-header-icon-wrap { position: relative; width: 150px; height: 150px; border-radius: 42px; overflow: hidden; flex-shrink: 0; margin-top: 2px; }
   .app-header-icon-wrap .app-header-icon { margin-top: 0; }
   .app-header-icon-wrap::after {
-    content: ''; position: absolute; top: -60%; left: -70%; width: 40%; height: 220%;
+    content: ''; position: absolute; top: -60%; left: -70%; width: 15%; height: 220%;
     background: linear-gradient(75deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.85) 50%, rgba(255,255,255,0) 100%);
     transform: rotate(18deg); opacity: 0; pointer-events: none;
-    animation: headerIconShine 6s ease-in-out infinite;
+    animation: headerIconShine 7.2s ease-in-out infinite;
   }
   @keyframes headerIconShine {
     0% { left: -70%; opacity: 0; }
