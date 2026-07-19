@@ -1,6 +1,6 @@
 {
-  "name": "جعبه لایتنر آلمانی",
-  "short_name": "لایتنر",
+  "name": "Leitner Box",
+  "short_name": "Leitner Box",
   "description": "جعبه لایتنر برای حفظ کلمات و جملات آلمانی",
   "start_url": "./index.html",
   "scope": "./",
