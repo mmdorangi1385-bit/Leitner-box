@@ -1,0 +1,14 @@
+name = "my-ai-proxy"
+main = "worker.js"
+compatibility_date = "2026-07-01"
+
+# محدودیت نرخ: حداکثر ۳۰ درخواست در هر ۶۰ ثانیه به‌ازای هر IP.
+# اگه دیپلوی این بخش با خطا مواجه شد (نادر)، کل این بلوک [[ratelimits]] رو حذف کن —
+# worker.js خودش چک می‌کنه که این بایندینگ وجود داره یا نه.
+[[ratelimits]]
+name = "AI_RATE_LIMITER"
+namespace_id = "1001"
+
+  [ratelimits.simple]
+  limit = 30
+  period = 60
