@@ -2,7 +2,7 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Leitner Box">
@@ -42,7 +42,7 @@
     --border: #e3dcc8; --border2: #d9d0b6; --divider: #ece5d3; --placeholder: #9a9280;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; }
+  html, body { margin: 0; padding: 0; touch-action: pan-y; overflow-x: hidden; max-width: 100%; }
   body {
     font-family: 'Vazirmatn', Tahoma, sans-serif;
     background: radial-gradient(ellipse at 50% -10%, var(--bg-radial) 0%, var(--bg) 55%);
@@ -179,7 +179,7 @@
   .type-btn.active-word { background: var(--brass); color: #201a10; border-color: var(--brass); }
   .type-btn.active-sentence { background: var(--violet); color: #fff; border-color: var(--violet); }
 
-  textarea { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; color: var(--text); padding: 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 14px; resize: vertical; min-height: 130px; direction: rtl; }
+  textarea { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; color: var(--text); padding: 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 16px; resize: vertical; min-height: 130px; direction: rtl; }
   textarea::placeholder { color: var(--placeholder); }
   textarea[readonly] { opacity: 0.6; }
   .guess-box { min-height: 70px; margin-bottom: 12px; direction: ltr; text-align: left; font-family: 'Fraunces', Georgia, serif; }
@@ -250,7 +250,7 @@
   .goal-setting-row:last-child { border-bottom: none; padding-bottom: 0; }
   .goal-setting-label { font-size: 13.5px; font-weight: 700; }
   .goal-setting-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .goal-setting-input { width: 60px; flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 8px 4px; text-align: center; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 14px; }
+  .goal-setting-input { width: 60px; flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 8px 4px; text-align: center; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 16px; }
 
   /* AI example-sentence generator (word box) */
   .ai-sentence-box { margin-top: 14px; }
@@ -269,8 +269,8 @@
   .ai-explain-vocab-meaning { font-size: 13px; color: var(--text); text-align: right; }
   .ai-sentence-fa.ai-explain-block { white-space: pre-line; }
 
-  .select-input { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13.5px; }
-  .text-input { background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13.5px; }
+  .select-input { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 16px; }
+  .text-input { background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 16px; }
   .link-btn { background: none; border: none; color: var(--brass); font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; padding: 6px 0; text-decoration: underline; display: block; margin: 0 auto; }
 
   .speak-icon-btn { background: none; border: none; color: var(--brass); cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 4px; flex-shrink: 0; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 11.5px; }
@@ -296,7 +296,7 @@
   .color-input { width: 44px; height: 36px; border: none; border-radius: 8px; background: none; cursor: pointer; padding: 0; }
 
   .edit-fields { display: flex; flex-direction: column; gap: 8px; width: 100%; padding: 4px 0; }
-  .edit-textarea { min-height: 44px; padding: 8px 10px; font-size: 13px; }
+  .edit-textarea { min-height: 44px; padding: 8px 10px; font-size: 16px; }
   .edit-actions { display: flex; gap: 8px; }
   .edit-actions button { flex: 1; }
 
@@ -325,7 +325,7 @@
   .menu-backdrop { position: fixed; inset: 0; z-index: 50; background: transparent; }
 
   /* swipeable category carousel */
-  .category-carousel { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 2px 2px 6px; scrollbar-width: none; -ms-overflow-style: none; }
+  .category-carousel { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 2px 2px 6px; scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-x; }
   .category-carousel::-webkit-scrollbar { display: none; }
   .category-slide { position: relative; scroll-snap-align: start; flex: 0 0 auto; width: 116px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 14px; padding: 14px 12px; cursor: pointer; }
   .category-slide-name { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -363,7 +363,7 @@
   .ai-page-header { display: flex; align-items: center; gap: 7px; padding: 16px 16px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
   .ai-page-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; font-weight: 600; flex: 1; display: flex; align-items: center; gap: 8px; color: var(--violet); }
   .ai-back-btn, .ai-settings-btn, .ai-history-btn, .ai-clear-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-  .ai-quick-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; }
+  .ai-quick-row { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; flex-shrink: 0; touch-action: pan-x; }
   .ai-quick-chip { flex-shrink: 0; background: var(--panel2); border: 1px solid var(--border2); color: var(--text); border-radius: 20px; padding: 8px 14px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
   .ai-quick-chip.active { background: var(--violet); color: #fff; border-color: var(--violet); }
   .ai-messages { flex: 1; overflow-y: auto; padding: 6px 10px; display: flex; flex-direction: column; gap: 9px; }
@@ -1650,7 +1650,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       ${renderDailyGoalSettings()}
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px">یادآوری روزانه</div>
-        <div class="hint-text" style="margin-bottom:12px">یه ساعت دلخواه انتخاب کن؛ هر روز سر همون ساعت، وقتی برنامه باز یا در پس‌زمینه‌ست، بهت یادآوری می‌شه: «پاشو بیا تنبل خان وقت حفظ کردنه» — همراه با صدا.</div>
+        <div class="hint-text" style="margin-bottom:12px">یه ساعت دلخواه انتخاب کن؛ هر روز سر همون ساعت، وقتی برنامه باز یا در پس‌زمینه‌ست، یکی از چند جمله‌ی یادآوری براته میاد — همراه با صدا.</div>
+        ${isIos() && !isStandalone() ? `<div class="hint-text" style="margin-bottom:12px;color:var(--wine)">📱 روی آیفون، نوتیفیکیشن فقط وقتی کار می‌کنه که اپ رو از طریق دکمه Share و «Add to Home Screen» به صفحه اصلی اضافه کرده باشی و از همون‌جا بازش کنی.</div>` : ''}
         <div class="action-row" style="margin-bottom:${state.remindersEnabled?'12px':'0'}">
           <div class="action-chip" onclick="toggleReminders()">${icon('bell',18)}<div><b>${state.remindersEnabled?'یادآوری فعاله':'یادآوری روزانه'}</b><span>${state.remindersEnabled?'غیرفعال کردن':'روشن کردن'}</span></div></div>
         </div>
@@ -2532,12 +2533,21 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     render();
   }
 
+  // آیفون/آیپد فقط وقتی اپ رو با «Add to Home Screen» نصب کرده باشی نوتیفیکیشن رو پشتیبانی می‌کنه
+  // (iOS 16.4+)؛ توی یه تب معمولی سافاری اصلاً Notification API وجود نداره.
+  function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
+  function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
+
   async function toggleReminders(){
     if (state.remindersEnabled) {
       state.remindersEnabled = false;
       localStorage.setItem(REMIND_KEY, '0');
       stopReminderWatcher();
       render();
+      return;
+    }
+    if (isIos() && !isStandalone()){
+      alert('برای فعال کردن نوتیفیکیشن روی آیفون، اول این اپ رو به صفحه اصلی اضافه کن: دکمه Share (مربع با فلش رو به بالا) رو بزن، بعد «Add to Home Screen» رو انتخاب کن. بعدش از همون آیکون روی صفحه اصلی بازش کن و دوباره امتحان کن.');
       return;
     }
     if (!('Notification' in window)) { alert('این مرورگر نوتیفیکیشن رو پشتیبانی نمی‌کنه.'); return; }
