@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leitner-cache-v9';
+const CACHE_NAME = 'leitner-cache-v10';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-hero.png', './icon-header.png'];
 
 self.addEventListener('install', (event) => {
@@ -32,9 +32,10 @@ self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'leitner-daily-reminder') {
     event.waitUntil(
       self.registration.showNotification('جعبه لایتنر', {
-        body: 'وقتشه یه دوره تمرین آلمانی داشته باشی!',
+        body: 'پاشو بیا تنبل خان وقت حفظ کردنه',
         icon: 'icon-192.png',
-        badge: 'icon-192.png'
+        badge: 'icon-192.png',
+        vibrate: [300, 150, 300]
       })
     );
   }

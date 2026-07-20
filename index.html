@@ -330,10 +330,15 @@
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 60; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .modal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px; max-width: 380px; width: 100%; max-height: 82vh; overflow-y: auto; }
   .modal-close-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-  .streak-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
-  .streak-cell { aspect-ratio: 1; border-radius: 6px; background: var(--panel2); }
-  .streak-cell.done { background: var(--sage-strong); }
-  .streak-cell.missed { background: var(--wine); }
+  .streak-month-nav { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 10px; }
+  .streak-nav-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--text); width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .streak-month-label { font-weight: 700; min-width: 120px; text-align: center; }
+  .streak-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 14px; }
+  .streak-weekday { text-align: center; font-size: 11px; color: var(--muted); }
+  .streak-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 6px; }
+  .streak-cell { aspect-ratio: 1; border-radius: 6px; background: var(--panel2); display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--muted); }
+  .streak-cell.empty { background: transparent; }
+  .streak-cell.done { background: var(--sage-strong); color: var(--text); }
   .streak-cell.today { box-shadow: 0 0 0 2px var(--text) inset; }
   .streak-legend { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 10px; }
   .streak-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
@@ -407,7 +412,9 @@
   const THEME_KEY = 'leitner_theme_color_v1';
   const THEME_MODE_KEY = 'leitner_theme_mode_v1';
   const REMIND_KEY = 'leitner_reminders_enabled';
-  const LASTVISIT_KEY = 'leitner_last_visit';
+  const REMINDER_TIME_KEY = 'leitner_reminder_time_v1';
+  const REMINDER_LAST_FIRED_KEY = 'leitner_reminder_last_fired_v1';
+  const REMINDER_MESSAGE = 'پاشو بیا تنبل خان وقت حفظ کردنه';
   const GOOGLE_SIGNIN_KEY = 'leitner_google_signed_in_v1';
   const ACTIVITY_KEY = 'leitner_activity_days_v1';
   const GEMINI_KEY_STORAGE = 'leitner_gemini_api_key_v1';
@@ -459,13 +466,14 @@
     manageFilter: 'word', manageCategoryFilter: 'all', studyCategoryFilter: 'all',
     sessionQueue: [], sessionIndex: 0, revealed: false,
     sessionStats: {correct:0, wrong:0}, studyType: null, lastAction: null, showImport: false,
-    remindersEnabled: false,
+    remindersEnabled: false, reminderTime: '09:00',
     pronunAttempt: 0, pronunFeedback: null, pronunHeard: '', pronunListening: false,
     micPermState: 'unknown',
     activeCategoryId: null,
     googleSignedIn: false, googleEmail: '', googleAccessToken: null,
     syncStatus: 'idle', lastSyncAt: null, driveFileId: null,
     showHeaderMenu: false, showStreakModal: false, activityDays: {},
+    streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
     translateInput: '', translateResult: null, translateError: null, translateLoading: false, translateIsToDe: false,
     showTranslateTypeModal: false, translateTypeChoice: 'word',
     aiOpen: false, geminiApiKey: '', aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
@@ -955,7 +963,11 @@
     } catch(e){ console.error(e); }
   }
   function persistStats(){ try { localStorage.setItem(STATS_KEY, JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); markActivityToday(); }
-  function loadReminderState(){ state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1'; }
+  function loadReminderState(){
+    state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1';
+    try { state.reminderTime = localStorage.getItem(REMINDER_TIME_KEY) || '09:00'; } catch(e){ state.reminderTime = '09:00'; }
+    if (state.remindersEnabled) startReminderWatcher();
+  }
 
   // --- daily goals (user-configurable target counts per section) ---
   function loadDailyGoals(){
@@ -1005,7 +1017,7 @@
     persistDailyProgress();
   }
 
-  // --- daily activity tracking (counts reviews per day; day is "done" once reviewed twice) ---
+  // --- daily activity tracking (counts app opens + reviews per day; calendar marks a day green as soon as it's visited once) ---
   const DAILY_DONE_THRESHOLD = 2;
   function normalizeActivityDays(raw){
     if (!raw) return {};
@@ -1061,6 +1073,8 @@
     key: '<circle cx="7.5" cy="15.5" r="5.5"/><path d="M21 2l-9.6 9.6"/><path d="M15.5 7.5L18 5l3 3-2.5 2.5"/>',
     history: '<circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/>',
     target: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2" fill="currentColor" stroke="none"/>',
+    chevronLeft: '<polyline points="15 18 9 12 15 6"/>',
+    chevronRight: '<polyline points="9 18 15 12 9 6"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -1603,9 +1617,16 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       ${renderDailyGoalSettings()}
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px">یادآوری روزانه</div>
-        <div class="action-row" style="margin-bottom:0">
-          <div class="action-chip" onclick="toggleReminders()">${icon('bell',18)}<div><b>${state.remindersEnabled?'یادآوری فعاله':'یادآوری روزانه'}</b><span>${state.remindersEnabled?'غیرفعال کردن':'هر ۲۴ ساعت'}</span></div></div>
+        <div class="hint-text" style="margin-bottom:12px">یه ساعت دلخواه انتخاب کن؛ هر روز سر همون ساعت، وقتی برنامه باز یا در پس‌زمینه‌ست، بهت یادآوری می‌شه: «پاشو بیا تنبل خان وقت حفظ کردنه» — همراه با صدا.</div>
+        <div class="action-row" style="margin-bottom:${state.remindersEnabled?'12px':'0'}">
+          <div class="action-chip" onclick="toggleReminders()">${icon('bell',18)}<div><b>${state.remindersEnabled?'یادآوری فعاله':'یادآوری روزانه'}</b><span>${state.remindersEnabled?'غیرفعال کردن':'روشن کردن'}</span></div></div>
         </div>
+        ${state.remindersEnabled ? `
+          <div style="display:flex;align-items:center;gap:10px">
+            <input type="time" class="text-input" style="width:auto" value="${esc(state.reminderTime)}" onchange="setReminderTime(this.value)">
+            <span class="hint-text" style="margin:0">ساعت یادآوری</span>
+          </div>
+        ` : ''}
       </div>
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px">ظاهر برنامه</div>
@@ -1638,6 +1659,13 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           <input id="settingsNewCat" class="text-input" style="flex:1" placeholder="اسم دسته جدید...">
           <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 16px" onclick="addCategoryFromSettings()">افزودن</button>
         </div>
+      </div>
+      <div class="panel">
+        <div class="stats-title" style="margin-bottom:10px">${icon('key',16)} کلید API هوش مصنوعی (Gemini)</div>
+        <div class="hint-text" style="margin-bottom:10px">کلیدی که برای دستیار هوشمند وارد کردی رو از همین‌جا می‌تونی ویرایش یا حذف کنی. کلید رو می‌تونی از <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> بگیری.</div>
+        <input id="aiKeyInputSettings" class="text-input" style="width:100%;direction:ltr;text-align:left;margin-bottom:12px" placeholder="AIzaSy..." value="${esc(state.geminiApiKey)}">
+        <button class="btn-primary" onclick="saveAiKey('aiKeyInputSettings')">ذخیره کلید</button>
+        ${state.geminiApiKey ? `<button class="btn-secondary" style="border-color:var(--wine);color:var(--wine)" onclick="clearAiKey()">حذف کلید</button>` : ''}
       </div>
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px;color:var(--wine)">پاک کردن حافظه جعبه لایتنر</div>
@@ -1697,20 +1725,39 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     }).join('') + `</div>`;
   }
 
-  function openStreakModal(){ state.showStreakModal = true; state.showHeaderMenu = false; render(); }
+  const GREGORIAN_MONTH_NAMES = ['ژانویه','فوریه','مارس','آوریل','مه','ژوئن','ژوئیه','اوت','سپتامبر','اکتبر','نوامبر','دسامبر'];
+  const GREGORIAN_WEEKDAY_LABELS = ['ش','ی','د','س','چ','پ','ج']; // شنبه تا جمعه، شروع از شنبه
+  function openStreakModal(){
+    const now = new Date();
+    state.streakYear = now.getFullYear();
+    state.streakMonth = now.getMonth();
+    state.showStreakModal = true; state.showHeaderMenu = false; render();
+  }
   function closeStreakModal(){ state.showStreakModal = false; render(); }
+  function changeStreakMonth(delta){
+    let m = state.streakMonth + delta;
+    let y = state.streakYear;
+    if (m < 0){ m = 11; y -= 1; }
+    if (m > 11){ m = 0; y += 1; }
+    state.streakMonth = m; state.streakYear = y;
+    render();
+  }
   function renderStreakModal(){
     if (!state.showStreakModal) return '';
-    const DAYS_TO_SHOW = 35;
+    const y = state.streakYear, m = state.streakMonth;
+    const firstWeekday = (new Date(y, m, 1).getDay() + 1) % 7; // شنبه = ۰
+    const daysInMonth = new Date(y, m + 1, 0).getDate();
+    const todayS = todayStr();
+    const monthPrefix = `${y}-${String(m + 1).padStart(2, '0')}`;
+    let visitedCount = 0;
     let cells = '';
-    let doneCount = 0;
-    for (let i = DAYS_TO_SHOW - 1; i >= 0; i--){
-      const d = addDays(todayStr(), -i);
-      const count = state.activityDays[d] || 0;
-      const done = count >= DAILY_DONE_THRESHOLD;
-      if (done) doneCount++;
-      const isToday = d === todayStr();
-      cells += `<div class="streak-cell ${done?'done':'missed'} ${isToday?'today':''}" title="${d}"></div>`;
+    for (let i = 0; i < firstWeekday; i++){ cells += `<div class="streak-cell empty"></div>`; }
+    for (let day = 1; day <= daysInMonth; day++){
+      const d = `${monthPrefix}-${String(day).padStart(2, '0')}`;
+      const visited = (state.activityDays[d] || 0) > 0;
+      if (visited) visitedCount++;
+      const isToday = d === todayS;
+      cells += `<div class="streak-cell ${visited ? 'done' : ''} ${isToday ? 'today' : ''}" title="${d}">${faNum(day)}</div>`;
     }
     return `
       <div class="modal-backdrop" onclick="closeStreakModal()">
@@ -1719,11 +1766,17 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             <span class="deck-title">تقویم مرور</span>
             <button class="modal-close-btn" onclick="closeStreakModal()">${icon('close',15)}</button>
           </div>
-          <div class="hint-text" style="text-align:center;margin-bottom:0">${faNum(doneCount)} روز از ${faNum(DAYS_TO_SHOW)} روز اخیر رو کامل مرور کرده‌ای</div>
+          <div class="streak-month-nav">
+            <button class="streak-nav-btn" onclick="changeStreakMonth(1)" aria-label="ماه بعد">${icon('chevronRight',16)}</button>
+            <span class="streak-month-label">${GREGORIAN_MONTH_NAMES[m]} ${faNum(y)}</span>
+            <button class="streak-nav-btn" onclick="changeStreakMonth(-1)" aria-label="ماه قبل">${icon('chevronLeft',16)}</button>
+          </div>
+          <div class="hint-text" style="text-align:center;margin-bottom:0">${faNum(visitedCount)} روز از این ماه وارد شده‌ای</div>
+          <div class="streak-weekdays">${GREGORIAN_WEEKDAY_LABELS.map(w => `<div class="streak-weekday">${w}</div>`).join('')}</div>
           <div class="streak-grid">${cells}</div>
           <div class="streak-legend">
-            <div class="streak-legend-item"><span class="streak-legend-dot" style="background:var(--sage-strong)"></span>مرور شده (۲ بار یا بیشتر)</div>
-            <div class="streak-legend-item"><span class="streak-legend-dot" style="background:var(--wine)"></span>مرور نشده</div>
+            <div class="streak-legend-item"><span class="streak-legend-dot" style="background:var(--sage-strong)"></span>وارد شدی</div>
+            <div class="streak-legend-item"><span class="streak-legend-dot" style="background:var(--panel2)"></span>وارد نشدی</div>
           </div>
         </div>
       </div>
@@ -2240,6 +2293,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (state.remindersEnabled) {
       state.remindersEnabled = false;
       localStorage.setItem(REMIND_KEY, '0');
+      stopReminderWatcher();
       render();
       return;
     }
@@ -2248,6 +2302,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (perm !== 'granted') { alert('اجازه نوتیفیکیشن داده نشد.'); return; }
     state.remindersEnabled = true;
     localStorage.setItem(REMIND_KEY, '1');
+    if (!state.reminderTime) state.reminderTime = '09:00';
+    try { localStorage.setItem(REMINDER_TIME_KEY, state.reminderTime); } catch(e){}
     try {
       if ('serviceWorker' in navigator) {
         const reg = await navigator.serviceWorker.ready;
@@ -2261,23 +2317,71 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         }
       }
     } catch(e){ console.error(e); }
+    startReminderWatcher();
     render();
   }
 
-  async function maybeNotifyComeback(){
-    if (!state.remindersEnabled) return;
+  function setReminderTime(val){
+    if (!val) return;
+    state.reminderTime = val;
+    try { localStorage.setItem(REMINDER_TIME_KEY, val); } catch(e){}
+    try { localStorage.removeItem(REMINDER_LAST_FIRED_KEY); } catch(e){}
+    render();
+  }
+
+  // --- foreground alarm watcher: checks every 20s while the app is open/in background tab ---
+  let reminderIntervalHandle = null;
+  function startReminderWatcher(){
+    stopReminderWatcher();
+    checkReminderTime();
+    reminderIntervalHandle = setInterval(checkReminderTime, 20000);
+  }
+  function stopReminderWatcher(){
+    if (reminderIntervalHandle){ clearInterval(reminderIntervalHandle); reminderIntervalHandle = null; }
+  }
+  function checkReminderTime(){
+    if (!state.remindersEnabled || !state.reminderTime) return;
+    const now = new Date();
+    const cur = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    if (cur !== state.reminderTime) return;
+    const today = todayStr();
+    let lastFired = null;
+    try { lastFired = localStorage.getItem(REMINDER_LAST_FIRED_KEY); } catch(e){}
+    if (lastFired === today) return;
+    try { localStorage.setItem(REMINDER_LAST_FIRED_KEY, today); } catch(e){}
+    fireReminderAlarm();
+  }
+  async function fireReminderAlarm(){
+    playAlarmSound();
+    if (navigator.vibrate) { try { navigator.vibrate([300,150,300,150,300]); } catch(e){} }
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    const last = parseInt(localStorage.getItem(LASTVISIT_KEY) || '0', 10);
-    const now = Date.now();
-    if (last && now - last >= 24*60*60*1000) {
-      try {
-        if ('serviceWorker' in navigator) {
-          const reg = await navigator.serviceWorker.ready;
-          reg.showNotification('جعبه لایتنر', { body: 'وقتشه یه دوره تمرین آلمانی داشته باشی!', icon: 'icon-192.png' });
-        }
-      } catch(e){}
-    }
-    localStorage.setItem(LASTVISIT_KEY, String(now));
+    try {
+      if ('serviceWorker' in navigator) {
+        const reg = await navigator.serviceWorker.ready;
+        reg.showNotification('جعبه لایتنر', { body: REMINDER_MESSAGE, icon: 'icon-192.png', badge: 'icon-192.png', vibrate: [300,150,300] });
+      } else {
+        new Notification('جعبه لایتنر', { body: REMINDER_MESSAGE, icon: 'icon-192.png' });
+      }
+    } catch(e){}
+  }
+  function playAlarmSound(){
+    try {
+      const Ctx = window.AudioContext || window.webkitAudioContext;
+      if (!Ctx) return;
+      const ctx = new Ctx();
+      const now = ctx.currentTime;
+      [0, 0.35, 0.7].forEach((t, i) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.value = i % 2 === 0 ? 880 : 660;
+        gain.gain.setValueAtTime(0.0001, now + t);
+        gain.gain.exponentialRampToValueAtTime(0.3, now + t + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + t + 0.3);
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.start(now + t); osc.stop(now + t + 0.32);
+      });
+    } catch(e){}
   }
 
   function parsePreview(){
@@ -2500,13 +2604,13 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadThemeMode();
   loadReminderState();
   loadActivityDays();
+  markActivityToday();
   loadGeminiKey();
   loadAiFabPos();
   loadAiHistory();
   loadDailyGoals();
   loadDailyProgress();
   render();
-  maybeNotifyComeback();
 
   window.addEventListener('resize', () => {
     if (!state.aiFabPos) return;
