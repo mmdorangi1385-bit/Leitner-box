@@ -17,6 +17,9 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // فقط فایل‌های خود اپ رو کش کن؛ درخواست‌های دامنه‌های دیگه (مثل دانلود مدل هوش مصنوعی
+  // آفلاین از CDN) رو دست‌نخورده بذار چون خودشون جداگانه در Cache Storage مدیریت می‌شن.
+  if (new URL(event.request.url).origin !== self.location.origin) return;
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((res) => {
