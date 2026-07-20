@@ -1,5 +1,5 @@
-const CACHE_NAME = 'leitner-cache-v11';
-const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-hero.png', './icon-header.png'];
+const CACHE_NAME = 'leitner-cache-v13';
+const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-hero.png', './icon-header.png', './icon-badge.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -31,13 +31,20 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
+const REMINDER_MESSAGES = [
+  'پاشو بیا تنبل خان وقت حفظ کردنه',
+  'یه سرم به ما بزن بذار یکم خوش بگذره',
+  'موفقیت رو از دست نده، از همین الان شروع کن',
+];
+function pickReminderMessage() { return REMINDER_MESSAGES[Math.floor(Math.random() * REMINDER_MESSAGES.length)]; }
+
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'leitner-daily-reminder') {
     event.waitUntil(
       self.registration.showNotification('جعبه لایتنر', {
-        body: 'پاشو بیا تنبل خان وقت حفظ کردنه',
+        body: pickReminderMessage(),
         icon: 'icon-192.png',
-        badge: 'icon-192.png',
+        badge: 'icon-badge.png',
         vibrate: [300, 150, 300]
       })
     );
