@@ -141,7 +141,7 @@
   .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
 
   .action-row { display: flex; gap: 10px; margin-bottom: 18px; }
-  .action-chip { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; text-align: right; }
+  .action-chip { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; text-align: start; }
   .action-chip svg { color: var(--brass); flex-shrink: 0; }
   .action-chip b { display: block; font-size: 12px; font-weight: 700; }
   .action-chip span { font-size: 10px; color: var(--muted); }
@@ -266,7 +266,7 @@
   .ai-explain-vocab-item { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--divider); }
   .ai-explain-vocab-item:last-child { border-bottom: none; }
   .ai-explain-vocab-word { direction: ltr; text-align: left; font-family: 'JetBrains Mono', Consolas, monospace; font-size: 13px; color: var(--violet); flex-shrink: 0; }
-  .ai-explain-vocab-meaning { font-size: 13px; color: var(--text); text-align: right; }
+  .ai-explain-vocab-meaning { font-size: 13px; color: var(--text); text-align: start; }
   .ai-sentence-fa.ai-explain-block { white-space: pre-line; }
 
   .select-input { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; color: var(--text); padding: 10px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 16px; }
@@ -318,8 +318,8 @@
   /* header kebab menu */
   .kebab-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--muted); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
   .header-menu-wrap { position: relative; flex-shrink: 0; z-index: 58; }
-  .header-menu { position: absolute; top: 42px; right: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 176px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 57; }
-  .header-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: var(--text); padding: 9px 10px; border-radius: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; cursor: pointer; text-align: right; }
+  .header-menu { position: absolute; top: 42px; inset-inline-end: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 176px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 57; }
+  .header-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: var(--text); padding: 9px 10px; border-radius: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; cursor: pointer; text-align: start; }
   .header-menu-item svg { color: var(--brass); flex-shrink: 0; }
   .header-menu-item:active { background: var(--panel2); }
   .menu-backdrop { position: fixed; inset: 0; z-index: 50; background: transparent; }
@@ -361,6 +361,11 @@
 
   /* translate */
   .translate-result-box { margin-top: 14px; }
+  .translate-lang-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+  .translate-lang-picker { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; }
+  .translate-lang-picker-label { flex-shrink: 0; font-size: 12px; color: var(--muted); }
+  .translate-lang-select { width: 100%; min-width: 0; }
+  .translate-swap-btn { flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%; background: var(--panel2); border: 1px solid var(--border2); color: var(--brass); display: flex; align-items: center; justify-content: center; cursor: pointer; }
 
   /* AI assistant */
   .ai-fab { position: fixed; bottom: 22px; left: 18px; width: 58px; height: 58px; border-radius: 50%; border: none; cursor: grab; z-index: 55; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #9B7EC4, #6f5798); color: #fff; box-shadow: 0 10px 24px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.25); touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -453,6 +458,7 @@
   const AI_HISTORY_KEY = 'leitner_ai_history_v1';
   const AI_HISTORY_MAX = 40;
   const AI_TEACH_LANG_KEY = 'leitner_ai_teach_lang_v1';
+  const TRANSLATE_LANG_KEY = 'leitner_translate_lang_v1';
   const UI_LANG_KEY = 'leitner_ui_lang_v1';
 
   // --- دستیار هوش مصنوعی (OpenRouter API) ---
@@ -500,19 +506,19 @@
   const FA_DIGITS = { '0':'۰','1':'۱','2':'۲','3':'۳','4':'۴','5':'۵','6':'۶','7':'۷','8':'۸','9':'۹' };
 
   function colorsFor(type){ return type === 'sentence' ? SENT_COLORS : WORD_COLORS; }
-  function typeLabel(type){ return type === 'sentence' ? 'جمله' : 'کلمه'; }
+  function typeLabel(type){ return type === 'sentence' ? t('typeSentence') : t('typeWord'); }
 
   // --- پروفایل کاربر ---
   const PROFILE_KEY = 'leitner_profile_v1';
   const DEFAULT_AVATARS = [
-    { id: 'a1', emoji: '🦉', bg: '#c9a66b' },
-    { id: 'a2', emoji: '🦊', bg: '#c97b4a' },
-    { id: 'a3', emoji: '🐼', bg: '#8fa37a' },
-    { id: 'a4', emoji: '🐱', bg: '#8B6FC9' },
-    { id: 'a5', emoji: '🐻', bg: '#b65c5c' },
-    { id: 'a6', emoji: '🐧', bg: '#5b8fc9' },
-    { id: 'a7', emoji: '🦁', bg: '#e0b84a' },
-    { id: 'a8', emoji: '🐨', bg: '#6B8F9E' },
+    { id: 'a1', emoji: '🧑', bg: '#c9a66b' },
+    { id: 'a2', emoji: '👩', bg: '#c97b4a' },
+    { id: 'a3', emoji: '👨', bg: '#8fa37a' },
+    { id: 'a4', emoji: '👱‍♀️', bg: '#8B6FC9' },
+    { id: 'a5', emoji: '🧔', bg: '#b65c5c' },
+    { id: 'a6', emoji: '👩‍🦱', bg: '#5b8fc9' },
+    { id: 'a7', emoji: '👨‍🦳', bg: '#e0b84a' },
+    { id: 'a8', emoji: '🧕', bg: '#6B8F9E' },
   ];
   function loadProfile(){
     try {
@@ -597,6 +603,28 @@
       profileNamePlaceholder: 'اسمت رو بنویس...', profileUploadPhoto: '📷 آپلود عکس',
       profileLevel: 'لول', profileLeague: 'لیگ', profileToNextLevel: 'تا لول بعدی',
       leagueBronze: 'برنزی', leagueSilver: 'نقره‌ای', leagueGold: 'طلایی', leaguePlatinum: 'پلاتینی', leagueDiamond: 'الماسی', leagueMaster: 'استاد',
+      typeWord: 'کلمه', typeSentence: 'جمله',
+      categoriesTitle: 'دسته‌بندی‌ها', categoriesSub: 'هر دسته، جعبه لایتنر مخصوص خودش', itemsCount: '{n} مورد',
+      categoryBoxSub: 'جعبه لایتنر جدا و مستقل برای این دسته‌بندی',
+      pronunTitle: 'تمرین تلفظ', pronunCardsCount: '{n} کارت', pronunHomeHint: 'صدای درست کلمه‌ها و جمله‌های آلمانی رو گوش کن و تمرین کن.', pronunStartBtn: 'شروع تمرین تلفظ',
+      deckWord: 'جعبه کلمه', deckSentence: 'جعبه جمله', emptyDeck: 'هنوز {type}‌ای اضافه نکرده‌ای.',
+      boxLabel: 'جعبه {n}', deckCountLine: '{total} {type} · {due} آماده امروز', nothingToday: 'امروز چیزی نیست', startStudyBtn: 'شروع تمرین ({n})',
+      addNewCategoryPlaceholder: 'اسم دسته جدید...', addNewCategorySave: 'ثبت', addNewCategoryBtn: '+ ساخت دسته‌بندی جدید',
+      addSearchPlaceholder: 'جستجوی {type} در کارت‌های موجود...', addSearchBtn: 'جستجو',
+      previewFailWarn: '{n} خط قابل تشخیص نبود و اضافه نمی‌شود (فرمت را چک کن).', addConfirmBtn: 'افزودن {n} {type} به جعبه ۱', editTextBtn: 'ویرایش متن',
+      wordBtn: 'کلمه', sentenceBtn: 'جمله', addHint: 'هر خط یک {type}، به این شکل بنویس (آلمانی، خط تیره، معنی فارسی):', addPreviewBtn: 'بررسی و پیش‌نمایش',
+      translateTitle: 'ترجمه', translateHint: 'زبان مبدا و مقصد رو انتخاب کن، بعد متنت رو بنویس تا ترجمه کنم.',
+      translateFrom: 'از', translateTo: 'به', translateSwap: 'جابه‌جایی زبان‌ها',
+      translatePlaceholder: 'مثلاً: Ich möchte einen Kaffee, bitte\nیا: صبح بخیر',
+      translateBtn: 'ترجمه کن', translateLoading: 'در حال ترجمه...', translateAddBtn: 'افزودن به جعبه لایتنر',
+      translateNeedFa: 'برای افزودن به جعبه لایتنر، یکی از دو زبان باید فارسی باشه.',
+      translateErr: 'ترجمه انجام نشد. اتصال اینترنتت رو چک کن و دوباره امتحان کن.',
+      translateAddedToast: 'به جعبه لایتنر اضافه شد.',
+      translateModalTitle: 'این مال کدوم جعبه‌ست؟', translateModalHint: 'این کلمه یا جمله رو به کدوم جعبه اضافه کنم؟',
+      translateBoxWord: 'جعبه کلمه', translateBoxSentence: 'جعبه جمله',
+      studyCategoryOptional: 'دسته‌بندی (اختیاری):', studyWhichSection: 'کدوم بخش رو تمرین کنی؟',
+      studyWordBtn: 'جعبه کلمه ({n} آماده)', studySentenceBtn: 'جعبه جمله ({n} آماده)', studyPronunBtn: 'تمرین تلفظ (شنیداری)',
+      addSearchEmpty: 'چیزی برای «{q}» بین {type}‌های موجود پیدا نشد.',
     },
     en: {
       appTitle: 'Leitner Box',
@@ -607,6 +635,28 @@
       profileNamePlaceholder: 'Enter your name...', profileUploadPhoto: '📷 Upload photo',
       profileLevel: 'Level', profileLeague: 'League', profileToNextLevel: 'to next level',
       leagueBronze: 'Bronze', leagueSilver: 'Silver', leagueGold: 'Gold', leaguePlatinum: 'Platinum', leagueDiamond: 'Diamond', leagueMaster: 'Master',
+      typeWord: 'word', typeSentence: 'sentence',
+      categoriesTitle: 'Categories', categoriesSub: 'Each category has its own Leitner box', itemsCount: '{n} items',
+      categoryBoxSub: 'A separate, independent Leitner box for this category',
+      pronunTitle: 'Pronunciation practice', pronunCardsCount: '{n} cards', pronunHomeHint: 'Listen to the correct pronunciation of German words and sentences and practice.', pronunStartBtn: 'Start pronunciation practice',
+      deckWord: 'Word box', deckSentence: 'Sentence box', emptyDeck: "You haven't added any {type}s yet.",
+      boxLabel: 'Box {n}', deckCountLine: '{total} {type} · {due} due today', nothingToday: 'Nothing today', startStudyBtn: 'Start practice ({n})',
+      addNewCategoryPlaceholder: 'New category name...', addNewCategorySave: 'Save', addNewCategoryBtn: '+ Create new category',
+      addSearchPlaceholder: 'Search {type} in existing cards...', addSearchBtn: 'Search',
+      previewFailWarn: "{n} line(s) couldn't be recognized and won't be added (check the format).", addConfirmBtn: 'Add {n} {type} to box 1', editTextBtn: 'Edit text',
+      wordBtn: 'Word', sentenceBtn: 'Sentence', addHint: 'Write one {type} per line, like this (target language, dash, Persian meaning):', addPreviewBtn: 'Check & preview',
+      translateTitle: 'Translate', translateHint: 'Choose the source and target language, then write your text to translate.',
+      translateFrom: 'From', translateTo: 'To', translateSwap: 'Swap languages',
+      translatePlaceholder: 'e.g. Ich möchte einen Kaffee, bitte\nor: Good morning',
+      translateBtn: 'Translate', translateLoading: 'Translating...', translateAddBtn: 'Add to Leitner box',
+      translateNeedFa: 'To add it to the Leitner box, one of the two languages must be Persian.',
+      translateErr: 'Translation failed. Check your internet connection and try again.',
+      translateAddedToast: 'Added to the Leitner box.',
+      translateModalTitle: 'Which box does this belong to?', translateModalHint: 'Which box should I add this word or sentence to?',
+      translateBoxWord: 'Word box', translateBoxSentence: 'Sentence box',
+      studyCategoryOptional: 'Category (optional):', studyWhichSection: 'Which section do you want to practice?',
+      studyWordBtn: 'Word box ({n} due)', studySentenceBtn: 'Sentence box ({n} due)', studyPronunBtn: 'Pronunciation practice (listening)',
+      addSearchEmpty: 'Nothing found for "{q}" among the existing {type}s.',
     },
     de: {
       appTitle: 'Leitner-Box',
@@ -617,6 +667,28 @@
       profileNamePlaceholder: 'Gib deinen Namen ein...', profileUploadPhoto: '📷 Foto hochladen',
       profileLevel: 'Level', profileLeague: 'Liga', profileToNextLevel: 'bis zum nächsten Level',
       leagueBronze: 'Bronze', leagueSilver: 'Silber', leagueGold: 'Gold', leaguePlatinum: 'Platin', leagueDiamond: 'Diamant', leagueMaster: 'Meister',
+      typeWord: 'Wort', typeSentence: 'Satz',
+      categoriesTitle: 'Kategorien', categoriesSub: 'Jede Kategorie hat ihre eigene Leitner-Box', itemsCount: '{n} Einträge',
+      categoryBoxSub: 'Eine separate, unabhängige Leitner-Box für diese Kategorie',
+      pronunTitle: 'Ausspracheübung', pronunCardsCount: '{n} Karten', pronunHomeHint: 'Hör dir die richtige Aussprache deutscher Wörter und Sätze an und übe.', pronunStartBtn: 'Ausspracheübung starten',
+      deckWord: 'Wortbox', deckSentence: 'Satzbox', emptyDeck: 'Du hast noch keine {type} hinzugefügt.',
+      boxLabel: 'Box {n}', deckCountLine: '{total} {type} · {due} heute fällig', nothingToday: 'Heute nichts', startStudyBtn: 'Übung starten ({n})',
+      addNewCategoryPlaceholder: 'Name der neuen Kategorie...', addNewCategorySave: 'Speichern', addNewCategoryBtn: '+ Neue Kategorie erstellen',
+      addSearchPlaceholder: '{type} in vorhandenen Karten suchen...', addSearchBtn: 'Suchen',
+      previewFailWarn: '{n} Zeile(n) konnten nicht erkannt werden und werden nicht hinzugefügt (Format prüfen).', addConfirmBtn: '{n} {type} zu Box 1 hinzufügen', editTextBtn: 'Text bearbeiten',
+      wordBtn: 'Wort', sentenceBtn: 'Satz', addHint: 'Schreib pro Zeile ein {type}, so (Zielsprache, Bindestrich, persische Bedeutung):', addPreviewBtn: 'Prüfen & Vorschau',
+      translateTitle: 'Übersetzen', translateHint: 'Wähle Ausgangs- und Zielsprache, schreib dann deinen Text zum Übersetzen.',
+      translateFrom: 'Von', translateTo: 'Nach', translateSwap: 'Sprachen tauschen',
+      translatePlaceholder: 'z. B.: Ich möchte einen Kaffee, bitte\noder: Guten Morgen',
+      translateBtn: 'Übersetzen', translateLoading: 'Übersetze...', translateAddBtn: 'Zur Leitner-Box hinzufügen',
+      translateNeedFa: 'Um es zur Leitner-Box hinzuzufügen, muss eine der beiden Sprachen Persisch sein.',
+      translateErr: 'Übersetzung fehlgeschlagen. Prüfe deine Internetverbindung und versuch es erneut.',
+      translateAddedToast: 'Zur Leitner-Box hinzugefügt.',
+      translateModalTitle: 'Zu welcher Box gehört das?', translateModalHint: 'Zu welcher Box soll ich dieses Wort oder diesen Satz hinzufügen?',
+      translateBoxWord: 'Wortbox', translateBoxSentence: 'Satzbox',
+      studyCategoryOptional: 'Kategorie (optional):', studyWhichSection: 'Welchen Bereich möchtest du üben?',
+      studyWordBtn: 'Wortbox ({n} fällig)', studySentenceBtn: 'Satzbox ({n} fällig)', studyPronunBtn: 'Ausspracheübung (Hören)',
+      addSearchEmpty: 'Nichts gefunden für „{q}" unter den vorhandenen {type}n.',
     },
     es: {
       appTitle: 'Caja de Leitner',
@@ -627,6 +699,28 @@
       profileNamePlaceholder: 'Escribe tu nombre...', profileUploadPhoto: '📷 Subir foto',
       profileLevel: 'Nivel', profileLeague: 'Liga', profileToNextLevel: 'para el siguiente nivel',
       leagueBronze: 'Bronce', leagueSilver: 'Plata', leagueGold: 'Oro', leaguePlatinum: 'Platino', leagueDiamond: 'Diamante', leagueMaster: 'Maestro',
+      typeWord: 'palabra', typeSentence: 'frase',
+      categoriesTitle: 'Categorías', categoriesSub: 'Cada categoría tiene su propia caja de Leitner', itemsCount: '{n} elementos',
+      categoryBoxSub: 'Una caja de Leitner separada e independiente para esta categoría',
+      pronunTitle: 'Práctica de pronunciación', pronunCardsCount: '{n} tarjetas', pronunHomeHint: 'Escucha la pronunciación correcta de palabras y frases en alemán y practica.', pronunStartBtn: 'Iniciar práctica de pronunciación',
+      deckWord: 'Caja de palabras', deckSentence: 'Caja de frases', emptyDeck: 'Todavía no has añadido ninguna {type}.',
+      boxLabel: 'Caja {n}', deckCountLine: '{total} {type} · {due} pendientes hoy', nothingToday: 'Nada por hoy', startStudyBtn: 'Empezar práctica ({n})',
+      addNewCategoryPlaceholder: 'Nombre de la nueva categoría...', addNewCategorySave: 'Guardar', addNewCategoryBtn: '+ Crear nueva categoría',
+      addSearchPlaceholder: 'Buscar {type} en las tarjetas existentes...', addSearchBtn: 'Buscar',
+      previewFailWarn: 'No se reconocieron {n} línea(s) y no se añadirán (revisa el formato).', addConfirmBtn: 'Añadir {n} {type} a la caja 1', editTextBtn: 'Editar texto',
+      wordBtn: 'Palabra', sentenceBtn: 'Frase', addHint: 'Escribe una {type} por línea, así (idioma de destino, guion, significado en persa):', addPreviewBtn: 'Revisar y previsualizar',
+      translateTitle: 'Traducir', translateHint: 'Elige el idioma de origen y de destino, luego escribe tu texto para traducir.',
+      translateFrom: 'De', translateTo: 'A', translateSwap: 'Intercambiar idiomas',
+      translatePlaceholder: 'p. ej.: Ich möchte einen Kaffee, bitte\no: Buenos días',
+      translateBtn: 'Traducir', translateLoading: 'Traduciendo...', translateAddBtn: 'Añadir a la caja de Leitner',
+      translateNeedFa: 'Para añadirlo a la caja de Leitner, uno de los dos idiomas debe ser el persa.',
+      translateErr: 'La traducción falló. Comprueba tu conexión a internet e inténtalo de nuevo.',
+      translateAddedToast: 'Añadido a la caja de Leitner.',
+      translateModalTitle: '¿A qué caja pertenece esto?', translateModalHint: '¿A qué caja debería añadir esta palabra o frase?',
+      translateBoxWord: 'Caja de palabras', translateBoxSentence: 'Caja de frases',
+      studyCategoryOptional: 'Categoría (opcional):', studyWhichSection: '¿Qué sección quieres practicar?',
+      studyWordBtn: 'Caja de palabras ({n} pendientes)', studySentenceBtn: 'Caja de frases ({n} pendientes)', studyPronunBtn: 'Práctica de pronunciación (escucha)',
+      addSearchEmpty: 'No se encontró nada para "{q}" entre las {type}s existentes.',
     },
     fr: {
       appTitle: 'Boîte de Leitner',
@@ -637,6 +731,28 @@
       profileNamePlaceholder: 'Entre ton nom...', profileUploadPhoto: '📷 Importer une photo',
       profileLevel: 'Niveau', profileLeague: 'Ligue', profileToNextLevel: 'avant le niveau suivant',
       leagueBronze: 'Bronze', leagueSilver: 'Argent', leagueGold: 'Or', leaguePlatinum: 'Platine', leagueDiamond: 'Diamant', leagueMaster: 'Maître',
+      typeWord: 'mot', typeSentence: 'phrase',
+      categoriesTitle: 'Catégories', categoriesSub: 'Chaque catégorie a sa propre boîte de Leitner', itemsCount: '{n} éléments',
+      categoryBoxSub: 'Une boîte de Leitner séparée et indépendante pour cette catégorie',
+      pronunTitle: 'Exercice de prononciation', pronunCardsCount: '{n} cartes', pronunHomeHint: 'Écoute la bonne prononciation de mots et phrases allemands et entraîne-toi.', pronunStartBtn: 'Commencer l\'exercice de prononciation',
+      deckWord: 'Boîte de mots', deckSentence: 'Boîte de phrases', emptyDeck: 'Tu n\'as encore ajouté aucun(e) {type}.',
+      boxLabel: 'Boîte {n}', deckCountLine: '{total} {type} · {due} à réviser aujourd\'hui', nothingToday: 'Rien pour aujourd\'hui', startStudyBtn: 'Commencer l\'exercice ({n})',
+      addNewCategoryPlaceholder: 'Nom de la nouvelle catégorie...', addNewCategorySave: 'Enregistrer', addNewCategoryBtn: '+ Créer une nouvelle catégorie',
+      addSearchPlaceholder: 'Rechercher {type} dans les cartes existantes...', addSearchBtn: 'Rechercher',
+      previewFailWarn: '{n} ligne(s) non reconnue(s) et ne sera/seront pas ajoutée(s) (vérifie le format).', addConfirmBtn: 'Ajouter {n} {type} à la boîte 1', editTextBtn: 'Modifier le texte',
+      wordBtn: 'Mot', sentenceBtn: 'Phrase', addHint: 'Écris un(e) {type} par ligne, comme ceci (langue cible, tiret, sens en persan) :', addPreviewBtn: 'Vérifier et prévisualiser',
+      translateTitle: 'Traduire', translateHint: 'Choisis la langue source et la langue cible, puis écris ton texte à traduire.',
+      translateFrom: 'De', translateTo: 'Vers', translateSwap: 'Inverser les langues',
+      translatePlaceholder: 'ex. : Ich möchte einen Kaffee, bitte\nou : Bonjour',
+      translateBtn: 'Traduire', translateLoading: 'Traduction en cours...', translateAddBtn: 'Ajouter à la boîte de Leitner',
+      translateNeedFa: 'Pour l\'ajouter à la boîte de Leitner, l\'une des deux langues doit être le persan.',
+      translateErr: 'Échec de la traduction. Vérifie ta connexion internet et réessaie.',
+      translateAddedToast: 'Ajouté à la boîte de Leitner.',
+      translateModalTitle: 'À quelle boîte cela appartient-il ?', translateModalHint: 'À quelle boîte dois-je ajouter ce mot ou cette phrase ?',
+      translateBoxWord: 'Boîte de mots', translateBoxSentence: 'Boîte de phrases',
+      studyCategoryOptional: 'Catégorie (facultatif) :', studyWhichSection: 'Quelle section veux-tu pratiquer ?',
+      studyWordBtn: 'Boîte de mots ({n} à réviser)', studySentenceBtn: 'Boîte de phrases ({n} à réviser)', studyPronunBtn: 'Exercice de prononciation (écoute)',
+      addSearchEmpty: 'Rien trouvé pour « {q} » parmi les {type}s existant(e)s.',
     },
     it: {
       appTitle: 'Scatola di Leitner',
@@ -647,11 +763,38 @@
       profileNamePlaceholder: 'Scrivi il tuo nome...', profileUploadPhoto: '📷 Carica foto',
       profileLevel: 'Livello', profileLeague: 'Lega', profileToNextLevel: 'al prossimo livello',
       leagueBronze: 'Bronzo', leagueSilver: 'Argento', leagueGold: 'Oro', leaguePlatinum: 'Platino', leagueDiamond: 'Diamante', leagueMaster: 'Maestro',
+      typeWord: 'parola', typeSentence: 'frase',
+      categoriesTitle: 'Categorie', categoriesSub: 'Ogni categoria ha la sua scatola di Leitner', itemsCount: '{n} elementi',
+      categoryBoxSub: 'Una scatola di Leitner separata e indipendente per questa categoria',
+      pronunTitle: 'Esercizio di pronuncia', pronunCardsCount: '{n} carte', pronunHomeHint: 'Ascolta la pronuncia corretta di parole e frasi tedesche e esercitati.', pronunStartBtn: 'Inizia l\'esercizio di pronuncia',
+      deckWord: 'Scatola delle parole', deckSentence: 'Scatola delle frasi', emptyDeck: 'Non hai ancora aggiunto nessuna {type}.',
+      boxLabel: 'Scatola {n}', deckCountLine: '{total} {type} · {due} da ripassare oggi', nothingToday: 'Niente per oggi', startStudyBtn: 'Inizia esercizio ({n})',
+      addNewCategoryPlaceholder: 'Nome della nuova categoria...', addNewCategorySave: 'Salva', addNewCategoryBtn: '+ Crea nuova categoria',
+      addSearchPlaceholder: 'Cerca {type} tra le carte esistenti...', addSearchBtn: 'Cerca',
+      previewFailWarn: '{n} riga/righe non riconosciuta/e e non verrà/verranno aggiunta/e (controlla il formato).', addConfirmBtn: 'Aggiungi {n} {type} alla scatola 1', editTextBtn: 'Modifica testo',
+      wordBtn: 'Parola', sentenceBtn: 'Frase', addHint: 'Scrivi una {type} per riga, così (lingua di destinazione, trattino, significato in persiano):', addPreviewBtn: 'Controlla e anteprima',
+      translateTitle: 'Traduci', translateHint: 'Scegli la lingua di partenza e di arrivo, poi scrivi il testo da tradurre.',
+      translateFrom: 'Da', translateTo: 'A', translateSwap: 'Scambia le lingue',
+      translatePlaceholder: 'ad es.: Ich möchte einen Kaffee, bitte\noppure: Buongiorno',
+      translateBtn: 'Traduci', translateLoading: 'Traduzione in corso...', translateAddBtn: 'Aggiungi alla scatola di Leitner',
+      translateNeedFa: 'Per aggiungerlo alla scatola di Leitner, una delle due lingue deve essere il persiano.',
+      translateErr: 'Traduzione non riuscita. Controlla la tua connessione internet e riprova.',
+      translateAddedToast: 'Aggiunto alla scatola di Leitner.',
+      translateModalTitle: 'A quale scatola appartiene?', translateModalHint: 'A quale scatola devo aggiungere questa parola o frase?',
+      translateBoxWord: 'Scatola delle parole', translateBoxSentence: 'Scatola delle frasi',
+      studyCategoryOptional: 'Categoria (facoltativa):', studyWhichSection: 'Quale sezione vuoi esercitare?',
+      studyWordBtn: 'Scatola delle parole ({n} da ripassare)', studySentenceBtn: 'Scatola delle frasi ({n} da ripassare)', studyPronunBtn: 'Esercizio di pronuncia (ascolto)',
+      addSearchEmpty: 'Nessun risultato per "{q}" tra le {type} esistenti.',
     },
   };
   function t(key){
     const lang = (state && state.uiLang && I18N[state.uiLang]) ? state.uiLang : 'fa';
     return (I18N[lang] && I18N[lang][key] != null) ? I18N[lang][key] : (I18N.fa[key] != null ? I18N.fa[key] : key);
+  }
+  function tf(key, vals){
+    let s = t(key);
+    if (vals) Object.keys(vals).forEach(k => { s = s.split('{' + k + '}').join(vals[k]); });
+    return s;
   }
   function applyUiLangDom(code){
     const info = UI_LANGUAGES[code] || UI_LANGUAGES.fa;
@@ -719,7 +862,8 @@
     syncStatus: 'idle', lastSyncAt: null, driveFileId: null,
     showHeaderMenu: false, showStreakModal: false, activityDays: {},
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
-    translateInput: '', translateResult: null, translateError: null, translateLoading: false, translateIsToDe: false,
+    translateInput: '', translateResult: null, translateError: null, translateLoading: false,
+    translateSrcLang: 'fa', translateTgtLang: 'de',
     showTranslateTypeModal: false, translateTypeChoice: 'word',
     aiOpen: false, aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
     aiFabPos: null, aiHistory: [], aiSessionId: null, showAiHistoryModal: false, aiTeacherCard: null,
@@ -784,21 +928,23 @@
   if ('speechSynthesis' in window) {
     window.speechSynthesis.onvoiceschanged = () => { voicesCache = window.speechSynthesis.getVoices(); };
   }
-  function getGermanVoice(){
+  function getVoiceForLang(bcp47){
     if (!('speechSynthesis' in window)) return null;
     const list = window.speechSynthesis.getVoices();
     if (list && list.length) voicesCache = list;
     const pool = voicesCache || list || [];
-    return pool.find(v => v.lang && v.lang.toLowerCase().startsWith('de')) || null;
+    const prefix = (bcp47 || 'de').slice(0, 2).toLowerCase();
+    return pool.find(v => v.lang && v.lang.toLowerCase().startsWith(prefix)) || null;
   }
-  function speak(text){
+  function speak(text, lang){
     if (!text) return;
     if (!('speechSynthesis' in window)) { alert('مرورگر شما از پخش صدا پشتیبانی نمی‌کند.'); return; }
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.lang = 'de-DE';
-      const v = getGermanVoice();
+      const bcp47 = lang || 'de-DE';
+      u.lang = bcp47;
+      const v = getVoiceForLang(bcp47);
       if (v) u.voice = v;
       u.rate = 0.92;
       window.speechSynthesis.speak(u);
@@ -1330,6 +1476,7 @@
     eye: '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>',
     eyeOff: '<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.5 18.5 0 0 1 4.22-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>',
     image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><path d="M21 15l-5-5L5 21"/>',
+    swap: '<polyline points="17 1 21 5 17 9"/><line x1="21" y1="5" x2="3" y2="5"/><polyline points="7 23 3 19 7 15"/><line x1="3" y1="19" x2="21" y2="19"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -1398,7 +1545,7 @@
     const today = todayStr();
     return `
       <div class="panel">
-        <div class="deck-header"><span class="deck-title">دسته‌بندی‌ها</span><span class="deck-sub">هر دسته، جعبه لایتنر مخصوص خودش</span></div>
+        <div class="deck-header"><span class="deck-title">${t('categoriesTitle')}</span><span class="deck-sub">${t('categoriesSub')}</span></div>
         <div class="category-carousel">
           ${state.categories.map(cat => {
             const count = state.cards.filter(c => c.categoryId === cat.id).length;
@@ -1407,7 +1554,7 @@
               <div class="category-slide" onclick="openCategory('${cat.id}')">
                 ${due>0 ? `<span class="category-slide-badge">${faNum(due)}</span>` : ''}
                 <div class="category-slide-name">${esc(cat.name)}</div>
-                <div class="category-slide-count">${faNum(count)} مورد</div>
+                <div class="category-slide-count">${tf('itemsCount', {n: faNum(count)})}</div>
               </div>
             `;
           }).join('')}
@@ -1425,7 +1572,7 @@
           <button class="category-back" onclick="closeCategory()">${icon('undo',18)}</button>
           <div class="category-header-text">
             <div class="deck-title">${esc(cat.name)}</div>
-            <div class="deck-sub">جعبه لایتنر جدا و مستقل برای این دسته‌بندی</div>
+            <div class="deck-sub">${t('categoryBoxSub')}</div>
           </div>
         </div>
       </div>
@@ -1449,9 +1596,9 @@
   function renderPronunHomePanel(count){
     return `
       <div class="panel">
-        <div class="deck-header"><span class="deck-title" style="color:var(--teal)">تمرین تلفظ</span><span class="deck-sub">${faNum(count)} کارت</span></div>
-        <div class="hint-text">صدای درست کلمه‌ها و جمله‌های آلمانی رو گوش کن و تمرین کن.</div>
-        <button class="btn-primary pronun-cta" ${count===0?'disabled':''} onclick="startSession('pronun')">${icon('volume',18)} شروع تمرین تلفظ</button>
+        <div class="deck-header"><span class="deck-title" style="color:var(--teal)">${t('pronunTitle')}</span><span class="deck-sub">${tf('pronunCardsCount', {n: faNum(count)})}</span></div>
+        <div class="hint-text">${t('pronunHomeHint')}</div>
+        <button class="btn-primary pronun-cta" ${count===0?'disabled':''} onclick="startSession('pronun')">${icon('volume',18)} ${t('pronunStartBtn')}</button>
       </div>
     `;
   }
@@ -1462,10 +1609,10 @@
     const bc = boxCountsFor(type, catFilter);
     const dc = dueCountFor(type, catFilter);
     const total = state.cards.filter(c=>c.type===type && matchesCategory(c, catFilter)).length;
-    const title = type==='sentence' ? 'جعبه جمله' : 'جعبه کلمه';
+    const title = type==='sentence' ? t('deckSentence') : t('deckWord');
     let drawers;
     if (total === 0){
-      drawers = `<div class="empty-state" style="padding:18px 10px">${icon('archive',26)}<div>هنوز ${typeLabel(type)}‌ای اضافه نکرده‌ای.</div></div>`;
+      drawers = `<div class="empty-state" style="padding:18px 10px">${icon('archive',26)}<div>${tf('emptyDeck', {type: typeLabel(type)})}</div></div>`;
     } else {
       const today = todayStr();
       drawers = '<div class="drawer-cabinet">' + [1,2,3,4,5].map(box => {
@@ -1473,7 +1620,7 @@
         return `
           <div class="drawer">
             <div class="drawer-tab" style="background:${colors[box]}">${faNum(box)}</div>
-            <div class="drawer-mid"><div class="drawer-title">جعبه ${faNum(box)}</div><div class="drawer-interval">${intervalLabel(box)}</div></div>
+            <div class="drawer-mid"><div class="drawer-title">${tf('boxLabel', {n: faNum(box)})}</div><div class="drawer-interval">${intervalLabel(box)}</div></div>
             <div class="drawer-count">${dueInBox>0 ? `<span class="drawer-due-dot" style="background:${colors[box]};box-shadow:0 0 6px ${colors[box]}"></span>` : ''}<span class="drawer-count-num">${faNum(bc[box])}</span></div>
           </div>`;
       }).join('') + '</div>';
@@ -1481,9 +1628,9 @@
     const ctaClass = type==='sentence' ? 'btn-primary sentence-cta' : 'btn-primary';
     return `
       <div class="panel">
-        <div class="deck-header"><span class="deck-title" style="color:${colors[3]}">${title}</span><span class="deck-sub">${faNum(total)} ${typeLabel(type)} · ${faNum(dc)} آماده امروز</span></div>
+        <div class="deck-header"><span class="deck-title" style="color:${colors[3]}">${title}</span><span class="deck-sub">${tf('deckCountLine', {total: faNum(total), type: typeLabel(type), due: faNum(dc)})}</span></div>
         ${drawers}
-        <button class="${ctaClass}" ${dc===0?'disabled':''} onclick="startSession('${type}')">${dc===0 ? 'امروز چیزی نیست' : 'شروع تمرین (' + faNum(dc) + ')'}</button>
+        <button class="${ctaClass}" ${dc===0?'disabled':''} onclick="startSession('${type}')">${dc===0 ? t('nothingToday') : tf('startStudyBtn', {n: faNum(dc)})}</button>
       </div>
     `;
   }
@@ -1496,63 +1643,79 @@
         <div class="preview-list">
           ${state.preview.parsed.map((p,i) => `<div class="preview-row"><button class="speak-icon-btn" onclick="speakPreview(${i})">${icon('volume',14)}</button><div class="preview-de">${esc(p.de)}</div><div class="preview-fa">${esc(p.fa)}</div></div>`).join('')}
         </div>
-        ${state.preview.failed.length>0 ? `<div class="preview-warn">${faNum(state.preview.failed.length)} خط قابل تشخیص نبود و اضافه نمی‌شود (فرمت را چک کن).</div>` : ''}
-        <button class="btn-primary" style="margin-top:12px" ${state.preview.parsed.length===0?'disabled':''} onclick="confirmAdd()">افزودن ${faNum(state.preview.parsed.length)} ${typeLabel(state.addType)} به جعبه ۱</button>
-        <button class="btn-secondary" onclick="cancelPreview()">ویرایش متن</button>
+        ${state.preview.failed.length>0 ? `<div class="preview-warn">${tf('previewFailWarn', {n: faNum(state.preview.failed.length)})}</div>` : ''}
+        <button class="btn-primary" style="margin-top:12px" ${state.preview.parsed.length===0?'disabled':''} onclick="confirmAdd()">${tf('addConfirmBtn', {n: faNum(state.preview.parsed.length), type: typeLabel(state.addType)})}</button>
+        <button class="btn-secondary" onclick="cancelPreview()">${t('editTextBtn')}</button>
       `;
     }
     const catPicker = hasPreview ? '' : `
       <div style="margin-bottom:14px">
         <select class="select-input" onchange="setAddCategory(this.value)">${renderCategoryOptions(state.addCategoryId, false)}</select>
         ${state.showNewCategoryInput
-          ? `<div style="display:flex;gap:8px;margin-top:8px"><input id="newCategoryInput" class="text-input" style="flex:1" placeholder="اسم دسته جدید..."><button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px" onclick="addCategoryFromInput()">ثبت</button></div>`
-          : `<button class="link-btn" onclick="toggleNewCategoryInput()">+ ساخت دسته‌بندی جدید</button>`}
+          ? `<div style="display:flex;gap:8px;margin-top:8px"><input id="newCategoryInput" class="text-input" style="flex:1" placeholder="${t('addNewCategoryPlaceholder')}"><button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px" onclick="addCategoryFromInput()">${t('addNewCategorySave')}</button></div>`
+          : `<button class="link-btn" onclick="toggleNewCategoryInput()">${t('addNewCategoryBtn')}</button>`}
       </div>
     `;
     const searchBox = hasPreview ? '' : `
       <div style="display:flex;gap:8px;margin-bottom:14px">
-        <input id="addSearchInput" class="text-input" style="flex:1" placeholder="جستجوی ${typeLabel(state.addType)} در کارت‌های موجود..." value="${esc(state.addSearchQuery)}" onkeydown="if(event.key==='Enter'){runAddSearch();}">
-        <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px;display:flex;align-items:center;gap:6px" onclick="runAddSearch()">${icon('search',15)}جستجو</button>
+        <input id="addSearchInput" class="text-input" style="flex:1" placeholder="${tf('addSearchPlaceholder', {type: typeLabel(state.addType)})}" value="${esc(state.addSearchQuery)}" onkeydown="if(event.key==='Enter'){runAddSearch();}">
+        <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px;display:flex;align-items:center;gap:6px" onclick="runAddSearch()">${icon('search',15)}${t('addSearchBtn')}</button>
       </div>
       ${renderAddSearchResults()}
     `;
     return `
       <div class="panel">
         <div class="type-toggle">
-          <button class="type-btn ${state.addType==='word'?'active-word':''}" onclick="setAddType('word')">کلمه</button>
-          <button class="type-btn ${state.addType==='sentence'?'active-sentence':''}" onclick="setAddType('sentence')">جمله</button>
+          <button class="type-btn ${state.addType==='word'?'active-word':''}" onclick="setAddType('word')">${t('wordBtn')}</button>
+          <button class="type-btn ${state.addType==='sentence'?'active-sentence':''}" onclick="setAddType('sentence')">${t('sentenceBtn')}</button>
         </div>
         ${catPicker}
         ${searchBox}
-        <div class="hint-text">هر خط یک ${typeLabel(state.addType)}، به این شکل بنویس (آلمانی، خط تیره، معنی فارسی):<br><code>Guten Morgen - صبح بخیر</code></div>
+        <div class="hint-text">${tf('addHint', {type: typeLabel(state.addType)})}<br><code>Guten Morgen - صبح بخیر</code></div>
         <textarea id="addTextarea" ${hasPreview?'readonly':''} placeholder="Guten Morgen - صبح بخیر
 das Buch - کتاب
 Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفاً">${esc(state.inputText)}</textarea>
-        ${!hasPreview ? `<button class="btn-primary" style="margin-top:12px" onclick="parsePreview()">بررسی و پیش‌نمایش</button>` : previewHtml}
+        ${!hasPreview ? `<button class="btn-primary" style="margin-top:12px" onclick="parsePreview()">${t('addPreviewBtn')}</button>` : previewHtml}
       </div>
     `;
   }
 
   function renderTranslate(){
     const hasResult = !!state.translateResult;
+    const srcInfo = TRANSLATE_LANGUAGES[state.translateSrcLang] || TRANSLATE_LANGUAGES.fa;
+    const tgtInfo = TRANSLATE_LANGUAGES[state.translateTgtLang] || TRANSLATE_LANGUAGES.de;
     return `
       <div class="panel">
-        <div class="deck-header"><span class="deck-title" style="color:var(--violet)">ترجمه</span><span class="deck-sub">آلمانی ↔ فارسی</span></div>
-        <div class="hint-text" style="margin-bottom:10px">یه کلمه یا جمله بنویس؛ خودش تشخیص می‌ده آلمانیه یا فارسیه و ترجمه می‌کنه.</div>
-        <textarea id="translateInput" placeholder="مثلاً: Ich möchte einen Kaffee, bitte
-یا: صبح بخیر" style="min-height:100px">${esc(state.translateInput)}</textarea>
-        <button class="btn-primary" style="margin-top:12px;background:linear-gradient(180deg,#9B7EC4,#6f5798);color:#fff" onclick="runTranslate()" ${state.translateLoading?'disabled':''}>${state.translateLoading ? 'در حال ترجمه...' : 'ترجمه کن'}</button>
+        <div class="deck-header"><span class="deck-title" style="color:var(--violet)">${t('translateTitle')}</span><span class="deck-sub">${srcInfo.flag} ← → ${tgtInfo.flag}</span></div>
+        <div class="hint-text" style="margin-bottom:10px">${t('translateHint')}</div>
+        <div class="translate-lang-row">
+          <div class="translate-lang-picker">
+            <span class="translate-lang-picker-label">${t('translateFrom')}</span>
+            <select class="select-input translate-lang-select" onchange="setTranslateSrcLang(this.value)">
+              ${Object.keys(TRANSLATE_LANGUAGES).map(code => `<option value="${code}" ${state.translateSrcLang===code?'selected':''}>${TRANSLATE_LANGUAGES[code].flag} ${esc(TRANSLATE_LANGUAGES[code].label)}</option>`).join('')}
+            </select>
+          </div>
+          <button class="translate-swap-btn" onclick="swapTranslateLangs()" title="${t('translateSwap')}" aria-label="${t('translateSwap')}">${icon('swap',16)}</button>
+          <div class="translate-lang-picker">
+            <span class="translate-lang-picker-label">${t('translateTo')}</span>
+            <select class="select-input translate-lang-select" onchange="setTranslateTgtLang(this.value)">
+              ${Object.keys(TRANSLATE_LANGUAGES).map(code => `<option value="${code}" ${state.translateTgtLang===code?'selected':''}>${TRANSLATE_LANGUAGES[code].flag} ${esc(TRANSLATE_LANGUAGES[code].label)}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+        <textarea id="translateInput" placeholder="${esc(t('translatePlaceholder'))}" style="min-height:100px">${esc(state.translateInput)}</textarea>
+        <button class="btn-primary" style="margin-top:12px;background:linear-gradient(180deg,#9B7EC4,#6f5798);color:#fff" onclick="runTranslate()" ${state.translateLoading?'disabled':''}>${state.translateLoading ? t('translateLoading') : t('translateBtn')}</button>
         ${state.translateError ? `<div class="preview-warn">${esc(state.translateError)}</div>` : ''}
         ${hasResult ? `
           <div class="translate-result-box">
             <div class="preview-list">
               <div class="preview-row">
                 <button class="speak-icon-btn" onclick="speakTranslateResult()">${icon('volume',14)}</button>
-                <div class="preview-de">${esc(state.translateIsToDe ? state.translateResult : state.translateInput.trim())}</div>
-                <div class="preview-fa">${esc(state.translateIsToDe ? state.translateInput.trim() : state.translateResult)}</div>
+                <div class="preview-de">${tgtInfo.flag} ${esc(state.translateResult)}</div>
+                <div class="preview-fa">${srcInfo.flag} ${esc(state.translateInput.trim())}</div>
               </div>
             </div>
-            <button class="btn-secondary" onclick="addTranslationAsCard()">${icon('plus',15)} افزودن به جعبه لایتنر</button>
+            <button class="btn-secondary" onclick="addTranslationAsCard()">${icon('plus',15)} ${t('translateAddBtn')}</button>
           </div>
         ` : ''}
       </div>
@@ -1566,15 +1729,15 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       <div class="modal-backdrop" onclick="closeTranslateTypeModal()">
         <div class="modal-card" onclick="event.stopPropagation()">
           <div class="deck-header" style="margin-bottom:10px">
-            <span class="deck-title">این مال کدوم جعبه‌ست؟</span>
+            <span class="deck-title">${t('translateModalTitle')}</span>
             <button class="modal-close-btn" onclick="closeTranslateTypeModal()">${icon('close',15)}</button>
           </div>
-          <div class="hint-text" style="margin-bottom:10px">این کلمه یا جمله رو به کدوم جعبه اضافه کنم؟</div>
+          <div class="hint-text" style="margin-bottom:10px">${t('translateModalHint')}</div>
           <div class="type-toggle">
-            <button class="type-btn ${state.translateTypeChoice==='word'?'active-word':''}" onclick="setTranslateType('word')">جعبه کلمه</button>
-            <button class="type-btn ${state.translateTypeChoice==='sentence'?'active-sentence':''}" onclick="setTranslateType('sentence')">جعبه جمله</button>
+            <button class="type-btn ${state.translateTypeChoice==='word'?'active-word':''}" onclick="setTranslateType('word')">${t('translateBoxWord')}</button>
+            <button class="type-btn ${state.translateTypeChoice==='sentence'?'active-sentence':''}" onclick="setTranslateType('sentence')">${t('translateBoxSentence')}</button>
           </div>
-          <button class="btn-primary" style="margin-top:14px" onclick="confirmAddTranslationAsCard()">افزودن به جعبه لایتنر</button>
+          <button class="btn-primary" style="margin-top:14px" onclick="confirmAddTranslationAsCard()">${t('translateAddBtn')}</button>
         </div>
       </div>
     `;
@@ -1584,12 +1747,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     const wd = dueCountFor('word', state.studyCategoryFilter), sd = dueCountFor('sentence', state.studyCategoryFilter);
     return `
       <div class="panel">
-        <div class="hint-text" style="margin-bottom:8px">دسته‌بندی (اختیاری):</div>
+        <div class="hint-text" style="margin-bottom:8px">${t('studyCategoryOptional')}</div>
         <select class="select-input" style="margin-bottom:16px" onchange="setStudyCategoryFilter(this.value)">${renderCategoryOptions(state.studyCategoryFilter, true)}</select>
-        <div class="hint-text" style="margin-bottom:14px">کدوم بخش رو تمرین کنی؟</div>
-        <button class="btn-primary" style="margin-bottom:10px" onclick="startSession('word')">جعبه کلمه (${faNum(wd)} آماده)</button>
-        <button class="btn-primary sentence-cta" style="margin-bottom:10px" onclick="startSession('sentence')">جعبه جمله (${faNum(sd)} آماده)</button>
-        <button class="btn-secondary" style="margin-top:0" onclick="startSession('pronun')">${icon('volume',16)} تمرین تلفظ (شنیداری)</button>
+        <div class="hint-text" style="margin-bottom:14px">${t('studyWhichSection')}</div>
+        <button class="btn-primary" style="margin-bottom:10px" onclick="startSession('word')">${tf('studyWordBtn', {n: faNum(wd)})}</button>
+        <button class="btn-primary sentence-cta" style="margin-bottom:10px" onclick="startSession('sentence')">${tf('studySentenceBtn', {n: faNum(sd)})}</button>
+        <button class="btn-secondary" style="margin-top:0" onclick="startSession('pronun')">${icon('volume',16)} ${t('studyPronunBtn')}</button>
       </div>
     `;
   }
@@ -1601,7 +1764,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (!q) return '';
     const matches = state.cards.filter(c => c.type===state.addType && (c.de.toLowerCase().includes(q) || c.fa.includes(state.addSearchQuery.trim())));
     if (matches.length === 0){
-      return `<div class="hint-text" style="margin-top:-6px;margin-bottom:14px">چیزی برای «${esc(state.addSearchQuery)}» بین ${typeLabel(state.addType)}‌های موجود پیدا نشد.</div>`;
+      return `<div class="hint-text" style="margin-top:-6px;margin-bottom:14px">${tf('addSearchEmpty', {q: esc(state.addSearchQuery), type: typeLabel(state.addType)})}</div>`;
     }
     return `
       <div class="preview-list" style="margin-bottom:14px">
@@ -2269,11 +2432,16 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   // --- دستیار هوش مصنوعی (از طریق OpenRouter API) ---
   // --- زبان تدریس (برای ترجمه/گرامر/تمرین/پیشنهاد جمله) ---
   const LANGUAGES = {
-    de: { label: 'آلمانی', native: 'Deutsch' },
-    en: { label: 'انگلیسی', native: 'English' },
-    es: { label: 'اسپانیایی', native: 'Español' },
-    it: { label: 'ایتالیایی', native: 'Italiano' },
-    fr: { label: 'فرانسوی', native: 'Français' },
+    de: { label: 'آلمانی', native: 'Deutsch', flag: '🇩🇪', bcp47: 'de-DE' },
+    en: { label: 'انگلیسی', native: 'English', flag: '🇬🇧', bcp47: 'en-US' },
+    es: { label: 'اسپانیایی', native: 'Español', flag: '🇪🇸', bcp47: 'es-ES' },
+    it: { label: 'ایتالیایی', native: 'Italiano', flag: '🇮🇹', bcp47: 'it-IT' },
+    fr: { label: 'فرانسوی', native: 'Français', flag: '🇫🇷', bcp47: 'fr-FR' },
+  };
+  // شامل فارسی هم می‌شه؛ برای بخش ترجمه که کاربر باید بتونه فارسی رو هم به‌عنوان زبان مبدا/مقصد انتخاب کنه
+  const TRANSLATE_LANGUAGES = {
+    fa: { label: 'فارسی', native: 'فارسی', flag: '🇮🇷', bcp47: 'fa-IR' },
+    ...LANGUAGES,
   };
   function teachLang(){ return LANGUAGES[state.aiTeachLang] ? state.aiTeachLang : 'de'; }
   function teachLangLabel(){ return LANGUAGES[teachLang()].label; }
@@ -2783,7 +2951,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function renderAiPage(){
     const modeCfg = AI_MODES[state.aiMode] || AI_MODES.chat;
     const ctx = state.aiMode === 'teacher' ? state.aiTeacherCard : null;
-    const needsLang = ['translate','grammar','practice','suggest'].includes(state.aiMode);
+    const needsLang = ['translate','grammar','practice','suggest','teacher'].includes(state.aiMode);
     return `
       <div class="ai-page">
         <div class="ai-page-header">
@@ -2798,15 +2966,15 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
         ${needsLang ? `
           <div class="ai-lang-row">
-            <span class="ai-lang-row-label">زبان تدریس:</span>
-            ${Object.keys(LANGUAGES).map(code => `<button class="ai-lang-chip ${teachLang()===code?'active':''}" onclick="setAiTeachLang('${code}')">${esc(LANGUAGES[code].label)}</button>`).join('')}
+            <span class="ai-lang-row-label">${state.aiMode === 'teacher' ? 'زبان جواب‌ها:' : 'زبان تدریس:'}</span>
+            ${Object.keys(LANGUAGES).map(code => `<button class="ai-lang-chip ${teachLang()===code?'active':''}" onclick="setAiTeachLang('${code}')">${LANGUAGES[code].flag} ${esc(LANGUAGES[code].label)}</button>`).join('')}
           </div>
         ` : ''}
         ${ctx ? `<div class="ai-quick-row">
           ${TEACHER_QUICK_QUESTIONS.map(t => `<button class="ai-quick-chip" onclick="askTeacherQuick('${esc(t.q).replace(/'/g,"&#39;")}')">${esc(t.label)}</button>`).join('')}
         </div>` : ''}
         <div class="ai-messages" id="aiMessages">
-          ${state.aiMessages.length === 0 ? `<div class="ai-empty">${icon('ai', 26)}<div>${ctx ? 'یکی از سوال‌های بالا رو بزن یا خودت هرچی می‌خوای بپرس.' : 'سلام! من دستیار هوشمند این اپم.<br>می‌تونی سوال بپرسی، متن ترجمه کنی، گرامر یاد بگیری، تمرین زبان کنی یا جمله پیشنهادی بگیری.'}</div></div>` : ''}
+          ${state.aiMessages.length === 0 ? `<div class="ai-empty">${icon('ai', 26)}<div>${ctx ? `اول بالا مشخص کن جواب‌ها به کدوم زبون باشه (الان: ${teachLangLabel()})، بعد یکی از سوال‌های بالا رو بزن یا خودت هرچی می‌خوای بپرس.` : 'سلام! من دستیار هوشمند این اپم.<br>می‌تونی سوال بپرسی، متن ترجمه کنی، گرامر یاد بگیری، تمرین زبان کنی یا جمله پیشنهادی بگیری.'}</div></div>` : ''}
           ${state.aiMessages.map((m, i) => renderAiMessage(m, i)).join('')}
           ${state.aiLoading ? `<div class="ai-msg ai-msg-model"><span class="ai-typing-dots"><span></span><span></span><span></span></span></div>` : ''}
         </div>
@@ -3194,41 +3362,86 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     } catch(e){ alert('این متن معتبر نیست.'); }
   }
 
-  // --- translate (DE <-> FA) ---
+  // --- translate (manual source/target language) ---
+  function loadTranslateLang(){
+    try {
+      const raw = localStorage.getItem(TRANSLATE_LANG_KEY);
+      const v = raw ? JSON.parse(raw) : null;
+      state.translateSrcLang = (v && TRANSLATE_LANGUAGES[v.src]) ? v.src : 'fa';
+      state.translateTgtLang = (v && TRANSLATE_LANGUAGES[v.tgt]) ? v.tgt : 'de';
+    } catch(e){ state.translateSrcLang = 'fa'; state.translateTgtLang = 'de'; }
+  }
+  function persistTranslateLang(){
+    try { localStorage.setItem(TRANSLATE_LANG_KEY, JSON.stringify({ src: state.translateSrcLang, tgt: state.translateTgtLang })); } catch(e){}
+  }
+  function setTranslateSrcLang(code){
+    if (!TRANSLATE_LANGUAGES[code]) return;
+    state.translateSrcLang = code;
+    if (state.translateSrcLang === state.translateTgtLang){
+      state.translateTgtLang = Object.keys(TRANSLATE_LANGUAGES).find(c => c !== code) || state.translateTgtLang;
+    }
+    persistTranslateLang();
+    render();
+  }
+  function setTranslateTgtLang(code){
+    if (!TRANSLATE_LANGUAGES[code]) return;
+    state.translateTgtLang = code;
+    if (state.translateSrcLang === state.translateTgtLang){
+      state.translateSrcLang = Object.keys(TRANSLATE_LANGUAGES).find(c => c !== code) || state.translateSrcLang;
+    }
+    persistTranslateLang();
+    render();
+  }
+  function swapTranslateLangs(){
+    const s = state.translateSrcLang, t = state.translateTgtLang;
+    state.translateSrcLang = t;
+    state.translateTgtLang = s;
+    if (state.translateResult){
+      const oldInput = state.translateInput;
+      state.translateInput = state.translateResult;
+      state.translateResult = oldInput;
+    }
+    persistTranslateLang();
+    render();
+  }
   function syncTranslateInput(){ const ta = document.getElementById('translateInput'); if (ta) state.translateInput = ta.value; }
   async function runTranslate(){
     syncTranslateInput();
     const text = state.translateInput.trim();
     if (!text) return;
-    const isFa = /[\u0600-\u06FF]/.test(text);
-    const targetLang = isFa ? 'de' : 'fa';
+    const srcCode = state.translateSrcLang;
+    const tgtCode = state.translateTgtLang;
     state.translateLoading = true;
     state.translateError = null;
     state.translateResult = null;
     render();
     try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`;
+      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${srcCode}&tl=${tgtCode}&dt=t&q=${encodeURIComponent(text)}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error('bad-response');
       const data = await res.json();
       const translated = (data && data[0]) ? data[0].map(seg => seg[0]).join('') : '';
       if (!translated) throw new Error('empty');
       state.translateResult = translated;
-      state.translateIsToDe = targetLang === 'de';
     } catch(e){
-      state.translateError = 'ترجمه انجام نشد. اتصال اینترنتت رو چک کن و دوباره امتحان کن.';
+      state.translateError = t('translateErr');
     }
     state.translateLoading = false;
     render();
   }
   function speakTranslateResult(){
-    const deText = state.translateIsToDe ? state.translateResult : state.translateInput.trim();
-    if (deText) speak(deText);
+    if (!state.translateResult) return;
+    const info = TRANSLATE_LANGUAGES[state.translateTgtLang] || TRANSLATE_LANGUAGES.de;
+    speak(state.translateResult, info.bcp47);
   }
   function addTranslationAsCard(){
     if (!state.translateResult) return;
-    const de = (state.translateIsToDe ? state.translateResult : state.translateInput).trim();
-    state.translateTypeChoice = de.split(/\s+/).length > 2 ? 'sentence' : 'word';
+    if (state.translateSrcLang !== 'fa' && state.translateTgtLang !== 'fa'){
+      alert(t('translateNeedFa'));
+      return;
+    }
+    const nonFaText = (state.translateTgtLang === 'fa' ? state.translateInput : state.translateResult).trim();
+    state.translateTypeChoice = nonFaText.split(/\s+/).length > 2 ? 'sentence' : 'word';
     state.showTranslateTypeModal = true;
     render();
   }
@@ -3236,8 +3449,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function setTranslateType(v){ state.translateTypeChoice = v; render(); }
   function confirmAddTranslationAsCard(){
     if (!state.translateResult) return;
-    const de = (state.translateIsToDe ? state.translateResult : state.translateInput).trim();
-    const fa = (state.translateIsToDe ? state.translateInput : state.translateResult).trim();
+    const de = (state.translateTgtLang === 'fa' ? state.translateInput : state.translateResult).trim();
+    const fa = (state.translateTgtLang === 'fa' ? state.translateResult : state.translateInput).trim();
     if (!de || !fa) return;
     const now = new Date().toISOString();
     const today = todayStr();
@@ -3246,10 +3459,11 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.cards = [...state.cards, card];
     persistCards();
     state.showTranslateTypeModal = false;
-    alert('به جعبه لایتنر اضافه شد.');
+    alert(t('translateAddedToast'));
     render();
   }
 
+  loadTranslateLang();
   loadUiLang();
   loadProfile();
   loadCards();
