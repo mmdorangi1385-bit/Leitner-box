@@ -729,92 +729,7 @@
   }
   function userFriendByUsername(username){ return state.userFriends.find(f => f.username === username); }
 
-  // مرحله‌ی جستجو: قبل از ارسال درخواست، یک کارت پیش‌نمایش نشون می‌دیم
-  function previewFriendSearch(){
-    const input = document.getElementById('friendSearchInput');
-    const username = input ? input.value.trim() : '';
-    state.friendSearchPreview = username || null;
-    render();
-  }
-  function closeFriendSearchPreview(){ state.friendSearchPreview = null; render(); }
-  // شبیه‌سازی ارسال درخواست دوستی (چون سرور نیست، مستقیماً به لیست خودمون اضافه می‌کنیم تا تست بشه)
-  function confirmSendFriendRequest(){
-    const username = state.friendSearchPreview;
-    if (!username) return;
-    if (!state.friendRequests.includes(username)){
-      state.friendRequests.push(username);
-      persistFriendRequests();
-    }
-    state.friendSearchPreview = null;
-    const input = document.getElementById('friendSearchInput');
-    if (input) input.value = '';
-    alert(`درخواست دوستی برای «${username}» ارسال شد. (چون این نسخه هنوز سرور نداره، برای تست به زنگوله اضافه شد)`);
-    render();
-  }
-  function openRequestsModal(){ state.showRequestsModal = true; render(); }
-  function closeRequestsModal(){ state.showRequestsModal = false; render(); }
-  function acceptFriendRequest(username){
-    if (!userFriendByUsername(username)){
-      state.userFriends.push(makeFriendRecord(username));
-      persistUserFriends();
-    }
-    rejectFriendRequest(username);
-  }
-  function rejectFriendRequest(username){
-    state.friendRequests = state.friendRequests.filter(u => u !== username);
-    persistFriendRequests();
-    render();
-  }
-  function openUserChat(username){
-    state.openChatUsername = username;
-    state.openUserFriendProfile = null;
-    render();
-  }
-  function closeUserChat(){
-    state.openChatUsername = null;
-    render();
-  }
-  function openUserFriendProfile(username){ state.openUserFriendProfile = username; render(); }
-  function closeUserFriendProfile(){ state.openUserFriendProfile = null; render(); }
-  function blockUser(username){
-    if (!confirm(`«${username}» بلاک بشه؟ دیگه توی لیست دوستانتون نمی‌بینیدش.`)) return;
-    if (!state.blockedUsers.includes(username)){
-      state.blockedUsers.push(username);
-      persistBlockedUsers();
-    }
-    state.userFriends = state.userFriends.filter(f => f.username !== username);
-    persistUserFriends();
-    state.friendRequests = state.friendRequests.filter(u => u !== username);
-    persistFriendRequests();
-    state.openUserFriendProfile = null;
-    render();
-  }
-  function removeFriend(username){
-    state.userFriends = state.userFriends.filter(f => f.username !== username);
-    persistUserFriends();
-    state.openUserFriendProfile = null;
-    render();
-  }
-  function sendUserChatMessage(){
-    const input = document.getElementById('userChatInput');
-    const text = input ? input.value.trim() : '';
-    const user = state.openChatUsername;
-    if (!text || !user) return;
-    if (!state.chats[user]) state.chats[user] = [];
-    state.chats[user].push({ sender: 'me', text });
-    // شبیه‌سازی جواب آفلاین برای تست کارکرد چت، چون سرور وصل نیست
-    state.chats[user].push({ sender: 'friend', text: 'این یک جواب تستی است چون سرور وصل نیست!' });
-    persistChats();
-    render();
-    const msgsEl = document.getElementById('userChatMessages');
-    if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
-  }
-  function handleUserChatInputKeydown(e){
-    if (e.key === 'Enter' && !e.shiftKey){
-      e.preventDefault();
-      sendUserChatMessage();
-    }
-  }
+  // نکته: previewFriendSearch و confirmSendFriendRequest واقعی، پایین‌تر کنار initSocialListeners تعریف شدن.
 
   function loadProfile(){
     try {
@@ -829,7 +744,7 @@
       };
     } catch(e){ state.profile = { name: '', avatar: 'a1', customAvatar: null, userId: '', userIdChangeCount: 0, bio: '', gender: '', birthdate: '' }; }
   }
-  function persistProfile(){ try { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); } catch(e){} }
+  function persistProfile(){ try { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); } catch(e){} queueLeaderboardSync(); }
   function setProfileName(v){ state.profile.name = v; persistProfile(); }
   function setProfileBio(v){ state.profile.bio = v; persistProfile(); }
   function selectGender(g){ state.profile.gender = state.profile.gender === g ? '' : g; persistProfile(); render(); }
@@ -853,20 +768,7 @@
     return '';
   }
 
-  // این تابع الان فقط یه استاب محلیه. وقتی سرویس آنلاین آماده شد، کافیه بدنه‌ی این
-  // تابع رو با یه فراخوانی واقعی به سرور جایگزین کنی؛ بقیه‌ی کد (confirmUserId) دست‌نخورده می‌مونه.
-  async function checkUserIdAvailability(id){
-    if (!USER_ID_API_BASE){
-      // هنوز به سرویس آنلاین وصل نشدیم -> فعلاً همیشه در دسترس فرض می‌شه.
-      return true;
-    }
-    try {
-      const res = await fetch(`${USER_ID_API_BASE}/api/user-ids/${encodeURIComponent(id)}/available`);
-      if (!res.ok) return true; // در صورت خطای سرور، مانع ثبت محلی نشو
-      const data = await res.json();
-      return data && data.available !== false;
-    } catch(e){ return true; }
-  }
+  // نکته: checkUserIdAvailability و claimUsername واقعی، پایین‌تر کنار initSocialListeners تعریف شدن.
 
   function onUserIdDraftInput(v){
     state.uiUserIdDraft = v;
@@ -882,12 +784,16 @@
     state.uiUserIdError = '';
     render();
     const available = await checkUserIdAvailability(val);
+    if (!available){ state.uiUserIdChecking = false; state.uiUserIdError = 'profileIdTaken'; render(); return; }
+    const oldId = state.profile.userId;
+    const claimed = await claimUsername(val, oldId);
     state.uiUserIdChecking = false;
-    if (!available){ state.uiUserIdError = 'profileIdTaken'; render(); return; }
+    if (!claimed){ state.uiUserIdError = 'profileIdTaken'; render(); return; }
     state.profile.userId = val;
     state.profile.userIdChangeCount = (state.profile.userIdChangeCount || 0) + 1;
     state.uiUserIdDraft = '';
     persistProfile();
+    queueLeaderboardSync();
     render();
   }
   function setProfileAvatar(id){ state.profile.avatar = id; state.profile.customAvatar = null; persistProfile(); render(); }
@@ -2308,9 +2214,9 @@
     showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
-    friendRequests: [], userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
-    blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null,
-    leaderboardTab: 'league',
+    friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
+    blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null, friendSearchLoading: false,
+    leaderboardTab: 'league', leaderboardEntries: null, leaderboardLoading: false,
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
     translateInput: '', translateResult: null, translateError: null, translateLoading: false,
     translateSrcLang: 'fa', translateTgtLang: 'de',
@@ -2696,6 +2602,7 @@
 
   function signOutAccount(){
     if (!firebaseReady) return;
+    detachSocialListeners();
     fbAuth.signOut().catch(() => {});
     state.authUser = null;
     state.syncStatus = 'idle';
@@ -2789,6 +2696,7 @@
         state.authGuest = false;
         hideAuthOverlay();
         await syncOnLogin();
+        initSocialListeners();
       } else if (wasGuest) {
         state.authGuest = true;
         hideAuthOverlay();
@@ -2806,6 +2714,316 @@
     }, 6000);
   }
 
+
+  // ===================================================================
+  // بخش آنلاین: نام‌کاربری یکتا، لیدربورد واقعی، درخواست دوستی، لیست
+  // دوستان و چت زنده — همه روی Firebase Realtime Database.
+  // چون این اپ سرور اختصاصی (Cloud Functions) نداره، برای «دوستی دوطرفه»
+  // از یه الگوی inbox/outbox امن استفاده می‌کنیم (جزئیاتش پایین توضیح داده شده)
+  // به‌جای نوشتن مستقیم توی لیست دوستانِ طرف مقابل که یه حفره‌ی امنیتی بود.
+  // ===================================================================
+  let socialListenersAttached = false;
+  let friendRequestsRef = null, pendingAddsRef = null, myFriendUidsRef = null;
+  let activeChatRef = null;
+  const friendProfileCache = {}; // uid -> {name, avatar, userId, xp} (کش موقت، برای کم‌کردن تعداد درخواست‌ها)
+
+  function myUid(){ return state.authUser ? state.authUser.uid : null; }
+  function chatIdFor(uidA, uidB){ return [uidA, uidB].sort().join('_'); }
+
+  // --- نام‌کاربری یکتا (usernames/{id} -> uid) ---
+  // این تابع جایگزین استاب قبلی checkUserIdAvailability شده؛ ورودی/خروجی همون قبلیه
+  // که confirmUserId صداش می‌زنه، پس بقیه‌ی UI دست‌نخورده می‌مونه.
+  async function checkUserIdAvailability(id){
+    if (!firebaseReady || !state.authUser) return true; // مهمان/آفلاین -> فقط قفل محلی اعمال می‌شه
+    try {
+      const snap = await fbDb.ref('usernames/' + id).once('value');
+      const owner = snap.val();
+      return !owner || owner === state.authUser.uid;
+    } catch(e){ return true; }
+  }
+
+  // ثبت/آزادسازی نام‌کاربری با transaction (اتمیک، برخلاف نمونه‌ی اولیه که با یه set ساده و بدون
+  // محافظت در برابر race condition دو نفر که هم‌زمان یه اسم رو می‌گیرن نوشته شده بود)
+  async function claimUsername(newId, oldId){
+    if (!firebaseReady || !state.authUser) return true;
+    const uid = state.authUser.uid;
+    try {
+      const result = await fbDb.ref('usernames/' + newId).transaction((current) => {
+        if (current === null || current === uid) return uid;
+        return; // abort -> یعنی گرفته شده
+      });
+      if (!result.committed) return false;
+      if (oldId && oldId !== newId) {
+        fbDb.ref('usernames/' + oldId).transaction((current) => (current === uid ? null : current));
+      }
+      return true;
+    } catch(e){ return false; }
+  }
+
+  // --- لیدربورد واقعی + پروفایل عمومیِ سبک (leaderboard/{uid}) ---
+  // همین گره هم برای رتبه‌بندی استفاده می‌شه هم به‌عنوان «پروفایل عمومی» برای نمایش
+  // اسم/آواتار دوستان به هم؛ چون قوانین امنیتی users/{uid} فقط به خود کاربر اجازه‌ی
+  // خوندن می‌ده (برای محافظت از کارت‌ها/آماره)، نمی‌شه مستقیم از اونجا خوند.
+  let leaderboardSyncTimer = null;
+  function queueLeaderboardSync(){
+    if (!firebaseReady || !state.authUser) return;
+    clearTimeout(leaderboardSyncTimer);
+    leaderboardSyncTimer = setTimeout(() => {
+      fbDb.ref('leaderboard/' + state.authUser.uid).set({
+        name: state.profile.name || state.profile.userId || 'کاربر',
+        avatar: state.profile.avatar || 'a1',
+        userId: state.profile.userId || '',
+        xp: totalXp(),
+        updatedAt: Date.now()
+      }).catch((e) => console.error('leaderboard sync error', e));
+    }, 1500);
+  }
+
+  async function fetchLeaderboardTop(){
+    if (!firebaseReady || !state.authUser) { state.leaderboardEntries = null; return; }
+    state.leaderboardLoading = true;
+    render();
+    try {
+      const snap = await fbDb.ref('leaderboard').orderByChild('xp').limitToLast(50).once('value');
+      const entries = [];
+      snap.forEach((child) => { entries.push({ uid: child.key, ...child.val() }); });
+      entries.reverse(); // بیشترین XP اول
+      state.leaderboardEntries = entries;
+    } catch(e) {
+      console.error(e);
+      state.leaderboardEntries = [];
+    }
+    state.leaderboardLoading = false;
+    render();
+  }
+
+  // --- درخواست دوستی واقعی ---
+  // جستجو: userId -> uid (از usernames) -> پروفایل عمومی (از leaderboard)
+  async function previewFriendSearch(){
+    const input = document.getElementById('friendSearchInput');
+    const username = input ? input.value.trim() : '';
+    if (!username) { state.friendSearchPreview = null; render(); return; }
+    if (!firebaseReady || !state.authUser) {
+      alert('برای اضافه‌کردن دوست باید وارد حساب بشی.');
+      return;
+    }
+    if (username === state.profile.userId) { alert('نمی‌تونی به خودت درخواست بدی!'); return; }
+    state.friendSearchLoading = true;
+    render();
+    try {
+      const idSnap = await fbDb.ref('usernames/' + username).once('value');
+      const targetUid = idSnap.val();
+      if (!targetUid) {
+        state.friendSearchLoading = false;
+        state.friendSearchPreview = null;
+        render();
+        alert(`کاربری با آیدی «${username}» پیدا نشد.`);
+        return;
+      }
+      const profSnap = await fbDb.ref('leaderboard/' + targetUid).once('value');
+      const prof = profSnap.val() || { name: username, avatar: 'a1', userId: username, xp: 0 };
+      friendProfileCache[targetUid] = prof;
+      state.friendSearchPreview = { username, uid: targetUid, profile: prof };
+    } catch(e) {
+      console.error(e);
+      alert('خطا در جستجو. اتصال اینترنتت رو چک کن.');
+    }
+    state.friendSearchLoading = false;
+    render();
+  }
+  function closeFriendSearchPreview(){ state.friendSearchPreview = null; render(); }
+
+  async function confirmSendFriendRequest(){
+    const preview = state.friendSearchPreview;
+    if (!preview || !firebaseReady || !state.authUser) return;
+    const uid = myUid();
+    if (state.userFriends.some(f => f.uid === preview.uid)) { alert('قبلاً با این کاربر دوست هستید.'); state.friendSearchPreview = null; render(); return; }
+    if (state.blockedUsers.includes(preview.username)) { alert('این کاربر رو بلاک کردید؛ اول از تنظیمات آنبلاکش کنید.'); return; }
+    try {
+      await fbDb.ref('friendRequests/' + preview.uid + '/' + uid).set({
+        senderName: state.profile.name || state.profile.userId || 'کاربر',
+        senderUserId: state.profile.userId || '',
+        timestamp: Date.now()
+      });
+      alert(`درخواست دوستی برای «${preview.username}» ارسال شد.`);
+    } catch(e) {
+      console.error(e);
+      alert('ارسال درخواست ناموفق بود. دوباره امتحان کنید.');
+    }
+    state.friendSearchPreview = null;
+    const input = document.getElementById('friendSearchInput');
+    if (input) input.value = '';
+    render();
+  }
+
+  function openRequestsModal(){ state.showRequestsModal = true; render(); }
+  function closeRequestsModal(){ state.showRequestsModal = false; render(); }
+
+  async function acceptFriendRequest(username){
+    const meta = state.friendRequestMeta && state.friendRequestMeta[username];
+    const uid = myUid();
+    if (!meta || !uid) return;
+    try {
+      // مرحله‌ی ۱: دوست جدید رو توی لیستِ خودم می‌نویسم (فقط به مسیر خودم دسترسی نوشتن دارم)
+      await fbDb.ref('userFriendUids/' + uid + '/' + meta.senderUid).set(true);
+      // مرحله‌ی ۲: برای این‌که طرف مقابل هم من رو به لیستش اضافه کنه، یه پیغام توی
+      // «صندوق» خودش می‌ذارم (مثل friendRequests، هرکسی می‌تونه توی صندوق بقیه بنویسه ولی فقط صاحبش می‌خونه)
+      await fbDb.ref('pendingFriendAdds/' + meta.senderUid + '/' + uid).set(true);
+      await fbDb.ref('friendRequests/' + uid + '/' + meta.senderUid).remove();
+    } catch(e){ console.error(e); alert('خطا در قبول درخواست. دوباره امتحان کنید.'); }
+  }
+  async function rejectFriendRequest(username){
+    const meta = state.friendRequestMeta && state.friendRequestMeta[username];
+    const uid = myUid();
+    if (!meta || !uid) return;
+    try { await fbDb.ref('friendRequests/' + uid + '/' + meta.senderUid).remove(); }
+    catch(e){ console.error(e); }
+  }
+
+  function openUserChat(username){
+    state.openChatUsername = username;
+    state.openUserFriendProfile = null;
+    render();
+    attachChatListener(username);
+  }
+  function closeUserChat(){
+    detachChatListener();
+    state.openChatUsername = null;
+    render();
+  }
+  function openUserFriendProfile(username){ state.openUserFriendProfile = username; render(); }
+  function closeUserFriendProfile(){ state.openUserFriendProfile = null; render(); }
+
+  async function blockUser(username){
+    if (!confirm(`«${username}» بلاک بشه؟ دیگه توی لیست دوستانتون نمی‌بینیدش.`)) return;
+    const f = userFriendByUsername(username);
+    if (!state.blockedUsers.includes(username)){
+      state.blockedUsers.push(username);
+      persistBlockedUsers();
+    }
+    if (f && f.uid && myUid()) {
+      try { await fbDb.ref('userFriendUids/' + myUid() + '/' + f.uid).remove(); } catch(e){}
+    }
+    state.userFriends = state.userFriends.filter(fr => fr.username !== username);
+    persistUserFriends();
+    state.friendRequests = state.friendRequests.filter(u => u !== username);
+    persistFriendRequests();
+    state.openUserFriendProfile = null;
+    render();
+  }
+  async function removeFriend(username){
+    const f = userFriendByUsername(username);
+    if (f && f.uid && myUid()) {
+      try { await fbDb.ref('userFriendUids/' + myUid() + '/' + f.uid).remove(); } catch(e){}
+    }
+    state.userFriends = state.userFriends.filter(fr => fr.username !== username);
+    persistUserFriends();
+    state.openUserFriendProfile = null;
+    render();
+  }
+
+  function sendUserChatMessage(){
+    const input = document.getElementById('userChatInput');
+    const text = input ? input.value.trim() : '';
+    const username = state.openChatUsername;
+    const f = userFriendByUsername(username);
+    const uid = myUid();
+    if (!text || !username || !f || !f.uid || !uid) return;
+    input.value = '';
+    fbDb.ref('chats/' + chatIdFor(uid, f.uid)).push({ sender: uid, text, timestamp: Date.now() })
+      .catch((e) => { console.error(e); alert('ارسال پیام ناموفق بود.'); });
+  }
+  function handleUserChatInputKeydown(e){
+    if (e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendUserChatMessage();
+    }
+  }
+
+  function attachChatListener(username){
+    detachChatListener();
+    const f = userFriendByUsername(username);
+    const uid = myUid();
+    if (!f || !f.uid || !uid || !firebaseReady) return;
+    const chatId = chatIdFor(uid, f.uid);
+    state.chats[username] = [];
+    if (state.openChatUsername === username) render();
+    activeChatRef = fbDb.ref('chats/' + chatId).limitToLast(200);
+    activeChatRef.on('child_added', (snap) => {
+      const m = snap.val();
+      if (!state.chats[username]) state.chats[username] = [];
+      state.chats[username].push({ sender: m.sender === uid ? 'me' : 'friend', text: m.text, ts: m.timestamp });
+      render();
+      const msgsEl = document.getElementById('userChatMessages');
+      if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+  }
+  function detachChatListener(){
+    if (activeChatRef) { activeChatRef.off(); activeChatRef = null; }
+  }
+
+  // --- شنونده‌های زنده‌ی درخواست دوستی / لیست دوستان (بعد از لاگین صدا زده می‌شه) ---
+  function initSocialListeners(){
+    if (socialListenersAttached || !firebaseReady || !state.authUser) return;
+    socialListenersAttached = true;
+    const uid = state.authUser.uid;
+
+    // درخواست‌های ورودی
+    friendRequestsRef = fbDb.ref('friendRequests/' + uid);
+    friendRequestsRef.on('value', (snap) => {
+      const val = snap.val() || {};
+      state.friendRequestMeta = {};
+      state.friendRequests = Object.keys(val).map((senderUid) => {
+        const r = val[senderUid];
+        const username = r.senderUserId || senderUid;
+        state.friendRequestMeta[username] = { senderUid, senderName: r.senderName };
+        return username;
+      });
+      persistFriendRequests();
+      render();
+    });
+
+    // صندوق «قبول دوستی» — وقتی طرف مقابل درخواست منو قبول کرد، اینجا یه پیغام می‌بینم
+    pendingAddsRef = fbDb.ref('pendingFriendAdds/' + uid);
+    pendingAddsRef.on('child_added', async (snap) => {
+      const fromUid = snap.key;
+      try {
+        await fbDb.ref('userFriendUids/' + uid + '/' + fromUid).set(true);
+        await fbDb.ref('pendingFriendAdds/' + uid + '/' + fromUid).remove();
+      } catch(e){ console.error(e); }
+    });
+
+    // لیست دوستان من (زنده)
+    myFriendUidsRef = fbDb.ref('userFriendUids/' + uid);
+    myFriendUidsRef.on('value', async (snap) => {
+      const val = snap.val() || {};
+      const uids = Object.keys(val);
+      const records = await Promise.all(uids.map(async (fuid) => {
+        let prof = friendProfileCache[fuid];
+        if (!prof) {
+          try { prof = (await fbDb.ref('leaderboard/' + fuid).once('value')).val(); } catch(e){ prof = null; }
+          if (prof) friendProfileCache[fuid] = prof;
+        }
+        const username = (prof && prof.userId) || fuid;
+        const info = computeLevelInfo((prof && prof.xp) || 0);
+        return {
+          ...makeFriendRecord(username), uid: fuid,
+          name: (prof && prof.name) || username, avatar: (prof && prof.avatar) || 'a1',
+          level: info.level
+        };
+      }));
+      state.userFriends = records.filter(r => !state.blockedUsers.includes(r.username));
+      persistUserFriends();
+      render();
+    });
+  }
+  function detachSocialListeners(){
+    if (friendRequestsRef) { friendRequestsRef.off(); friendRequestsRef = null; }
+    if (pendingAddsRef) { pendingAddsRef.off(); pendingAddsRef = null; }
+    if (myFriendUidsRef) { myFriendUidsRef.off(); myFriendUidsRef = null; }
+    detachChatListener();
+    socialListenersAttached = false;
+  }
   // --- زبان مقصد یادگیری (جعبه‌ی کلمات/آمار/دسته‌بندی جدا برای هر زبان) ---
   function currentTargetLangCode(){ return LANGUAGE_CODES.includes(state.targetLang) ? state.targetLang : 'de'; }
   function targetLangMeta(code){ return LANGUAGE_META[LANGUAGE_CODES.includes(code) ? code : 'de']; }
@@ -2966,7 +3184,7 @@
       }
     } catch(e){ console.error(e); }
   }
-  function persistStats(){ try { localStorage.setItem(statsKeyFor(currentTargetLangCode()), JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); markActivityToday(); }
+  function persistStats(){ try { localStorage.setItem(statsKeyFor(currentTargetLangCode()), JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); queueLeaderboardSync(); markActivityToday(); }
   function loadReminderState(){
     state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1';
     try { state.reminderTime = localStorage.getItem(REMINDER_TIME_KEY) || '09:00'; } catch(e){ state.reminderTime = '09:00'; }
@@ -3571,11 +3789,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `).join('');
     const myFriendRows = state.userFriends.map(f => `
       <div class="friend-row" onclick="openUserFriendProfile('${esc(f.username)}')">
-        <div class="friend-avatar-wrap">
-          <div style="width:100%;height:100%;background:var(--panel2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px">👤</div>
-        </div>
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 46)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:13.5px">${esc(f.name)}</div>
+          <div class="hint-text" style="margin-top:1px">${t('profileLevel')} ${faNum(f.level||1)}</div>
         </div>
         <button class="modal-close-btn" style="width:34px;height:34px;border-radius:9px" onclick="event.stopPropagation();openUserChat('${esc(f.username)}')" aria-label="چت کردن">${icon('message',15)}</button>
       </div>
@@ -3583,15 +3800,15 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     const preview = state.friendSearchPreview ? `
       <div class="request-row" style="margin-top:10px;cursor:pointer" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:center;gap:10px">
-          <div style="width:40px;height:40px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">👤</div>
+          <div class="friend-avatar-wrap" style="width:40px;height:40px;flex-shrink:0">${friendAvatarImg(state.friendSearchPreview.profile.avatar || 'a1', 40)}</div>
           <div>
-            <b style="font-size:13px">${esc(state.friendSearchPreview)}</b>
-            <div style="font-size:11px;color:var(--muted)">@${esc(state.friendSearchPreview)}</div>
+            <b style="font-size:13px">${esc(state.friendSearchPreview.profile.name || state.friendSearchPreview.username)}</b>
+            <div style="font-size:11px;color:var(--muted)">@${esc(state.friendSearchPreview.username)} · ${t('profileLevel')} ${faNum(computeLevelInfo(state.friendSearchPreview.profile.xp||0).level)}</div>
           </div>
         </div>
         <button class="btn-accept" style="border-radius:50%;width:32px;height:32px;padding:0" onclick="confirmSendFriendRequest()" aria-label="ارسال درخواست دوستی">+</button>
       </div>
-    ` : '';
+    ` : state.friendSearchLoading ? `<div class="hint-text" style="margin-top:10px">در حال جستجو...</div>` : '';
     return `
       <div class="panel">
         <div class="deck-header">
@@ -3669,11 +3886,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       </div>
     `;
   }
-  function goLeaderboard(){ stopListening(); state.view = 'leaderboard'; render(); }
+  function goLeaderboard(){ stopListening(); state.view = 'leaderboard'; render(); fetchLeaderboardTop(); }
   function showLeaderboardTab(tab){ state.leaderboardTab = tab; render(); }
   function renderLeaderboardPage(){
     const info = computeLevelInfo(totalXp());
     const league = leagueFor(info.level);
+    const myUidNow = myUid();
     const meRow = `
       <div class="friend-row">
         <div class="friend-avatar-wrap">${avatarHtml(46)}</div>
@@ -3683,17 +3901,45 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
       </div>
     `;
+    let body;
+    if (!firebaseReady || !state.authUser) {
+      body = `<div class="empty-state">${icon('users',26)}<div>برای دیدن لیدربورد واقعی، اول باید وارد حساب بشید.</div></div>`;
+    } else if (state.leaderboardLoading || state.leaderboardEntries === null) {
+      body = `<div class="empty-state">${icon('users',26)}<div>در حال دریافت رتبه‌بندی...</div></div>`;
+    } else {
+      let entries = state.leaderboardEntries;
+      if (state.leaderboardTab === 'league') {
+        entries = entries.filter(e => leagueFor(computeLevelInfo(e.xp||0).level).key === league.key);
+      }
+      const rows = entries.map((e, idx) => {
+        const lv = computeLevelInfo(e.xp||0).level;
+        const isMe = e.uid === myUidNow;
+        return `
+          <div class="friend-row" style="${isMe ? 'background:var(--panel2);border-radius:10px' : ''}">
+            <div class="box-chip" style="flex-shrink:0">${faNum(idx+1)}</div>
+            <div class="friend-avatar-wrap">${friendAvatarImg(e.avatar || 'a1', 40)}</div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:13.5px">${esc(e.name || e.userId || 'کاربر')}${isMe ? ` (${t('navProfile')})` : ''}</div>
+              <div class="hint-text" style="margin-top:1px">${t('profileLevel')} ${faNum(lv)} · ${faNum(e.xp||0)} XP</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+      body = entries.length === 0
+        ? `<div class="empty-state">${icon('users',26)}<div>هنوز کسی توی این لیگ نیست.</div></div>`
+        : rows;
+    }
     return `
       <div class="panel">
         <h3 class="stats-title">نفرات برتر</h3>
         <div class="type-toggle" style="margin-bottom:12px">
-          <button class="type-btn ${state.leaderboardTab==='league'?'active-word':''}" id="tab-league" onclick="showLeaderboardTab('league')">۵۰ نفر برتر لیگ</button>
-          <button class="type-btn ${state.leaderboardTab==='level'?'active-sentence':''}" id="tab-level" onclick="showLeaderboardTab('level')">۵۰ نفر برتر لول</button>
+          <button class="type-btn ${state.leaderboardTab==='league'?'active-word':''}" id="tab-league" onclick="showLeaderboardTab('league')">لیگ من</button>
+          <button class="type-btn ${state.leaderboardTab==='level'?'active-sentence':''}" id="tab-level" onclick="showLeaderboardTab('level')">۵۰ نفر برتر</button>
         </div>
         <div id="leaderboard-list-container" class="friend-list">
           ${meRow}
+          ${body}
         </div>
-        <div class="empty-state">${icon('users',26)}<div>این ویژگی به اتصال اینترنت نیاز داره و هنوز فعال نشده — فعلاً فقط آمار خودتون رو می‌بینید.</div></div>
       </div>
     `;
   }

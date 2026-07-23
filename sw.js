@@ -1,4 +1,4 @@
-const CACHE_NAME = 'leitner-cache-v21';
+const CACHE_NAME = 'leitner-cache-v22';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-hero.png', './icon-header.png', './icon-badge.png', './words_a1.json', './words_a2.json', './words_b1.json'];
 
 self.addEventListener('install', (event) => {
