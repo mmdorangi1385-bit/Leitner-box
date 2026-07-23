@@ -1,0 +1,38 @@
+[
+  {
+    "id": "de_beg_001",
+    "type": "word",
+    "de": "hallo",
+    "fa": "سلام",
+    "category": "🗣️ احوال‌پرسی",
+    "frequencyText": "بسیار بالا",
+    "frequencyPercent": 100,
+    "level": "Beginner",
+    "contextDe": "Ein alltäglicher Gruß zur Begrüßung.",
+    "contextFa": "یک سلام و احوال‌پرسی ساده برای شروع گفتگو."
+  },
+  {
+    "id": "de_beg_002",
+    "type": "word",
+    "de": "danke",
+    "fa": "متشکرم",
+    "category": "🗣️ احوال‌پرسی",
+    "frequencyText": "بسیار بالا",
+    "frequencyPercent": 95,
+    "level": "Beginner",
+    "contextDe": "Ein Wort, um Dankbarkeit auszudrücken.",
+    "contextFa": "کلمه‌ای برای نشان دادن تشکر."
+  },
+  {
+    "id": "de_beg_003",
+    "type": "word",
+    "de": "ja",
+    "fa": "بله",
+    "category": "🗣️ کلمات پایه",
+    "frequencyText": "بسیار بالا",
+    "frequencyPercent": 100,
+    "level": "Beginner",
+    "contextDe": "Eine positive Antwort.",
+    "contextFa": "یک پاسخ مثبت."
+  }
+]

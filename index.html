@@ -241,6 +241,10 @@
   .goal-progress-track { height: 6px; background: var(--panel); border-radius: 4px; overflow: hidden; }
   .goal-progress-fill { height: 100%; transition: width 0.4s ease; }
   .goal-progress-done { margin-top: 7px; font-size: 11.5px; color: var(--sage); text-align: center; }
+  /* CSS فشرده‌تر برای هدف امروز */
+  .goal-progress { padding: 6px 10px !important; margin-bottom: 8px !important; border-radius: 10px !important; }
+  .goal-progress-head { font-size: 10px !important; margin-bottom: 3px !important; }
+  .goal-progress-track { height: 4px !important; }
 
   .daily-goals-list { display: flex; flex-direction: column; gap: 12px; }
   .daily-goal-row-head { display: flex; align-items: center; justify-content: space-between; font-size: 12.5px; margin-bottom: 5px; }
@@ -317,12 +321,29 @@
 
   /* header kebab menu */
   .kebab-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--muted); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-  .header-menu-wrap { position: relative; flex-shrink: 0; z-index: 58; }
-  .header-menu { position: absolute; top: 42px; inset-inline-start: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 176px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 57; }
+  .header-menu-wrap { position: relative; flex-shrink: 0; z-index: 58; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; }
+  .header-menu { position: absolute; top: calc(100% + 8px); inset-inline-start: 0; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 6px; min-width: 176px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 57; }
   .header-menu-item { display: flex; align-items: center; gap: 8px; width: 100%; background: none; border: none; color: var(--text); padding: 9px 10px; border-radius: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; cursor: pointer; text-align: start; }
   .header-menu-item svg { color: var(--brass); flex-shrink: 0; }
   .header-menu-item:active { background: var(--panel2); }
   .menu-backdrop { position: fixed; inset: 0; z-index: 50; background: transparent; }
+  .friend-list { display: flex; flex-direction: column; gap: 4px; }
+  .friend-row { display: flex; align-items: center; gap: 12px; padding: 10px 6px; border-radius: 12px; cursor: pointer; }
+  .friend-row:active { background: var(--panel2); }
+  .friend-row svg { color: var(--muted); flex-shrink: 0; }
+  .friend-avatar-wrap { position: relative; width: 46px; height: 46px; flex-shrink: 0; }
+  .online-dot { position: absolute; bottom: 0; inset-inline-end: 0; width: 12px; height: 12px; border-radius: 50%; background: var(--sage-strong); border: 2px solid var(--panel); }
+
+  /* درخواست‌های دوستی + چت واقعی */
+  .bell-btn { position: relative; background: var(--panel2); border: 1px solid var(--border2); color: var(--muted); width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+  .bell-dot { position: absolute; top: 4px; inset-inline-end: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--wine); border: 2px solid var(--panel); }
+  .friend-search-row { display: flex; gap: 8px; margin-top: 12px; }
+  .request-modal-body { display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; }
+  .request-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; }
+  .request-actions { display: flex; gap: 6px; flex-shrink: 0; }
+  .btn-accept, .btn-reject { border: none; border-radius: 9px; padding: 7px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-accept { background: var(--sage-strong); color: #fff; }
+  .btn-reject { background: var(--panel); border: 1px solid var(--border2); color: var(--muted); }
 
   /* swipeable category carousel */
   .category-carousel { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch; padding: 2px 2px 6px; scrollbar-width: none; -ms-overflow-style: none; touch-action: pan-x; }
@@ -335,6 +356,15 @@
   /* modal + streak calendar */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); z-index: 75; display: flex; align-items: center; justify-content: center; padding: 20px; }
   .modal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 20px; max-width: 380px; width: 100%; max-height: 82vh; overflow-y: auto; }
+  .target-lang-grid { display: flex; flex-direction: column; gap: 10px; margin-top: 4px; }
+  .target-lang-card { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; background: var(--panel2); border: 2px solid var(--border2); border-radius: 14px; cursor: pointer; transition: all 0.15s ease; }
+  .target-lang-card:hover, .target-lang-card.active { border-color: var(--brass); background: rgba(201,166,107,0.1); }
+  .target-lang-info { display: flex; align-items: center; gap: 12px; }
+  .target-lang-flag { font-size: 26px; }
+  .target-lang-names { display: flex; flex-direction: column; }
+  .target-lang-title { font-weight: 700; font-size: 14.5px; color: var(--text); }
+  .target-lang-sub { font-size: 11.5px; color: var(--muted); }
+  .target-lang-btn { font-size: 16px; line-height: 1; }
   .lang-picker-card { z-index: 76; }
   .lang-picker-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
   .lang-picker-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 14px 8px; border-radius: 12px; border: 1px solid var(--border2); background: var(--panel2); color: var(--text); cursor: pointer; }
@@ -445,6 +475,28 @@
   .ai-history-empty { text-align: center; color: var(--muted); padding: 20px; font-size: 13px; }
   .ai-settings-section { margin-bottom: 14px; }
   .ai-settings-section:last-child { margin-bottom: 0; }
+/* نشان کوچک سطح کنار عنوان «جعبه کلمه» */
+.level-badge-chip { display: inline-flex; align-items: center; background: linear-gradient(135deg, rgba(201,166,107,0.2), rgba(201,166,107,0.05)); border: 1px solid var(--brass); color: var(--brass); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; cursor: pointer; margin-inline-start: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; transition: all 0.2s ease; vertical-align: middle; }
+.level-badge-chip:active { transform: scale(0.95); }
+
+/* کارت‌های سطح در پنجره «سطح زبان‌آموزی شما» */
+.level-roadmap-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.level-card-item { background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.level-card-item.active-level { border-color: var(--brass); box-shadow: 0 0 10px rgba(201,166,107,0.15); }
+.level-card-item.locked-level { opacity: 0.6; }
+.level-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.level-card-title { font-weight: 700; font-size: 14px; color: var(--text); }
+.level-btn-claim { background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; border: none; border-radius: 8px; padding: 7px 12px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
+.level-btn-claim:disabled { opacity: 0.6; cursor: default; }
+.level-btn-claimed { background: rgba(143,163,122,0.2); color: var(--sage); border: 1px solid var(--sage); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+.level-btn-locked { background: var(--panel); color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+.level-btn-coming-soon { background: rgba(139,111,201,0.15); color: var(--violet); border: 1px solid var(--violet); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+
+/* اطلاعات تکمیلی کلمات دوره‌ای در پشت کارت مرور */
+.card-meta-box { margin-top: 10px; padding: 6px 12px; background: rgba(255,255,255,0.05); border-radius: 10px; font-size: 11px; color: var(--muted); display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.card-meta-context { margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 12px; }
+.card-meta-context-de { direction: ltr; color: var(--text); margin-bottom: 4px; }
+.card-meta-context-fa { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -467,6 +519,28 @@
   const CARDS_KEY = 'leitner_de_fa_cards_v1';
   const STATS_KEY = 'leitner_de_fa_stats_v1';
   const CATEGORIES_KEY = 'leitner_categories_v1';
+  const TARGET_LANG_KEY = 'leitner_target_lang_v1';
+  const TARGET_LANG_MIGRATED_KEY = 'leitner_target_lang_migrated_v1';
+  function cardsKeyFor(lang){ return 'leitner_cards_v2_' + lang; }
+  function cardsSeededKeyFor(lang){ return 'leitner_cards_seeded_v1_' + lang; }
+  // کارت‌های نمونه‌ی اولیه، مخصوص هر زبان هدف (فقط یک‌بار، هنگام اولین ورود به آن زبان اضافه می‌شن)
+  const DEFAULT_CARDS_BY_LANG = {
+    de: [ { de: 'das Buch', fa: 'کتاب' }, { de: 'der Apfel', fa: 'سیب' } ],
+    en: [ { de: 'the book', fa: 'کتاب' }, { de: 'the apple', fa: 'سیب' } ],
+    es: [ { de: 'el libro', fa: 'کتاب' }, { de: 'la manzana', fa: 'سیب' } ],
+    fr: [ { de: 'le livre', fa: 'کتاب' }, { de: 'la pomme', fa: 'سیب' } ],
+    it: [ { de: 'il libro', fa: 'کتاب' }, { de: 'la mela', fa: 'سیب' } ]
+  };
+  function buildDefaultCards(lang){
+    const list = DEFAULT_CARDS_BY_LANG[lang] || DEFAULT_CARDS_BY_LANG.de;
+    const now = Date.now();
+    return list.map((c, i) => ({
+      id: 'seed_' + lang + '_' + i + '_' + now,
+      type: 'word', de: c.de, fa: c.fa, box: 1, nextReview: now, createdAt: now, categoryId: null
+    }));
+  }
+  function statsKeyFor(lang){ return 'leitner_stats_v2_' + lang; }
+  function categoriesKeyFor(lang){ return 'leitner_categories_v2_' + lang; }
   const THEME_KEY = 'leitner_theme_color_v1';
   const THEME_MODE_KEY = 'leitner_theme_mode_v1';
   const REMIND_KEY = 'leitner_reminders_enabled';
@@ -529,6 +603,10 @@
 
   // --- پروفایل کاربر ---
   const PROFILE_KEY = 'leitner_profile_v1';
+  const FRIEND_REQUESTS_KEY = 'leitner_pending_requests';
+  const USER_FRIENDS_KEY = 'leitner_friends_list';
+  const CHATS_KEY = 'leitner_chats';
+  const BLOCKED_USERS_KEY = 'leitner_blocked_users';
   const AVATAR_IMAGES = {
     a1: 'data:image/jpeg;base64,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',
     a2: 'data:image/jpeg;base64,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',
@@ -548,25 +626,160 @@
     { id: 'a5' }, { id: 'a6' }, { id: 'a7' }, { id: 'a8' },
     { id: 'a9' }, { id: 'a10' }, { id: 'a11' }, { id: 'a12' },
   ];
+  // --- دوستان (چت) ---
+  const FRIENDS = [
+    { id: 'barnameh', name: 'برنامه', avatar: 'a12', online: false, special: true, bio: null, level: 30, wordsLearned: 4210, streakDays: 999, daysInApp: 999 },
+    { id: 'f1', name: 'سارا', avatar: 'a2', online: true, level: 9, wordsLearned: 340, streakDays: 21, daysInApp: 64 },
+    { id: 'f2', name: 'امیر', avatar: 'a3', online: true, level: 14, wordsLearned: 610, streakDays: 45, daysInApp: 120 },
+    { id: 'f3', name: 'نیلوفر', avatar: 'a5', online: false, level: 6, wordsLearned: 180, streakDays: 3, daysInApp: 30 },
+    { id: 'f4', name: 'رضا', avatar: 'a7', online: true, level: 4, wordsLearned: 95, streakDays: 8, daysInApp: 15 },
+    { id: 'f5', name: 'مهسا', avatar: 'a9', online: false, level: 11, wordsLearned: 470, streakDays: 0, daysInApp: 90 },
+    { id: 'f6', name: 'کیان', avatar: 'a4', online: false, level: 2, wordsLearned: 40, streakDays: 1, daysInApp: 7 },
+  ];
+  function friendById(id){ return FRIENDS.find(f => f.id === id); }
+  function friendAvatarImg(avatarId, size){
+    const src = AVATAR_IMAGES[avatarId] || AVATAR_IMAGES.a1;
+    return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+  }
+  function goFriends(){ stopListening(); state.view = 'friends'; state.openFriendId = null; render(); }
+  function openFriendProfile(id){ state.openFriendId = id; render(); }
+  function closeFriendProfile(){ state.openFriendId = null; render(); }
+
+  // --- درخواست‌های دوستی + چت واقعی (چون سرور نیست، فعلاً همه‌چیز محلی روی خود گوشی شبیه‌سازی می‌شه) ---
+  function loadFriendData(){
+    try { state.friendRequests = JSON.parse(localStorage.getItem(FRIEND_REQUESTS_KEY) || '[]'); } catch(e){ state.friendRequests = []; }
+    try {
+      const raw = JSON.parse(localStorage.getItem(USER_FRIENDS_KEY) || '[]');
+      // سازگاری با نسخه‌ی قبلی که فقط نام کاربری خام ذخیره می‌کرد
+      state.userFriends = raw.map(f => typeof f === 'string' ? makeFriendRecord(f) : f);
+    } catch(e){ state.userFriends = []; }
+    try { state.chats = JSON.parse(localStorage.getItem(CHATS_KEY) || '{}'); } catch(e){ state.chats = {}; }
+    try { state.blockedUsers = JSON.parse(localStorage.getItem(BLOCKED_USERS_KEY) || '[]'); } catch(e){ state.blockedUsers = []; }
+  }
+  function persistFriendRequests(){ try { localStorage.setItem(FRIEND_REQUESTS_KEY, JSON.stringify(state.friendRequests)); } catch(e){} }
+  function persistUserFriends(){ try { localStorage.setItem(USER_FRIENDS_KEY, JSON.stringify(state.userFriends)); } catch(e){} }
+  function persistChats(){ try { localStorage.setItem(CHATS_KEY, JSON.stringify(state.chats)); } catch(e){} }
+  function persistBlockedUsers(){ try { localStorage.setItem(BLOCKED_USERS_KEY, JSON.stringify(state.blockedUsers)); } catch(e){} }
+
+  // چون سرور نیست، برای دوستِ تازه‌قبول‌شده یک رکورد نمایشی با مقادیر پیش‌فرض می‌سازیم
+  function makeFriendRecord(username){
+    return { id: username, username, name: username, avatar: null, bio: null, correctCount: 0, streak: 0, league: 'برنز' };
+  }
+  function userFriendByUsername(username){ return state.userFriends.find(f => f.username === username); }
+
+  // مرحله‌ی جستجو: قبل از ارسال درخواست، یک کارت پیش‌نمایش نشون می‌دیم
+  function previewFriendSearch(){
+    const input = document.getElementById('friendSearchInput');
+    const username = input ? input.value.trim() : '';
+    state.friendSearchPreview = username || null;
+    render();
+  }
+  function closeFriendSearchPreview(){ state.friendSearchPreview = null; render(); }
+  // شبیه‌سازی ارسال درخواست دوستی (چون سرور نیست، مستقیماً به لیست خودمون اضافه می‌کنیم تا تست بشه)
+  function confirmSendFriendRequest(){
+    const username = state.friendSearchPreview;
+    if (!username) return;
+    if (!state.friendRequests.includes(username)){
+      state.friendRequests.push(username);
+      persistFriendRequests();
+    }
+    state.friendSearchPreview = null;
+    const input = document.getElementById('friendSearchInput');
+    if (input) input.value = '';
+    alert(`درخواست دوستی برای «${username}» ارسال شد. (چون این نسخه هنوز سرور نداره، برای تست به زنگوله اضافه شد)`);
+    render();
+  }
+  function openRequestsModal(){ state.showRequestsModal = true; render(); }
+  function closeRequestsModal(){ state.showRequestsModal = false; render(); }
+  function acceptFriendRequest(username){
+    if (!userFriendByUsername(username)){
+      state.userFriends.push(makeFriendRecord(username));
+      persistUserFriends();
+    }
+    rejectFriendRequest(username);
+  }
+  function rejectFriendRequest(username){
+    state.friendRequests = state.friendRequests.filter(u => u !== username);
+    persistFriendRequests();
+    render();
+  }
+  function openUserChat(username){
+    state.openChatUsername = username;
+    state.openUserFriendProfile = null;
+    render();
+  }
+  function closeUserChat(){
+    state.openChatUsername = null;
+    render();
+  }
+  function openUserFriendProfile(username){ state.openUserFriendProfile = username; render(); }
+  function closeUserFriendProfile(){ state.openUserFriendProfile = null; render(); }
+  function blockUser(username){
+    if (!confirm(`«${username}» بلاک بشه؟ دیگه توی لیست دوستانتون نمی‌بینیدش.`)) return;
+    if (!state.blockedUsers.includes(username)){
+      state.blockedUsers.push(username);
+      persistBlockedUsers();
+    }
+    state.userFriends = state.userFriends.filter(f => f.username !== username);
+    persistUserFriends();
+    state.friendRequests = state.friendRequests.filter(u => u !== username);
+    persistFriendRequests();
+    state.openUserFriendProfile = null;
+    render();
+  }
+  function removeFriend(username){
+    state.userFriends = state.userFriends.filter(f => f.username !== username);
+    persistUserFriends();
+    state.openUserFriendProfile = null;
+    render();
+  }
+  function sendUserChatMessage(){
+    const input = document.getElementById('userChatInput');
+    const text = input ? input.value.trim() : '';
+    const user = state.openChatUsername;
+    if (!text || !user) return;
+    if (!state.chats[user]) state.chats[user] = [];
+    state.chats[user].push({ sender: 'me', text });
+    // شبیه‌سازی جواب آفلاین برای تست کارکرد چت، چون سرور وصل نیست
+    state.chats[user].push({ sender: 'friend', text: 'این یک جواب تستی است چون سرور وصل نیست!' });
+    persistChats();
+    render();
+    const msgsEl = document.getElementById('userChatMessages');
+    if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+  function handleUserChatInputKeydown(e){
+    if (e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendUserChatMessage();
+    }
+  }
+
   function loadProfile(){
     try {
       const raw = localStorage.getItem(PROFILE_KEY);
       const p = raw ? JSON.parse(raw) : null;
       state.profile = {
         name: (p && p.name) || '', avatar: (p && p.avatar) || 'a1', customAvatar: (p && p.customAvatar) || null,
-        userId: (p && p.userId) || '', userIdLocked: !!(p && p.userIdLocked),
+        userId: (p && p.userId) || '',
+        // سازگاری با نسخه‌ی قبلی که فقط یک قفلِ یک‌بار-قابل‌تغییر (userIdLocked) داشت
+        userIdChangeCount: (p && typeof p.userIdChangeCount === 'number') ? p.userIdChangeCount : (p && p.userIdLocked ? 1 : 0),
+        bio: (p && p.bio) || '', gender: (p && p.gender) || '', birthdate: (p && p.birthdate) || '',
       };
-    } catch(e){ state.profile = { name: '', avatar: 'a1', customAvatar: null, userId: '', userIdLocked: false }; }
+    } catch(e){ state.profile = { name: '', avatar: 'a1', customAvatar: null, userId: '', userIdChangeCount: 0, bio: '', gender: '', birthdate: '' }; }
   }
   function persistProfile(){ try { localStorage.setItem(PROFILE_KEY, JSON.stringify(state.profile)); } catch(e){} }
   function setProfileName(v){ state.profile.name = v; persistProfile(); }
+  function setProfileBio(v){ state.profile.bio = v; persistProfile(); }
+  function selectGender(g){ state.profile.gender = state.profile.gender === g ? '' : g; persistProfile(); render(); }
+  function setProfileBirthdate(v){ state.profile.birthdate = v; persistProfile(); }
 
   // ===== سیستم آیدی کاربری (Leitner ID) =====
-  // قوانین: حداقل ۶ کاراکتر، حداقل یک حرف بزرگ انگلیسی (A-Z)، فقط یک‌بار قابل تنظیم.
+  // قوانین: حداقل ۶ کاراکتر، حداقل یک حرف بزرگ انگلیسی (A-Z)، حداکثر ۲ بار قابل تغییر.
   // نکته‌ی مهم: این اپ فعلاً سرور نداره، پس یکتا بودن آیدی بین همه‌ی کاربرا فقط وقتی
   // تضمین می‌شه که checkUserIdAvailability به یه سرویس/دیتابیس آنلاین وصل بشه (پایین‌تر).
-  // تا اون موقع، فقط قفلِ محلیِ «یک‌بار قابل تغییر» رعایت می‌شه.
+  // تا اون موقع، فقط قفلِ محلیِ «حداکثر ۲ بار قابل تغییر» رعایت می‌شه.
   const USER_ID_MIN_LEN = 6;
+  const USER_ID_MAX_CHANGES = 2;
   // آدرس سرویس آنلاینِ آینده (وقتی برنامه آنلاین شد، این مقدار رو با آدرس واقعی API عوض کن).
   const USER_ID_API_BASE = ''; // مثلاً: 'https://your-backend.example.com'
 
@@ -599,7 +812,7 @@
   }
 
   async function confirmUserId(){
-    if (state.profile.userIdLocked || state.uiUserIdChecking) return;
+    if (state.profile.userIdChangeCount >= USER_ID_MAX_CHANGES || state.uiUserIdChecking) return;
     const val = String(state.uiUserIdDraft || '').trim();
     const errKey = validateUserIdFormat(val);
     if (errKey){ state.uiUserIdError = errKey; render(); return; }
@@ -610,12 +823,15 @@
     state.uiUserIdChecking = false;
     if (!available){ state.uiUserIdError = 'profileIdTaken'; render(); return; }
     state.profile.userId = val;
-    state.profile.userIdLocked = true;
+    state.profile.userIdChangeCount = (state.profile.userIdChangeCount || 0) + 1;
     state.uiUserIdDraft = '';
     persistProfile();
     render();
   }
   function setProfileAvatar(id){ state.profile.avatar = id; state.profile.customAvatar = null; persistProfile(); render(); }
+  function openAvatarModal(){ state.showAvatarModal = true; render(); }
+  function closeAvatarModal(){ state.showAvatarModal = false; render(); }
+  function pickProfileAvatar(id){ setProfileAvatar(id); state.showAvatarModal = false; render(); }
   function onAvatarFileChange(input){
     const file = input.files && input.files[0];
     if (!file) return;
@@ -660,6 +876,190 @@
     return { level, xpIntoLevel: remaining, xpForNext: xpNeededForLevel(level) };
   }
   function totalXp(){ return state.stats.word.correct + state.stats.sentence.correct + state.stats.pronun.correct; }
+  // سطح زبانی (مبتدی/A1/A2/B1/B2+) بر اساس تعداد پاسخ‌های درستِ همون زبان — چون state.stats مخصوص زبان فعلیه، این خودش جدا-جدا برای هر زبانه
+  function langLevelLabel(correctCount){
+    if (correctCount < 100) return 'مبتدی';
+    if (correctCount < 250) return 'A1';
+    if (correctCount < 500) return 'A2';
+    if (correctCount < 1000) return 'B1';
+    return 'B2+';
+  }
+  function currentLangLevelLabel(){ return langLevelLabel(totalXp()); }
+
+  // --- سطح زبان‌آموزی بر اساس «کلمات دوره‌ای» (مبتدی/A1/A2/B1) ---
+  // این سطح کاملاً مستقل از سیستم لیگ/لول (XP) هست؛ فقط با پاسخ درست به همین کلماتی
+  // که از فایل‌های JSON از پیش تعیین‌شده گرفته شدن بالا می‌ره، نه با کلمات دستی کاربر.
+  const CURRICULUM_LEVELS = [
+    { id: 'beginner', name: 'مبتدی', file: 'words_beginner.json', reqCorrect: 0 },
+    { id: 'A1', name: 'A1', file: 'words_a1.json', reqCorrect: 30 },
+    { id: 'A2', name: 'A2', file: 'words_a2.json', reqCorrect: 150 },
+    { id: 'B1', name: 'B1', file: 'words_b1.json', reqCorrect: 350 },
+    { id: 'B2', name: 'B2', file: null, reqCorrect: null },
+    { id: 'C1', name: 'C1', file: null, reqCorrect: null },
+    { id: 'C2', name: 'C2', file: null, reqCorrect: null }
+  ];
+  const CURRICULUM_SUPPORTED_LANG = 'de'; // دیتای کلمات فعلاً فقط برای آلمانی موجوده
+  function curriculumIsSupported(){ return currentTargetLangCode() === CURRICULUM_SUPPORTED_LANG; }
+  function curriculumClaimedForLang(){ return state.curriculumClaimed[currentTargetLangCode()] || []; }
+  function curriculumLevelForCount(count){
+    let current = CURRICULUM_LEVELS[0];
+    for (const lvl of CURRICULUM_LEVELS){
+      if (lvl.reqCorrect !== null && count >= lvl.reqCorrect) current = lvl; else break;
+    }
+    return current;
+  }
+  function currentCurriculumLevel(){
+    if (!curriculumIsSupported()) return null;
+    return curriculumLevelForCount(curriculumCorrectForLang());
+  }
+  async function ensureCurriculumWordsLoaded(levelId){
+    const level = CURRICULUM_LEVELS.find(l => l.id === levelId);
+    if (!level || !level.file) return null;
+    if (state.curriculumWords[levelId]) return state.curriculumWords[levelId];
+    state.curriculumLoadStatus[levelId] = 'loading';
+    render();
+    try {
+      const res = await fetch(level.file);
+      if (!res.ok) throw new Error('fetch failed: ' + res.status);
+      const data = await res.json();
+      state.curriculumWords[levelId] = Array.isArray(data) ? data : [];
+      state.curriculumLoadStatus[levelId] = 'loaded';
+      return state.curriculumWords[levelId];
+    } catch(e) {
+      console.error(e);
+      state.curriculumLoadStatus[levelId] = 'error';
+      return null;
+    } finally {
+      render();
+    }
+  }
+  function curriculumCategoryName(level){ return `${level.name} (${targetLangLabel()})`; }
+  function findOrCreateCurriculumCategory(level){
+    const name = curriculumCategoryName(level);
+    let cat = state.categories.find(c => c.name === name);
+    if (!cat) {
+      cat = { id: `cat-curr-${level.id}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, createdAt: new Date().toISOString() };
+      state.categories = [...state.categories, cat];
+      persistCategories();
+    }
+    return cat;
+  }
+  async function claimCurriculumLevel(levelId){
+    const level = CURRICULUM_LEVELS.find(l => l.id === levelId);
+    if (!level) return;
+    if (curriculumClaimedForLang().includes(levelId)) return;
+    if (!level.file) { alert('کلمات این سطح در آپدیت بعدی اضافه می‌شود.'); return; }
+
+    const words = await ensureCurriculumWordsLoaded(levelId);
+    if (!words) { alert('مشکلی در دریافت کلمات این سطح پیش آمد. دوباره تلاش کنید.'); return; }
+
+    const cat = findOrCreateCurriculumCategory(level);
+    const existingDe = new Set(state.cards.filter(c => c.type === 'word').map(c => (c.de||'').trim().toLowerCase()));
+    const now = Date.now();
+    const nowIso = new Date().toISOString();
+    const today = todayStr();
+    let addedCount = 0;
+    const newCards = [];
+    words.forEach((w, i) => {
+      const deText = (w.de || '').trim();
+      if (!deText || existingDe.has(deText.toLowerCase())) return;
+      existingDe.add(deText.toLowerCase());
+      newCards.push({
+        id: `curr-${level.id}-${i}-${now}`,
+        type: 'word',
+        de: deText,
+        fa: w.fa || '',
+        box: 1,
+        nextReview: today,
+        createdAt: nowIso,
+        categoryId: cat.id,
+        curriculumLevel: level.id,
+        curriculumCategory: w.category || '',
+        curriculumFreqText: w.frequencyText || '',
+        curriculumFreqPercent: (typeof w.frequencyPercent === 'number') ? w.frequencyPercent : null,
+        curriculumContextDe: w.contextDe || '',
+        curriculumContextFa: w.contextFa || ''
+      });
+      addedCount++;
+    });
+
+    if (newCards.length > 0) {
+      state.cards = [...state.cards, ...newCards];
+      persistCards();
+    }
+
+    const claimed = state.curriculumClaimed[currentTargetLangCode()] || [];
+    state.curriculumClaimed[currentTargetLangCode()] = [...claimed, levelId];
+    persistCurriculumClaimed();
+
+    render();
+    alert(addedCount > 0
+      ? `${faNum(addedCount)} کلمه از سطح ${level.name} به دسته «${curriculumCategoryName(level)}» اضافه شد.`
+      : `کلمات سطح ${level.name} قبلاً در جعبه شما موجود بودند.`);
+  }
+  function openLevelRoadmapModal(){ state.showLevelRoadmapModal = true; render(); }
+  function closeLevelRoadmapModal(){ state.showLevelRoadmapModal = false; render(); }
+  function renderLevelBadge(){
+    if (!curriculumIsSupported()) return '';
+    const lvl = currentCurriculumLevel();
+    if (!lvl) return '';
+    return `<button class="level-badge-chip" onclick="openLevelRoadmapModal()" title="سطح زبان‌آموزی شما بر اساس کلمات دوره‌ای">${esc(lvl.name)}</button>`;
+  }
+  function renderLevelRoadmapModal(){
+    if (!state.showLevelRoadmapModal) return '';
+    const supported = curriculumIsSupported();
+    const correctCount = curriculumCorrectForLang();
+    const claimed = curriculumClaimedForLang();
+    const currentLevel = currentCurriculumLevel();
+
+    const rows = CURRICULUM_LEVELS.map(lvl => {
+      const hasContent = !!lvl.file;
+      const isUnlocked = supported && hasContent && lvl.reqCorrect !== null && correctCount >= lvl.reqCorrect;
+      const isClaimed = claimed.includes(lvl.id);
+      const isLoading = state.curriculumLoadStatus[lvl.id] === 'loading';
+      const isCurrent = supported && currentLevel && currentLevel.id === lvl.id;
+
+      let actionHtml;
+      if (!supported) {
+        actionHtml = `<span class="level-btn-coming-soon">⏳ به‌زودی برای ${esc(targetLangLabel())}</span>`;
+      } else if (!hasContent) {
+        actionHtml = `<span class="level-btn-coming-soon">⏳ در آپدیت بعدی اضافه می‌شود</span>`;
+      } else if (!isUnlocked) {
+        actionHtml = `<span class="level-btn-locked">🔒 قفل (${faNum(lvl.reqCorrect)} پاسخ درست از کلمات دوره‌ای لازم است)</span>`;
+      } else if (isClaimed) {
+        actionHtml = `<span class="level-btn-claimed">✓ دریافت شده</span>`;
+      } else {
+        actionHtml = `<button class="level-btn-claim" ${isLoading ? 'disabled' : ''} onclick="claimCurriculumLevel('${lvl.id}')">${isLoading ? 'در حال دریافت…' : 'دریافت کلمات این سطح'}</button>`;
+      }
+
+      return `
+        <div class="level-card-item ${isCurrent ? 'active-level' : ''} ${(!isUnlocked || !supported) ? 'locked-level' : ''}">
+          <div class="level-card-head">
+            <span class="level-card-title">سطح ${esc(lvl.name)}${isCurrent ? ' (سطح فعلی شما)' : ''}</span>
+            <div>${actionHtml}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="modal-backdrop" onclick="closeLevelRoadmapModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:2px">
+            <span class="deck-title">${icon('book',16)} سطح زبان‌آموزی شما</span>
+            <button class="modal-close-btn" onclick="closeLevelRoadmapModal()">${icon('close',15)}</button>
+          </div>
+          <div class="hint-text" style="margin-bottom:6px">
+            ${supported
+              ? `این سطح فقط با پاسخ درست به کلمات همین دوره (مبتدی تا B1) بالا می‌رود، نه کلمات دیگر. (پاسخ‌های درست از کلمات دوره‌ای: <b>${faNum(correctCount)}</b>)`
+              : `دیتای آماده کلمات فعلاً فقط برای زبان آلمانی موجود است. زبان فعلی شما: ${esc(targetLangLabel())}`}
+          </div>
+          <div class="level-roadmap-list">${rows}</div>
+        </div>
+      </div>
+    `;
+  }
+
   const LEAGUES = [
     { key: 'bronze', from: 1, to: 5, color: '#c9793a' },
     { key: 'silver', from: 6, to: 10, color: '#9aa0b4' },
@@ -690,6 +1090,13 @@
       appTitle: 'جعبه لایتنر',
       navHome: 'خانه', navAdd: 'افزودن', navTranslate: 'ترجمه', navStudy: 'تمرین', navStats: 'آمار', navManage: 'مدیریت', navSettings: 'تنظیمات',
       menuMore: 'منوی بیشتر', menuStreak: 'تقویم مرور', menuChangeLang: 'تغییر زبان برنامه', menuStats: 'آمار', menuProfile: 'پروفایل',
+      targetLangModalTitle: 'چه زبانی می‌خواهید یاد بگیرید؟', targetLangModalDesc: 'با انتخاب زبان، جعبه‌ی کلمات و آمار مخصوص همان زبان برایتان فعال می‌شود.', targetLangBadgeAria: 'تغییر زبان یادگیری',
+      menuManage: 'مدیریت', menuChat: 'چت با دوستان',
+      homeChatTitle: 'چت با دوستان', homeChatDesc: 'ببین کیا آنلاینن و برو سراغ گفتگو',
+      friendsTitle: 'دوستان', friendsOnline: 'آنلاین', friendsOffline: 'آفلاین',
+      friendDaysInApp: '{n} روز توی برنامه', friendStatsTitle: 'آمار', friendLevel: 'سطح',
+      friendWordsLearned: 'کلمه یاد گرفته', friendStreakDays: 'روز پیاپی',
+      friendBarnamehBio: 'برنامه همیشه سرش گرمِ یاد گرفتن زبون‌های تازه‌ست، برای همینه که هیچ‌وقت آنلاین نیست! میگه یه روز که همهٔ زبون‌های دنیا رو یاد گرفت، میاد آنلاین و باهات چت می‌کنه 🌍📚',
       langPickerTitle: 'زبان برنامه رو انتخاب کن', langPickerSub: 'می‌تونی بعداً از منوی بالا این رو تغییر بدی.',
       navProfile: 'پروفایل',
       profileNamePlaceholder: 'اسمت رو بنویس...', profileUploadPhoto: '📷 آپلود عکس',
@@ -704,13 +1111,13 @@
       typeWord: 'کلمه', typeSentence: 'جمله',
       categoriesTitle: 'دسته‌بندی‌ها', categoriesSub: 'هر دسته، جعبه لایتنر مخصوص خودش', itemsCount: '{n} مورد',
       categoryBoxSub: 'جعبه لایتنر جدا و مستقل برای این دسته‌بندی',
-      pronunTitle: 'تمرین تلفظ', pronunCardsCount: '{n} کارت', pronunHomeHint: 'صدای درست کلمه‌ها و جمله‌های آلمانی رو گوش کن و تمرین کن.', pronunStartBtn: 'شروع تمرین تلفظ',
+      pronunTitle: 'تمرین تلفظ', pronunCardsCount: '{n} کارت', pronunHomeHint: 'صدای درست کلمه‌ها و جمله‌های {lang} رو گوش کن و تمرین کن.', pronunStartBtn: 'شروع تمرین تلفظ',
       deckWord: 'جعبه کلمه', deckSentence: 'جعبه جمله', emptyDeck: 'هنوز {type}‌ای اضافه نکرده‌ای.',
       boxLabel: 'جعبه {n}', deckCountLine: '{total} {type} · {due} آماده امروز', nothingToday: 'امروز چیزی نیست', startStudyBtn: 'شروع تمرین ({n})',
       addNewCategoryPlaceholder: 'اسم دسته جدید...', addNewCategorySave: 'ثبت', addNewCategoryBtn: '+ ساخت دسته‌بندی جدید',
       addSearchPlaceholder: 'جستجوی {type} در کارت‌های موجود...', addSearchBtn: 'جستجو',
       previewFailWarn: '{n} خط قابل تشخیص نبود و اضافه نمی‌شود (فرمت را چک کن).', addConfirmBtn: 'افزودن {n} {type} به جعبه ۱', editTextBtn: 'ویرایش متن',
-      wordBtn: 'کلمه', sentenceBtn: 'جمله', addHint: 'هر خط یک {type}، به این شکل بنویس (آلمانی، خط تیره، معنی فارسی):', addPreviewBtn: 'بررسی و پیش‌نمایش',
+      wordBtn: 'کلمه', sentenceBtn: 'جمله', addHint: 'هر خط یک {type}، به این شکل بنویس (به زبان {lang}، خط تیره، معنی فارسی):', addPreviewBtn: 'بررسی و پیش‌نمایش',
       translateTitle: 'ترجمه', translateHint: 'زبان مبدا و مقصد رو انتخاب کن، بعد متنت رو بنویس تا ترجمه کنم.',
       translateFrom: 'از', translateTo: 'به', translateSwap: 'جابه‌جایی زبان‌ها',
       translatePlaceholder: 'مثلاً: Ich möchte einen Kaffee, bitte\nیا: صبح بخیر',
@@ -726,8 +1133,8 @@
       studyEmptyAdd: 'اول چند {type} اضافه کن.', studyEmptyToday: 'امروز {type}ای برای مرور نداری.', backBtn: 'بازگشت',
       sessionDoneTitle: 'این دوره تمرین تموم شد!', sessionDoneStats: '{correct} درست &nbsp;·&nbsp; {wrong} نیاز به مرور بیشتر',
       goHomeBtn: 'بازگشت به خانه', undoLastAnswer: 'لغو آخرین جواب',
-      progressLabel: '{type} {i} از {n}', boxTag: 'جعبه {n}', howInGerman: 'به آلمانی چطور می‌شه؟', playAgain: 'پخش دوباره',
-      knewIt: 'بلد بودم ✓', didntKnow: 'بلد نبودم ✗', typeGuess: 'به آلمانی بنویسش... (اختیاری)', showAnswer: 'نمایش پاسخ',
+      progressLabel: '{type} {i} از {n}', boxTag: 'جعبه {n}', howInGerman: 'به {lang} چطور می‌شه؟', playAgain: 'پخش دوباره',
+      knewIt: 'بلد بودم ✓', didntKnow: 'بلد نبودم ✗', typeGuess: 'به {lang} بنویسش... (اختیاری)', showAnswer: 'نمایش پاسخ',
       askTeacherBtn: '👨‍🏫 از معلم بپرس',
       pronunEmpty: 'کارتی برای این بخش پیدا نشد.', pronunDoneTitle: 'تمرین تلفظ تموم شد!',
       pronunDoneStats: '{correct} درست &nbsp;·&nbsp; {wrong} نیاز به تمرین بیشتر',
@@ -857,6 +1264,7 @@
       appTitle: 'Leitner Box',
       navHome: 'Home', navAdd: 'Add', navTranslate: 'Translate', navStudy: 'Practice', navStats: 'Stats', navManage: 'Manage', navSettings: 'Settings',
       menuMore: 'More menu', menuStreak: 'Review calendar', menuChangeLang: 'Change app language', menuStats: 'Stats', menuProfile: 'Profile',
+      targetLangModalTitle: 'Which language do you want to learn?', targetLangModalDesc: 'Choosing a language activates a separate word box and stats just for it.', targetLangBadgeAria: 'Change learning language',
       langPickerTitle: 'Choose your app language', langPickerSub: 'You can change this later from the menu above.',
       navProfile: 'Profile',
       profileNamePlaceholder: 'Enter your name...', profileUploadPhoto: '📷 Upload photo',
@@ -871,13 +1279,13 @@
       typeWord: 'word', typeSentence: 'sentence',
       categoriesTitle: 'Categories', categoriesSub: 'Each category has its own Leitner box', itemsCount: '{n} items',
       categoryBoxSub: 'A separate, independent Leitner box for this category',
-      pronunTitle: 'Pronunciation practice', pronunCardsCount: '{n} cards', pronunHomeHint: 'Listen to the correct pronunciation of German words and sentences and practice.', pronunStartBtn: 'Start pronunciation practice',
+      pronunTitle: 'Pronunciation practice', pronunCardsCount: '{n} cards', pronunHomeHint: 'Listen to the correct pronunciation of {lang} words and sentences and practice.', pronunStartBtn: 'Start pronunciation practice',
       deckWord: 'Word box', deckSentence: 'Sentence box', emptyDeck: "You haven't added any {type}s yet.",
       boxLabel: 'Box {n}', deckCountLine: '{total} {type} · {due} due today', nothingToday: 'Nothing today', startStudyBtn: 'Start practice ({n})',
       addNewCategoryPlaceholder: 'New category name...', addNewCategorySave: 'Save', addNewCategoryBtn: '+ Create new category',
       addSearchPlaceholder: 'Search {type} in existing cards...', addSearchBtn: 'Search',
       previewFailWarn: "{n} line(s) couldn't be recognized and won't be added (check the format).", addConfirmBtn: 'Add {n} {type} to box 1', editTextBtn: 'Edit text',
-      wordBtn: 'Word', sentenceBtn: 'Sentence', addHint: 'Write one {type} per line, like this (target language, dash, Persian meaning):', addPreviewBtn: 'Check & preview',
+      wordBtn: 'Word', sentenceBtn: 'Sentence', addHint: 'Write one {type} per line, like this ({lang}, dash, Persian meaning):', addPreviewBtn: 'Check & preview',
       translateTitle: 'Translate', translateHint: 'Choose the source and target language, then write your text to translate.',
       translateFrom: 'From', translateTo: 'To', translateSwap: 'Swap languages',
       translatePlaceholder: 'e.g. Ich möchte einen Kaffee, bitte\nor: Good morning',
@@ -893,8 +1301,8 @@
       studyEmptyAdd: 'Add a few {type}s first.', studyEmptyToday: 'You have no {type}s to review today.', backBtn: 'Back',
       sessionDoneTitle: 'This practice round is done!', sessionDoneStats: '{correct} correct &nbsp;·&nbsp; {wrong} need more review',
       goHomeBtn: 'Back to home', undoLastAnswer: 'Undo last answer',
-      progressLabel: '{type} {i} of {n}', boxTag: 'Box {n}', howInGerman: 'How do you say it in German?', playAgain: 'Play again',
-      knewIt: 'I knew it ✓', didntKnow: "I didn't know ✗", typeGuess: 'Write it in German... (optional)', showAnswer: 'Show answer',
+      progressLabel: '{type} {i} of {n}', boxTag: 'Box {n}', howInGerman: 'How do you say it in {lang}?', playAgain: 'Play again',
+      knewIt: 'I knew it ✓', didntKnow: "I didn't know ✗", typeGuess: 'Write it in {lang}... (optional)', showAnswer: 'Show answer',
       askTeacherBtn: '👨‍🏫 Ask the teacher',
       pronunEmpty: 'No cards found for this section.', pronunDoneTitle: 'Pronunciation practice done!',
       pronunDoneStats: '{correct} correct &nbsp;·&nbsp; {wrong} need more practice',
@@ -1016,6 +1424,7 @@
       appTitle: 'Leitner-Box',
       navHome: 'Start', navAdd: 'Hinzufügen', navTranslate: 'Übersetzen', navStudy: 'Üben', navStats: 'Statistik', navManage: 'Verwalten', navSettings: 'Einstellungen',
       menuMore: 'Weiteres Menü', menuStreak: 'Wiederholungskalender', menuChangeLang: 'App-Sprache ändern', menuStats: 'Statistik', menuProfile: 'Profil',
+      targetLangModalTitle: 'Welche Sprache möchtest du lernen?', targetLangModalDesc: 'Mit der Auswahl aktivierst du eine eigene Wortbox und Statistik für diese Sprache.', targetLangBadgeAria: 'Lernsprache ändern',
       langPickerTitle: 'Wähle deine App-Sprache', langPickerSub: 'Du kannst das später über das Menü oben ändern.',
       navProfile: 'Profil',
       profileNamePlaceholder: 'Gib deinen Namen ein...', profileUploadPhoto: '📷 Foto hochladen',
@@ -1030,13 +1439,13 @@
       typeWord: 'Wort', typeSentence: 'Satz',
       categoriesTitle: 'Kategorien', categoriesSub: 'Jede Kategorie hat ihre eigene Leitner-Box', itemsCount: '{n} Einträge',
       categoryBoxSub: 'Eine separate, unabhängige Leitner-Box für diese Kategorie',
-      pronunTitle: 'Ausspracheübung', pronunCardsCount: '{n} Karten', pronunHomeHint: 'Hör dir die richtige Aussprache deutscher Wörter und Sätze an und übe.', pronunStartBtn: 'Ausspracheübung starten',
+      pronunTitle: 'Ausspracheübung', pronunCardsCount: '{n} Karten', pronunHomeHint: 'Hör dir die richtige Aussprache von Wörtern und Sätzen auf {lang} an und übe.', pronunStartBtn: 'Ausspracheübung starten',
       deckWord: 'Wortbox', deckSentence: 'Satzbox', emptyDeck: 'Du hast noch keine {type} hinzugefügt.',
       boxLabel: 'Box {n}', deckCountLine: '{total} {type} · {due} heute fällig', nothingToday: 'Heute nichts', startStudyBtn: 'Übung starten ({n})',
       addNewCategoryPlaceholder: 'Name der neuen Kategorie...', addNewCategorySave: 'Speichern', addNewCategoryBtn: '+ Neue Kategorie erstellen',
       addSearchPlaceholder: '{type} in vorhandenen Karten suchen...', addSearchBtn: 'Suchen',
       previewFailWarn: '{n} Zeile(n) konnten nicht erkannt werden und werden nicht hinzugefügt (Format prüfen).', addConfirmBtn: '{n} {type} zu Box 1 hinzufügen', editTextBtn: 'Text bearbeiten',
-      wordBtn: 'Wort', sentenceBtn: 'Satz', addHint: 'Schreib pro Zeile ein {type}, so (Zielsprache, Bindestrich, persische Bedeutung):', addPreviewBtn: 'Prüfen & Vorschau',
+      wordBtn: 'Wort', sentenceBtn: 'Satz', addHint: 'Schreib pro Zeile ein {type}, so ({lang}, Bindestrich, persische Bedeutung):', addPreviewBtn: 'Prüfen & Vorschau',
       translateTitle: 'Übersetzen', translateHint: 'Wähle Ausgangs- und Zielsprache, schreib dann deinen Text zum Übersetzen.',
       translateFrom: 'Von', translateTo: 'Nach', translateSwap: 'Sprachen tauschen',
       translatePlaceholder: 'z. B.: Ich möchte einen Kaffee, bitte\noder: Guten Morgen',
@@ -1052,8 +1461,8 @@
       studyEmptyAdd: 'Füge zuerst ein paar {type} hinzu.', studyEmptyToday: 'Du hast heute keine {type} zum Wiederholen.', backBtn: 'Zurück',
       sessionDoneTitle: 'Diese Übungsrunde ist fertig!', sessionDoneStats: '{correct} richtig &nbsp;·&nbsp; {wrong} brauchen mehr Wiederholung',
       goHomeBtn: 'Zurück zur Startseite', undoLastAnswer: 'Letzte Antwort rückgängig machen',
-      progressLabel: '{type} {i} von {n}', boxTag: 'Box {n}', howInGerman: 'Wie sagt man das auf Deutsch?', playAgain: 'Erneut abspielen',
-      knewIt: 'Wusste ich ✓', didntKnow: 'Wusste ich nicht ✗', typeGuess: 'Schreib es auf Deutsch... (optional)', showAnswer: 'Antwort zeigen',
+      progressLabel: '{type} {i} von {n}', boxTag: 'Box {n}', howInGerman: 'Wie sagt man das auf {lang}?', playAgain: 'Erneut abspielen',
+      knewIt: 'Wusste ich ✓', didntKnow: 'Wusste ich nicht ✗', typeGuess: 'Schreib es auf {lang}... (optional)', showAnswer: 'Antwort zeigen',
       askTeacherBtn: '👨‍🏫 Den Lehrer fragen',
       pronunEmpty: 'Keine Karten für diesen Bereich gefunden.', pronunDoneTitle: 'Ausspracheübung fertig!',
       pronunDoneStats: '{correct} richtig &nbsp;·&nbsp; {wrong} brauchen mehr Übung',
@@ -1175,6 +1584,7 @@
       appTitle: 'Caja de Leitner',
       navHome: 'Inicio', navAdd: 'Añadir', navTranslate: 'Traducir', navStudy: 'Practicar', navStats: 'Estadísticas', navManage: 'Gestionar', navSettings: 'Configuración',
       menuMore: 'Más opciones', menuStreak: 'Calendario de repaso', menuChangeLang: 'Cambiar idioma de la app', menuStats: 'Estadísticas', menuProfile: 'Perfil',
+      targetLangModalTitle: '¿Qué idioma quieres aprender?', targetLangModalDesc: 'Al elegir un idioma se activa una caja de palabras y estadísticas propias para él.', targetLangBadgeAria: 'Cambiar idioma de aprendizaje',
       langPickerTitle: 'Elige el idioma de la app', langPickerSub: 'Puedes cambiarlo después desde el menú de arriba.',
       navProfile: 'Perfil',
       profileNamePlaceholder: 'Escribe tu nombre...', profileUploadPhoto: '📷 Subir foto',
@@ -1189,13 +1599,13 @@
       typeWord: 'palabra', typeSentence: 'frase',
       categoriesTitle: 'Categorías', categoriesSub: 'Cada categoría tiene su propia caja de Leitner', itemsCount: '{n} elementos',
       categoryBoxSub: 'Una caja de Leitner separada e independiente para esta categoría',
-      pronunTitle: 'Práctica de pronunciación', pronunCardsCount: '{n} tarjetas', pronunHomeHint: 'Escucha la pronunciación correcta de palabras y frases en alemán y practica.', pronunStartBtn: 'Iniciar práctica de pronunciación',
+      pronunTitle: 'Práctica de pronunciación', pronunCardsCount: '{n} tarjetas', pronunHomeHint: 'Escucha la pronunciación correcta de palabras y frases en {lang} y practica.', pronunStartBtn: 'Iniciar práctica de pronunciación',
       deckWord: 'Caja de palabras', deckSentence: 'Caja de frases', emptyDeck: 'Todavía no has añadido ninguna {type}.',
       boxLabel: 'Caja {n}', deckCountLine: '{total} {type} · {due} pendientes hoy', nothingToday: 'Nada por hoy', startStudyBtn: 'Empezar práctica ({n})',
       addNewCategoryPlaceholder: 'Nombre de la nueva categoría...', addNewCategorySave: 'Guardar', addNewCategoryBtn: '+ Crear nueva categoría',
       addSearchPlaceholder: 'Buscar {type} en las tarjetas existentes...', addSearchBtn: 'Buscar',
       previewFailWarn: 'No se reconocieron {n} línea(s) y no se añadirán (revisa el formato).', addConfirmBtn: 'Añadir {n} {type} a la caja 1', editTextBtn: 'Editar texto',
-      wordBtn: 'Palabra', sentenceBtn: 'Frase', addHint: 'Escribe una {type} por línea, así (idioma de destino, guion, significado en persa):', addPreviewBtn: 'Revisar y previsualizar',
+      wordBtn: 'Palabra', sentenceBtn: 'Frase', addHint: 'Escribe una {type} por línea, así ({lang}, guion, significado en persa):', addPreviewBtn: 'Revisar y previsualizar',
       translateTitle: 'Traducir', translateHint: 'Elige el idioma de origen y de destino, luego escribe tu texto para traducir.',
       translateFrom: 'De', translateTo: 'A', translateSwap: 'Intercambiar idiomas',
       translatePlaceholder: 'p. ej.: Ich möchte einen Kaffee, bitte\no: Buenos días',
@@ -1211,8 +1621,8 @@
       studyEmptyAdd: 'Añade antes algunas {type}s.', studyEmptyToday: 'No tienes {type}s para repasar hoy.', backBtn: 'Volver',
       sessionDoneTitle: '¡Esta ronda de práctica terminó!', sessionDoneStats: '{correct} correctas &nbsp;·&nbsp; {wrong} necesitan más repaso',
       goHomeBtn: 'Volver al inicio', undoLastAnswer: 'Deshacer última respuesta',
-      progressLabel: '{type} {i} de {n}', boxTag: 'Caja {n}', howInGerman: '¿Cómo se dice en alemán?', playAgain: 'Reproducir de nuevo',
-      knewIt: 'Lo sabía ✓', didntKnow: 'No lo sabía ✗', typeGuess: 'Escríbelo en alemán... (opcional)', showAnswer: 'Mostrar respuesta',
+      progressLabel: '{type} {i} de {n}', boxTag: 'Caja {n}', howInGerman: '¿Cómo se dice en {lang}?', playAgain: 'Reproducir de nuevo',
+      knewIt: 'Lo sabía ✓', didntKnow: 'No lo sabía ✗', typeGuess: 'Escríbelo en {lang}... (opcional)', showAnswer: 'Mostrar respuesta',
       askTeacherBtn: '👨‍🏫 Preguntar al profesor',
       pronunEmpty: 'No se encontraron tarjetas para esta sección.', pronunDoneTitle: '¡Práctica de pronunciación terminada!',
       pronunDoneStats: '{correct} correctas &nbsp;·&nbsp; {wrong} necesitan más práctica',
@@ -1334,6 +1744,7 @@
       appTitle: 'Boîte de Leitner',
       navHome: 'Accueil', navAdd: 'Ajouter', navTranslate: 'Traduire', navStudy: 'Pratiquer', navStats: 'Stats', navManage: 'Gérer', navSettings: 'Paramètres',
       menuMore: 'Plus de menu', menuStreak: 'Calendrier de révision', menuChangeLang: 'Changer la langue de l\'appli', menuStats: 'Stats', menuProfile: 'Profil',
+      targetLangModalTitle: 'Quelle langue veux-tu apprendre ?', targetLangModalDesc: 'Le choix d\'une langue active une boîte de mots et des statistiques qui lui sont propres.', targetLangBadgeAria: 'Changer la langue d\'apprentissage',
       langPickerTitle: 'Choisis la langue de l\'appli', langPickerSub: 'Tu pourras la changer plus tard depuis le menu du haut.',
       navProfile: 'Profil',
       profileNamePlaceholder: 'Entre ton nom...', profileUploadPhoto: '📷 Importer une photo',
@@ -1348,13 +1759,13 @@
       typeWord: 'mot', typeSentence: 'phrase',
       categoriesTitle: 'Catégories', categoriesSub: 'Chaque catégorie a sa propre boîte de Leitner', itemsCount: '{n} éléments',
       categoryBoxSub: 'Une boîte de Leitner séparée et indépendante pour cette catégorie',
-      pronunTitle: 'Exercice de prononciation', pronunCardsCount: '{n} cartes', pronunHomeHint: 'Écoute la bonne prononciation de mots et phrases allemands et entraîne-toi.', pronunStartBtn: 'Commencer l\'exercice de prononciation',
+      pronunTitle: 'Exercice de prononciation', pronunCardsCount: '{n} cartes', pronunHomeHint: 'Écoute la bonne prononciation de mots et phrases en {lang} et entraîne-toi.', pronunStartBtn: 'Commencer l\'exercice de prononciation',
       deckWord: 'Boîte de mots', deckSentence: 'Boîte de phrases', emptyDeck: 'Tu n\'as encore ajouté aucun(e) {type}.',
       boxLabel: 'Boîte {n}', deckCountLine: '{total} {type} · {due} à réviser aujourd\'hui', nothingToday: 'Rien pour aujourd\'hui', startStudyBtn: 'Commencer l\'exercice ({n})',
       addNewCategoryPlaceholder: 'Nom de la nouvelle catégorie...', addNewCategorySave: 'Enregistrer', addNewCategoryBtn: '+ Créer une nouvelle catégorie',
       addSearchPlaceholder: 'Rechercher {type} dans les cartes existantes...', addSearchBtn: 'Rechercher',
       previewFailWarn: '{n} ligne(s) non reconnue(s) et ne sera/seront pas ajoutée(s) (vérifie le format).', addConfirmBtn: 'Ajouter {n} {type} à la boîte 1', editTextBtn: 'Modifier le texte',
-      wordBtn: 'Mot', sentenceBtn: 'Phrase', addHint: 'Écris un(e) {type} par ligne, comme ceci (langue cible, tiret, sens en persan) :', addPreviewBtn: 'Vérifier et prévisualiser',
+      wordBtn: 'Mot', sentenceBtn: 'Phrase', addHint: 'Écris un(e) {type} par ligne, comme ceci ({lang}, tiret, sens en persan) :', addPreviewBtn: 'Vérifier et prévisualiser',
       translateTitle: 'Traduire', translateHint: 'Choisis la langue source et la langue cible, puis écris ton texte à traduire.',
       translateFrom: 'De', translateTo: 'Vers', translateSwap: 'Inverser les langues',
       translatePlaceholder: 'ex. : Ich möchte einen Kaffee, bitte\nou : Bonjour',
@@ -1370,8 +1781,8 @@
       studyEmptyAdd: 'Ajoute d\'abord quelques {type}s.', studyEmptyToday: 'Tu n\'as aucune {type} à réviser aujourd\'hui.', backBtn: 'Retour',
       sessionDoneTitle: 'Cette session d\'exercice est terminée !', sessionDoneStats: '{correct} correctes &nbsp;·&nbsp; {wrong} à réviser encore',
       goHomeBtn: 'Retour à l\'accueil', undoLastAnswer: 'Annuler la dernière réponse',
-      progressLabel: '{type} {i} sur {n}', boxTag: 'Boîte {n}', howInGerman: 'Comment dit-on ça en allemand ?', playAgain: 'Rejouer',
-      knewIt: 'Je le savais ✓', didntKnow: 'Je ne le savais pas ✗', typeGuess: 'Écris-le en allemand... (facultatif)', showAnswer: 'Afficher la réponse',
+      progressLabel: '{type} {i} sur {n}', boxTag: 'Boîte {n}', howInGerman: 'Comment dit-on ça en {lang} ?', playAgain: 'Rejouer',
+      knewIt: 'Je le savais ✓', didntKnow: 'Je ne le savais pas ✗', typeGuess: 'Écris-le en {lang}... (facultatif)', showAnswer: 'Afficher la réponse',
       askTeacherBtn: '👨‍🏫 Demander au professeur',
       pronunEmpty: 'Aucune carte trouvée pour cette section.', pronunDoneTitle: 'Exercice de prononciation terminé !',
       pronunDoneStats: '{correct} correctes &nbsp;·&nbsp; {wrong} à pratiquer encore',
@@ -1493,6 +1904,7 @@
       appTitle: 'Scatola di Leitner',
       navHome: 'Home', navAdd: 'Aggiungi', navTranslate: 'Traduci', navStudy: 'Esercitati', navStats: 'Statistiche', navManage: 'Gestisci', navSettings: 'Impostazioni',
       menuMore: 'Altro menu', menuStreak: 'Calendario di ripasso', menuChangeLang: 'Cambia lingua dell\'app', menuStats: 'Statistiche', menuProfile: 'Profilo',
+      targetLangModalTitle: 'Quale lingua vuoi imparare?', targetLangModalDesc: 'Scegliendo una lingua si attivano una scatola di parole e statistiche dedicate.', targetLangBadgeAria: 'Cambia lingua di apprendimento',
       langPickerTitle: 'Scegli la lingua dell\'app', langPickerSub: 'Puoi cambiarla più tardi dal menu in alto.',
       navProfile: 'Profilo',
       profileNamePlaceholder: 'Scrivi il tuo nome...', profileUploadPhoto: '📷 Carica foto',
@@ -1507,13 +1919,13 @@
       typeWord: 'parola', typeSentence: 'frase',
       categoriesTitle: 'Categorie', categoriesSub: 'Ogni categoria ha la sua scatola di Leitner', itemsCount: '{n} elementi',
       categoryBoxSub: 'Una scatola di Leitner separata e indipendente per questa categoria',
-      pronunTitle: 'Esercizio di pronuncia', pronunCardsCount: '{n} carte', pronunHomeHint: 'Ascolta la pronuncia corretta di parole e frasi tedesche e esercitati.', pronunStartBtn: 'Inizia l\'esercizio di pronuncia',
+      pronunTitle: 'Esercizio di pronuncia', pronunCardsCount: '{n} carte', pronunHomeHint: 'Ascolta la pronuncia corretta di parole e frasi in {lang} e esercitati.', pronunStartBtn: 'Inizia l\'esercizio di pronuncia',
       deckWord: 'Scatola delle parole', deckSentence: 'Scatola delle frasi', emptyDeck: 'Non hai ancora aggiunto nessuna {type}.',
       boxLabel: 'Scatola {n}', deckCountLine: '{total} {type} · {due} da ripassare oggi', nothingToday: 'Niente per oggi', startStudyBtn: 'Inizia esercizio ({n})',
       addNewCategoryPlaceholder: 'Nome della nuova categoria...', addNewCategorySave: 'Salva', addNewCategoryBtn: '+ Crea nuova categoria',
       addSearchPlaceholder: 'Cerca {type} tra le carte esistenti...', addSearchBtn: 'Cerca',
       previewFailWarn: '{n} riga/righe non riconosciuta/e e non verrà/verranno aggiunta/e (controlla il formato).', addConfirmBtn: 'Aggiungi {n} {type} alla scatola 1', editTextBtn: 'Modifica testo',
-      wordBtn: 'Parola', sentenceBtn: 'Frase', addHint: 'Scrivi una {type} per riga, così (lingua di destinazione, trattino, significato in persiano):', addPreviewBtn: 'Controlla e anteprima',
+      wordBtn: 'Parola', sentenceBtn: 'Frase', addHint: 'Scrivi una {type} per riga, così ({lang}, trattino, significato in persiano):', addPreviewBtn: 'Controlla e anteprima',
       translateTitle: 'Traduci', translateHint: 'Scegli la lingua di partenza e di arrivo, poi scrivi il testo da tradurre.',
       translateFrom: 'Da', translateTo: 'A', translateSwap: 'Scambia le lingue',
       translatePlaceholder: 'ad es.: Ich möchte einen Kaffee, bitte\noppure: Buongiorno',
@@ -1529,8 +1941,8 @@
       studyEmptyAdd: 'Aggiungi prima alcune {type}.', studyEmptyToday: 'Non hai {type} da ripassare oggi.', backBtn: 'Indietro',
       sessionDoneTitle: 'Questo turno di esercizio è finito!', sessionDoneStats: '{correct} corrette &nbsp;·&nbsp; {wrong} da ripassare ancora',
       goHomeBtn: 'Torna alla home', undoLastAnswer: 'Annulla ultima risposta',
-      progressLabel: '{type} {i} di {n}', boxTag: 'Scatola {n}', howInGerman: 'Come si dice in tedesco?', playAgain: 'Riproduci di nuovo',
-      knewIt: 'Lo sapevo ✓', didntKnow: 'Non lo sapevo ✗', typeGuess: 'Scrivilo in tedesco... (facoltativo)', showAnswer: 'Mostra risposta',
+      progressLabel: '{type} {i} di {n}', boxTag: 'Scatola {n}', howInGerman: 'Come si dice in {lang}?', playAgain: 'Riproduci di nuovo',
+      knewIt: 'Lo sapevo ✓', didntKnow: 'Non lo sapevo ✗', typeGuess: 'Scrivilo in {lang}... (facoltativo)', showAnswer: 'Mostra risposta',
       askTeacherBtn: '👨‍🏫 Chiedi all\'insegnante',
       pronunEmpty: 'Nessuna carta trovata per questa sezione.', pronunDoneTitle: 'Esercizio di pronuncia finito!',
       pronunDoneStats: '{correct} corrette &nbsp;·&nbsp; {wrong} da esercitare ancora',
@@ -1709,10 +2121,11 @@
 
   let state = {
     uiLang: 'fa', showLangPicker: false, langPickerDismissable: false,
-    profile: { name: '', avatar: 'a1', customAvatar: null, userId: '', userIdLocked: false },
+    profile: { name: '', avatar: 'a1', customAvatar: null, userId: '', userIdChangeCount: 0, bio: '', gender: '', birthdate: '' },
     uiUserIdDraft: '', uiUserIdError: '', uiUserIdChecking: false,
     cards: [], stats: { word: {correct:0, wrong:0}, sentence: {correct:0, wrong:0}, pronun: {correct:0, wrong:0} },
     categories: [], themeColor: '#c9a66b', themeMode: 'dark',
+    targetLang: 'de', showTargetLangModal: false, showAvatarModal: false,
     view: 'home', preview: null, inputText: '', addType: 'word', addCategoryId: 'none', showNewCategoryInput: false, addSearchQuery: '',
     confirmDeleteId: null, editingId: null,
     manageFilter: 'word', manageCategoryFilter: 'all', studyCategoryFilter: 'all',
@@ -1724,7 +2137,11 @@
     activeCategoryId: null,
     googleSignedIn: false, googleEmail: '', googleAccessToken: null,
     syncStatus: 'idle', lastSyncAt: null, driveFileId: null,
-    showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {},
+    showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
+    showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumClaimed: {}, curriculumCorrect: {},
+    friendRequests: [], userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
+    blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null,
+    leaderboardTab: 'league',
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
     translateInput: '', translateResult: null, translateError: null, translateLoading: false,
     translateSrcLang: 'fa', translateTgtLang: 'de',
@@ -1809,7 +2226,7 @@
     try {
       window.speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      const bcp47 = lang || 'de-DE';
+      const bcp47 = lang || targetLangMeta(currentTargetLangCode()).bcp47;
       u.lang = bcp47;
       const v = getVoiceForLang(bcp47);
       if (v) u.voice = v;
@@ -1833,10 +2250,10 @@
     if (!SR) return null;
     if (!recognition){
       recognition = new SR();
-      recognition.lang = 'de-DE';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
     }
+    recognition.lang = targetLangMeta(currentTargetLangCode()).bcp47;
     return recognition;
   }
   function normalizeDe(s){
@@ -2115,9 +2532,9 @@
     };
     state.categories = Array.isArray(data.categories) ? data.categories : [];
     state.activityDays = data.activityDays ? normalizeActivityDays(data.activityDays) : state.activityDays;
-    try { localStorage.setItem(CARDS_KEY, JSON.stringify(state.cards)); } catch(e){}
-    try { localStorage.setItem(STATS_KEY, JSON.stringify(state.stats)); } catch(e){}
-    try { localStorage.setItem(CATEGORIES_KEY, JSON.stringify(state.categories)); } catch(e){}
+    try { localStorage.setItem(cardsKeyFor(currentTargetLangCode()), JSON.stringify(state.cards)); } catch(e){}
+    try { localStorage.setItem(statsKeyFor(currentTargetLangCode()), JSON.stringify(state.stats)); } catch(e){}
+    try { localStorage.setItem(categoriesKeyFor(currentTargetLangCode()), JSON.stringify(state.categories)); } catch(e){}
     try { localStorage.setItem(ACTIVITY_KEY, JSON.stringify(state.activityDays)); } catch(e){}
     if (data.themeColor){ state.themeColor = data.themeColor; try{localStorage.setItem(THEME_KEY, data.themeColor);}catch(e){} applyThemeColor(data.themeColor); }
     if (data.themeMode){ state.themeMode = data.themeMode; try{localStorage.setItem(THEME_MODE_KEY, data.themeMode);}catch(e){} applyThemeMode(data.themeMode); }
@@ -2197,23 +2614,158 @@
   }
 
 
-  function loadCards(){
+  // --- زبان مقصد یادگیری (جعبه‌ی کلمات/آمار/دسته‌بندی جدا برای هر زبان) ---
+  function currentTargetLangCode(){ return LANGUAGE_CODES.includes(state.targetLang) ? state.targetLang : 'de'; }
+  function targetLangMeta(code){ return LANGUAGE_META[LANGUAGE_CODES.includes(code) ? code : 'de']; }
+  function targetLangLabel(code){ return t('lang_' + (LANGUAGE_CODES.includes(code) ? code : currentTargetLangCode())); }
+  // مهاجرت یک‌باره‌ی داده‌های قدیمی (که فقط برای آلمانی بودن) به فضای ذخیره‌سازی جدید مخصوص هر زبان
+  function migrateLegacyLanguageDataIfNeeded(){
     try {
-      const raw = localStorage.getItem(CARDS_KEY);
-      if (raw) state.cards = JSON.parse(raw).map(c => ({ ...c, type: c.type === 'sentence' ? 'sentence' : 'word', categoryId: c.categoryId || null }));
+      if (localStorage.getItem(TARGET_LANG_MIGRATED_KEY) === '1') return;
+      if (!localStorage.getItem(cardsKeyFor('de'))) {
+        const oldCards = localStorage.getItem(CARDS_KEY);
+        if (oldCards) localStorage.setItem(cardsKeyFor('de'), oldCards);
+      }
+      if (!localStorage.getItem(statsKeyFor('de'))) {
+        const oldStats = localStorage.getItem(STATS_KEY);
+        if (oldStats) localStorage.setItem(statsKeyFor('de'), oldStats);
+      }
+      if (!localStorage.getItem(categoriesKeyFor('de'))) {
+        const oldCats = localStorage.getItem(CATEGORIES_KEY);
+        if (oldCats) localStorage.setItem(categoriesKeyFor('de'), oldCats);
+      }
+      localStorage.setItem(TARGET_LANG_MIGRATED_KEY, '1');
     } catch(e){ console.error(e); }
   }
-  function persistCards(){ try { localStorage.setItem(CARDS_KEY, JSON.stringify(state.cards)); } catch(e){ console.error(e); } queueCloudSync(); }
-  function loadCategories(){
+  function loadTargetLang(){
     try {
-      const raw = localStorage.getItem(CATEGORIES_KEY);
+      const v = localStorage.getItem(TARGET_LANG_KEY);
+      state.targetLang = (v && LANGUAGE_CODES.includes(v)) ? v : 'de';
+    } catch(e){ state.targetLang = 'de'; }
+  }
+  function openTargetLangPicker(){ state.showTargetLangModal = true; render(); }
+  function closeTargetLangPicker(){ state.showTargetLangModal = false; render(); }
+  function switchTargetLang(code){
+    if (!LANGUAGE_CODES.includes(code) || code === state.targetLang) { state.showTargetLangModal = false; render(); return; }
+    stopListening();
+    state.targetLang = code;
+    try { localStorage.setItem(TARGET_LANG_KEY, code); } catch(e){}
+    loadCards();
+    loadCategories();
+    loadStats();
+    loadCurriculumProgress();
+    state.view = 'home';
+    state.sessionQueue = []; state.sessionIndex = 0; state.studyType = null;
+    state.activeCategoryId = null; state.manageCategoryFilter = 'all'; state.studyCategoryFilter = 'all';
+    state.showTargetLangModal = false;
+    render();
+  }
+  const TARGET_LANG_EXAMPLES = {
+    de: 'Guten Morgen - صبح بخیر', en: 'Good morning - صبح بخیر', es: 'Buenos días - صبح بخیر',
+    fr: 'Bonjour - صبح بخیر', it: 'Buongiorno - صبح بخیر'
+  };
+  function addExampleText(){ return TARGET_LANG_EXAMPLES[currentTargetLangCode()] || TARGET_LANG_EXAMPLES.de; }
+  function renderAvatarModal(){
+    if (!state.showAvatarModal) return '';
+    return `
+      <div class="modal-backdrop" onclick="closeAvatarModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0">انتخاب آواتار</h3>
+            <button class="modal-close-btn" onclick="closeAvatarModal()" aria-label="بستن">${icon('close',14)}</button>
+          </div>
+          <div class="avatar-grid">
+            ${DEFAULT_AVATARS.map(a => `
+              <button class="avatar-choice ${!state.profile.customAvatar && state.profile.avatar===a.id ? 'active' : ''}" style="padding:0;overflow:hidden" onclick="pickProfileAvatar('${a.id}')"><img src="${AVATAR_IMAGES[a.id]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"></button>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  function renderTargetLangPicker(){
+    if (!state.showTargetLangModal) return '';
+    const cur = currentTargetLangCode();
+    return `
+      <div class="modal-backdrop" onclick="closeTargetLangPicker()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <h2 style="margin:0 0 6px 0; font-size:18px; text-align:center;">${t('targetLangModalTitle')}</h2>
+          <p style="margin:0 0 16px 0; font-size:12px; color:var(--muted); text-align:center;">${t('targetLangModalDesc')}</p>
+          <div class="target-lang-grid">
+            ${LANGUAGE_CODES.map(code => {
+              const m = LANGUAGE_META[code];
+              return `
+                <div class="target-lang-card ${cur === code ? 'active' : ''}" onclick="switchTargetLang('${code}')">
+                  <div class="target-lang-info">
+                    <span class="target-lang-flag">${m.flag}</span>
+                    <div class="target-lang-names">
+                      <span class="target-lang-title">${t('lang_' + code)}</span>
+                      <span class="target-lang-sub">${m.native}</span>
+                    </div>
+                  </div>
+                  ${cur === code ? `<span style="font-size:12px; color:var(--brass); font-weight:700;">✓</span>` : ''}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  function loadCards(){
+    state.cards = [];
+    const lang = currentTargetLangCode();
+    try {
+      const raw = localStorage.getItem(cardsKeyFor(lang));
+      if (raw) {
+        state.cards = JSON.parse(raw).map(c => ({ ...c, type: c.type === 'sentence' ? 'sentence' : 'word', categoryId: c.categoryId || null }));
+      } else if (!localStorage.getItem(cardsSeededKeyFor(lang))) {
+        // اولین باری که کاربر وارد این زبان می‌شه و هیچ کارتی نداره، چند کارت نمونه اضافه می‌کنیم
+        state.cards = buildDefaultCards(lang);
+        try { localStorage.setItem(cardsKeyFor(lang), JSON.stringify(state.cards)); } catch(e2){}
+      }
+      try { localStorage.setItem(cardsSeededKeyFor(lang), '1'); } catch(e3){}
+    } catch(e){ console.error(e); }
+  }
+  function persistCards(){ try { localStorage.setItem(cardsKeyFor(currentTargetLangCode()), JSON.stringify(state.cards)); } catch(e){ console.error(e); } queueCloudSync(); }
+  function loadCategories(){
+    state.categories = [];
+    try {
+      const raw = localStorage.getItem(categoriesKeyFor(currentTargetLangCode()));
       if (raw) state.categories = JSON.parse(raw);
     } catch(e){ console.error(e); }
   }
-  function persistCategories(){ try { localStorage.setItem(CATEGORIES_KEY, JSON.stringify(state.categories)); } catch(e){ console.error(e); } queueCloudSync(); }
-  function loadStats(){
+  function persistCategories(){ try { localStorage.setItem(categoriesKeyFor(currentTargetLangCode()), JSON.stringify(state.categories)); } catch(e){ console.error(e); } queueCloudSync(); }
+  function curriculumClaimedKeyFor(lang){ return 'leitner_curriculum_claimed_v1_' + lang; }
+  function curriculumCorrectKeyFor(lang){ return 'leitner_curriculum_correct_v1_' + lang; }
+  function loadCurriculumProgress(){
+    const lang = currentTargetLangCode();
+    let claimed = [];
+    let correct = 0;
     try {
-      const raw = localStorage.getItem(STATS_KEY);
+      const rawClaimed = localStorage.getItem(curriculumClaimedKeyFor(lang));
+      if (rawClaimed) claimed = JSON.parse(rawClaimed);
+    } catch(e){ console.error(e); }
+    try {
+      const rawCorrect = localStorage.getItem(curriculumCorrectKeyFor(lang));
+      if (rawCorrect) correct = parseInt(rawCorrect, 10) || 0;
+    } catch(e){ console.error(e); }
+    state.curriculumClaimed[lang] = Array.isArray(claimed) ? claimed : [];
+    state.curriculumCorrect[lang] = correct;
+  }
+  function persistCurriculumClaimed(){
+    const lang = currentTargetLangCode();
+    try { localStorage.setItem(curriculumClaimedKeyFor(lang), JSON.stringify(state.curriculumClaimed[lang] || [])); } catch(e){ console.error(e); }
+  }
+  function persistCurriculumCorrect(){
+    const lang = currentTargetLangCode();
+    try { localStorage.setItem(curriculumCorrectKeyFor(lang), String(state.curriculumCorrect[lang] || 0)); } catch(e){ console.error(e); }
+  }
+  function curriculumCorrectForLang(){ return state.curriculumCorrect[currentTargetLangCode()] || 0; }
+  function loadStats(){
+    state.stats = { word: {correct:0, wrong:0}, sentence: {correct:0, wrong:0}, pronun: {correct:0, wrong:0} };
+    try {
+      const raw = localStorage.getItem(statsKeyFor(currentTargetLangCode()));
       if (raw) {
         const p = JSON.parse(raw);
         state.stats = {
@@ -2224,7 +2776,7 @@
       }
     } catch(e){ console.error(e); }
   }
-  function persistStats(){ try { localStorage.setItem(STATS_KEY, JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); markActivityToday(); }
+  function persistStats(){ try { localStorage.setItem(statsKeyFor(currentTargetLangCode()), JSON.stringify(state.stats)); } catch(e){ console.error(e); } queueCloudSync(); markActivityToday(); }
   function loadReminderState(){
     state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1';
     try { state.reminderTime = localStorage.getItem(REMINDER_TIME_KEY) || '09:00'; } catch(e){ state.reminderTime = '09:00'; }
@@ -2345,6 +2897,8 @@
     image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" stroke="none"/><path d="M21 15l-5-5L5 21"/>',
     swap: '<polyline points="17 1 21 5 17 9"/><line x1="21" y1="5" x2="3" y2="5"/><polyline points="7 23 3 19 7 15"/><line x1="3" y1="19" x2="21" y2="19"/>',
     help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/>',
+    message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
+    users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -2355,10 +2909,18 @@
         <div class="app-header-row">
           <div class="header-menu-wrap">
             <button class="kebab-btn" onclick="toggleHeaderMenu()" aria-label="${t('menuMore')}">${icon('kebab',18)}</button>
+            <button class="bell-btn" onclick="openRequestsModal()" aria-label="درخواست‌های دوستی">
+              ${icon('bell',18)}
+              ${state.friendRequests.length > 0 ? `<span class="bell-dot"></span>` : ''}
+            </button>
+            <button class="kebab-btn target-lang-btn" onclick="openTargetLangPicker()" aria-label="${t('targetLangBadgeAria')}" title="${targetLangLabel()}">${targetLangMeta(currentTargetLangCode()).flag}</button>
             ${state.showHeaderMenu ? `
               <div class="header-menu">
                 <button class="header-menu-item" onclick="goProfile()">${icon('user',16)} ${t('menuProfile')}</button>
                 <button class="header-menu-item" onclick="goStats()">${icon('chart',16)} ${t('menuStats')}</button>
+                <button class="header-menu-item" onclick="goManage(); closeHeaderMenu();">${icon('archive',16)} ${t('menuManage')}</button>
+                <button class="header-menu-item" onclick="goFriends(); closeHeaderMenu();">${icon('message',16)} ${t('menuChat')}</button>
+                <button class="header-menu-item" onclick="goLeaderboard(); closeHeaderMenu();">🏆 نفرات برتر</button>
                 <button class="header-menu-item" onclick="openStreakModal()">${icon('calendar',16)} ${t('menuStreak')}</button>
                 <button class="header-menu-item" onclick="openLangPicker()">${icon('translate',16)} ${t('menuChangeLang')}</button>
               </div>
@@ -2373,13 +2935,20 @@
         </div>
         ${state.showHeaderMenu ? `<div class="menu-backdrop" onclick="closeHeaderMenu()"></div>` : ''}
         ${renderNav()}
-        ${state.view==='home' ? renderHome() : state.view==='add' ? renderAdd() : state.view==='translate' ? renderTranslate() : state.view==='study' ? renderStudy() : state.view==='stats' ? renderStats() : state.view==='settings' ? renderSettings() : state.view==='profile' ? renderProfile() : state.view==='categoryHome' ? renderCategoryHome() : renderManage()}
+        ${state.view==='home' ? renderHome() : state.view==='add' ? renderAdd() : state.view==='translate' ? renderTranslate() : state.view==='study' ? renderStudy() : state.view==='stats' ? renderStats() : state.view==='settings' ? renderSettings() : state.view==='profile' ? renderProfile() : state.view==='categoryHome' ? renderCategoryHome() : state.view==='friends' ? renderFriends() : state.view==='leaderboard' ? renderLeaderboardPage() : renderManage()}
         ${renderStreakModal()}
         ${renderLeagueModal()}
+        ${renderLevelRoadmapModal()}
         ${renderLangPicker()}
+        ${renderTargetLangPicker()}
+        ${renderAvatarModal()}
+        ${renderFriendProfileModal()}
+        ${renderRequestsModal()}
+        ${renderUserFriendProfileModal()}
       </div>
       ${!state.aiOpen ? renderAiFab() : ''}
       ${state.aiOpen ? renderAiPage() : ''}
+      ${state.openChatUsername ? renderUserChatPage() : ''}
     `;
   }
 
@@ -2393,7 +2962,6 @@
         <button class="nav-btn ${state.view==='add'?'active':''}" onclick="goAdd()">${icon('plus',15)}${t('navAdd')}</button>
         <button class="nav-btn ${state.view==='translate'?'active':''}" onclick="goTranslate()">${icon('translate',15)}${t('navTranslate')}</button>
         <button class="nav-btn ${state.view==='study'?'active':''}" onclick="goStudyTab()">${icon('book',15)}${t('navStudy')}</button>
-        <button class="nav-btn ${state.view==='manage'?'active':''}" onclick="goManage()">${icon('archive',15)}${t('navManage')}</button>
         <button class="nav-btn ${state.view==='profile'?'active':''}" onclick="goProfile()">${icon('user',15)}${t('navProfile')}</button>
         <button class="nav-btn ${state.view==='settings'?'active':''}" onclick="goSettings()">${icon('settings',15)}${t('navSettings')}</button>
       </div>
@@ -2404,10 +2972,24 @@
     const pronunCount = state.cards.filter(c => matchesCategory(c, state.studyCategoryFilter)).length;
     return `
       ${renderDailyGoalsPanel()}
+      ${renderHomeChatChip()}
       ${renderCategoryQuickList()}
       ${renderDeckSection('word')}
       ${renderDeckSection('sentence')}
       ${renderPronunHomePanel(pronunCount)}
+    `;
+  }
+  function renderHomeChatChip(){
+    const onlineCount = FRIENDS.filter(f => f.online).length;
+    return `
+      <div class="panel" style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="goFriends()">
+        <span style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--brass);border:1px solid var(--border2)">${icon('message',20)}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:14px">${t('homeChatTitle')}</div>
+          <div class="hint-text" style="margin-top:2px">${t('homeChatDesc')}</div>
+        </div>
+        ${onlineCount>0 ? `<span style="display:flex;align-items:center;gap:5px;background:rgba(63,161,90,0.12);color:var(--sage-strong);border:1px solid rgba(63,161,90,0.35);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0"><span style="width:7px;height:7px;border-radius:50%;background:var(--sage-strong);display:inline-block"></span>${faNum(onlineCount)}</span>` : ''}
+      </div>
     `;
   }
   function renderCategoryQuickList(){
@@ -2467,7 +3049,7 @@
     return `
       <div class="panel">
         <div class="deck-header"><span class="deck-title" style="color:var(--teal)">${t('pronunTitle')}</span><span class="deck-sub">${tf('pronunCardsCount', {n: faNum(count)})}</span></div>
-        <div class="hint-text">${t('pronunHomeHint')}</div>
+        <div class="hint-text">${tf('pronunHomeHint', {lang: targetLangLabel()})}</div>
         <button class="btn-primary pronun-cta" ${count===0?'disabled':''} onclick="startSession('pronun')">${icon('volume',18)} ${t('pronunStartBtn')}</button>
       </div>
     `;
@@ -2496,9 +3078,10 @@
       }).join('') + '</div>';
     }
     const ctaClass = type==='sentence' ? 'btn-primary sentence-cta' : 'btn-primary';
+    const levelBadge = type==='word' ? renderLevelBadge() : '';
     return `
       <div class="panel">
-        <div class="deck-header"><span class="deck-title" style="color:${colors[3]}">${title}</span><span class="deck-sub">${tf('deckCountLine', {total: faNum(total), type: typeLabel(type), due: faNum(dc)})}</span></div>
+        <div class="deck-header"><span class="deck-title" style="color:${colors[3]}">${title}${levelBadge}</span><span class="deck-sub">${tf('deckCountLine', {total: faNum(total), type: typeLabel(type), due: faNum(dc)})}</span></div>
         ${drawers}
         <button class="${ctaClass}" ${dc===0?'disabled':''} onclick="startSession('${type}')">${dc===0 ? t('nothingToday') : tf('startStudyBtn', {n: faNum(dc)})}</button>
       </div>
@@ -2541,7 +3124,7 @@
         </div>
         ${catPicker}
         ${searchBox}
-        <div class="hint-text">${tf('addHint', {type: typeLabel(state.addType)})}<br><code>Guten Morgen - صبح بخیر</code></div>
+        <div class="hint-text">${tf('addHint', {type: typeLabel(state.addType), lang: targetLangLabel()})}<br><code>${addExampleText()}</code></div>
         <textarea id="addTextarea" ${hasPreview?'readonly':''} placeholder="Guten Morgen - صبح بخیر
 das Buch - کتاب
 Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفاً">${esc(state.inputText)}</textarea>
@@ -2649,6 +3232,22 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     render();
   }
 
+  function renderCurriculumCardMeta(card){
+    if (!card.curriculumLevel) return '';
+    const levelDef = CURRICULUM_LEVELS.find(l => l.id === card.curriculumLevel);
+    const rows = [];
+    rows.push(`<span>سطح: <b>${esc(levelDef ? levelDef.name : card.curriculumLevel)}</b></span>`);
+    if (card.curriculumCategory) rows.push(`<span>دسته: <b>${esc(card.curriculumCategory)}</b></span>`);
+    if (card.curriculumFreqText) rows.push(`<span>پرکاربردی: <b>${esc(card.curriculumFreqText)}</b></span>`);
+    let html = `<div class="card-meta-box">${rows.join('')}</div>`;
+    if (card.curriculumContextDe || card.curriculumContextFa) {
+      html += `<div class="card-meta-context">`;
+      if (card.curriculumContextDe) html += `<div class="card-meta-context-de" dir="ltr">${esc(card.curriculumContextDe)}</div>`;
+      if (card.curriculumContextFa) html += `<div class="card-meta-context-fa">${esc(card.curriculumContextFa)}</div>`;
+      html += `</div>`;
+    }
+    return html;
+  }
   function renderStudy(){
     if (!state.studyType) return renderStudyChooser();
     if (state.studyType === 'pronun') return renderPronunciation();
@@ -2683,7 +3282,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       `<button class="btn-secondary" style="margin-top:10px" onclick="openAskTeacher('${card.id}')">${t('askTeacherBtn')}</button>`;
     const bottom = state.revealed
       ? `<div class="answer-row"><button class="answer-btn answer-correct" onclick="answer(true)">${t('knewIt')}</button><button class="answer-btn answer-wrong" onclick="answer(false)">${t('didntKnow')}</button></div>${aiSection}${askTeacherBtn}`
-      : `<textarea class="guess-box" placeholder="${esc(t('typeGuess'))}"></textarea><button class="btn-primary" onclick="reveal()">${t('showAnswer')}</button>`;
+      : `<textarea class="guess-box" placeholder="${esc(tf('typeGuess', {lang: targetLangLabel()}))}"></textarea><button class="btn-primary" onclick="reveal()">${t('showAnswer')}</button>`;
     return `
       <div class="panel">
         ${renderGoalBar(state.studyType)}
@@ -2694,12 +3293,13 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             <div class="flip-face flip-front">
               <div class="card-box-tag" style="background:${colors[card.box]}">${tf('boxTag', {n: faNum(card.box)})}</div>
               <div class="card-fa-big">${esc(card.fa)}</div>
-              <div class="card-hint">${t('howInGerman')}</div>
+              <div class="card-hint">${tf('howInGerman', {lang: targetLangLabel()})}</div>
             </div>
             <div class="flip-face flip-back">
               <div class="card-de-big">${esc(card.de)}</div>
               <button class="speak-icon-btn centered" onclick="speakCard('${card.id}')">${icon('volume',16)} ${t('playAgain')}</button>
               <div class="card-fa-small">${esc(card.fa)}</div>
+              ${renderCurriculumCardMeta(card)}
             </div>
           </div>
         </div>
@@ -2766,6 +3366,212 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
+  function renderFriends(){
+    const rows = FRIENDS.map(f => `
+      <div class="friend-row" onclick="openFriendProfile('${f.id}')">
+        <div class="friend-avatar-wrap">
+          ${friendAvatarImg(f.avatar, 46)}
+          ${f.online ? `<span class="online-dot"></span>` : ''}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${esc(f.name)}</div>
+          <div class="hint-text" style="margin-top:1px">${f.online ? t('friendsOnline') : t('friendsOffline')}</div>
+        </div>
+        ${icon('chevronLeft',16)}
+      </div>
+    `).join('');
+    const myFriendRows = state.userFriends.map(f => `
+      <div class="friend-row" onclick="openUserFriendProfile('${esc(f.username)}')">
+        <div class="friend-avatar-wrap">
+          <div style="width:100%;height:100%;background:var(--panel2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px">👤</div>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${esc(f.name)}</div>
+        </div>
+        <button class="modal-close-btn" style="width:34px;height:34px;border-radius:9px" onclick="event.stopPropagation();openUserChat('${esc(f.username)}')" aria-label="چت کردن">${icon('message',15)}</button>
+      </div>
+    `).join('');
+    const preview = state.friendSearchPreview ? `
+      <div class="request-row" style="margin-top:10px;cursor:pointer" onclick="event.stopPropagation()">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">👤</div>
+          <div>
+            <b style="font-size:13px">${esc(state.friendSearchPreview)}</b>
+            <div style="font-size:11px;color:var(--muted)">@${esc(state.friendSearchPreview)}</div>
+          </div>
+        </div>
+        <button class="btn-accept" style="border-radius:50%;width:32px;height:32px;padding:0" onclick="confirmSendFriendRequest()" aria-label="ارسال درخواست دوستی">+</button>
+      </div>
+    ` : '';
+    return `
+      <div class="panel">
+        <div class="deck-header">
+          <span class="deck-title">${icon('message',16)} ${t('friendsTitle')}</span>
+        </div>
+        <div class="friend-search-row">
+          <input id="friendSearchInput" class="text-input" style="flex:1" placeholder="نام کاربری دوستتون رو وارد کنید" onkeydown="if(event.key==='Enter')previewFriendSearch()">
+          <button class="modal-close-btn" style="width:44px;height:44px;border-radius:10px" onclick="previewFriendSearch()" aria-label="جستجو">${icon('search',18)}</button>
+        </div>
+        ${preview}
+        ${myFriendRows ? `<div class="friend-list" style="margin-top:12px">${myFriendRows}</div>` : `<div class="hint-text" style="text-align:center;margin-top:14px">هنوز دوستی اضافه نکردی. نام کاربری‌شون رو بالا وارد کن.</div>`}
+      </div>
+      <div class="panel">
+        <div class="deck-header"><span class="deck-title">${t('friendsTitle')}</span></div>
+        <div class="friend-list">${rows}</div>
+      </div>
+    `;
+  }
+  function renderUserFriendProfileModal(){
+    const username = state.openUserFriendProfile;
+    if (!username) return '';
+    const f = userFriendByUsername(username) || makeFriendRecord(username);
+    return `
+      <div class="modal-backdrop" onclick="closeUserFriendProfile()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div style="text-align:center;margin-bottom:12px">
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto">👤</div>
+            <h3 style="margin:6px 0">${esc(f.name)} (@${esc(f.username)})</h3>
+            <p style="font-size:12px;color:var(--muted)">${f.bio ? esc(f.bio) : 'بدون بیوگرافی'}</p>
+          </div>
+          <div class="stats-row" style="margin-bottom:14px">
+            <div class="stats-num-box">
+              <div class="stats-num">${faNum(f.correctCount || 0)}</div>
+              <div class="stat-label">پاسخ درست</div>
+            </div>
+            <div class="stats-num-box">
+              <div class="stats-num">${faNum(f.streak || 0)} 🔥</div>
+              <div class="stat-label">روز ورود</div>
+            </div>
+            <div class="stats-num-box">
+              <div class="stats-num" style="font-size:14px;color:var(--brass)">${esc(f.league || 'برنز')}</div>
+              <div class="stat-label">لیگ</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-bottom:8px">
+            <button class="btn-secondary" style="margin-top:0" onclick="closeUserFriendProfile();openUserChat('${esc(f.username)}')">${icon('message',15)} چت کردن</button>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn-secondary" style="margin-top:0;border-color:var(--wine);color:var(--wine)" onclick="blockUser('${esc(f.username)}')">بلاک کردن</button>
+            <button class="btn-secondary" style="margin-top:0" onclick="removeFriend('${esc(f.username)}')">حذف دوست</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+  function goLeaderboard(){ stopListening(); state.view = 'leaderboard'; render(); }
+  function showLeaderboardTab(tab){ state.leaderboardTab = tab; render(); }
+  function renderLeaderboardPage(){
+    const info = computeLevelInfo(totalXp());
+    const league = leagueFor(info.level);
+    const meRow = `
+      <div class="friend-row">
+        <div class="friend-avatar-wrap">${avatarHtml(46)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${esc(state.profile.name) || t('friendsTitle')} (${t('navProfile')})</div>
+          <div class="hint-text" style="margin-top:1px">${state.leaderboardTab==='league' ? leagueLabel(league.key) : `${t('profileLevel')} ${faNum(info.level)}`}</div>
+        </div>
+      </div>
+    `;
+    return `
+      <div class="panel">
+        <h3 class="stats-title">نفرات برتر</h3>
+        <div class="type-toggle" style="margin-bottom:12px">
+          <button class="type-btn ${state.leaderboardTab==='league'?'active-word':''}" id="tab-league" onclick="showLeaderboardTab('league')">۵۰ نفر برتر لیگ</button>
+          <button class="type-btn ${state.leaderboardTab==='level'?'active-sentence':''}" id="tab-level" onclick="showLeaderboardTab('level')">۵۰ نفر برتر لول</button>
+        </div>
+        <div id="leaderboard-list-container" class="friend-list">
+          ${meRow}
+        </div>
+        <div class="empty-state">${icon('users',26)}<div>این ویژگی به اتصال اینترنت نیاز داره و هنوز فعال نشده — فعلاً فقط آمار خودتون رو می‌بینید.</div></div>
+      </div>
+    `;
+  }
+  function renderRequestsModal(){
+    if (!state.showRequestsModal) return '';
+    const requests = state.friendRequests;
+    const body = requests.length === 0
+      ? `<div class="empty-state">${icon('bell',30)}<div>درخواست جدیدی ندارید.</div></div>`
+      : requests.map(user => `
+          <div class="request-row">
+            <b>${esc(user)}</b>
+            <div class="request-actions">
+              <button class="btn-reject" onclick="rejectFriendRequest('${esc(user)}')">رد کردن</button>
+              <button class="btn-accept" onclick="acceptFriendRequest('${esc(user)}')">قبول کردن</button>
+            </div>
+          </div>
+        `).join('');
+    return `
+      <div class="modal-backdrop" onclick="closeRequestsModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:10px">
+            <span class="deck-title">درخواست‌های دوستی</span>
+            <button class="modal-close-btn" onclick="closeRequestsModal()">${icon('close',15)}</button>
+          </div>
+          <div class="request-modal-body">${body}</div>
+        </div>
+      </div>
+    `;
+  }
+  function renderUserChatPage(){
+    const username = state.openChatUsername;
+    const messages = state.chats[username] || [];
+    return `
+      <div class="ai-page">
+        <div class="ai-page-header">
+          <button class="ai-back-btn" onclick="closeUserChat()" aria-label="${t('aiBackBtn')}">${icon('close',18)}</button>
+          <div class="ai-page-title">${icon('message',17)} ${esc(username)}</div>
+        </div>
+        <div class="ai-messages" id="userChatMessages">
+          ${messages.length === 0 ? `<div class="ai-empty">${icon('message',26)}<div>هنوز پیامی رد و بدل نشده. اولین پیام رو بفرست!</div></div>` : ''}
+          ${messages.map(m => `<div class="ai-msg ${m.sender==='me' ? 'ai-msg-user' : 'ai-msg-model'}">${esc(m.text)}</div>`).join('')}
+        </div>
+        <div class="ai-input-row">
+          <textarea id="userChatInput" rows="1" placeholder="پیام خود را بنویسید..." onkeydown="handleUserChatInputKeydown(event)"></textarea>
+          <button class="ai-send-btn" onclick="sendUserChatMessage()" aria-label="${t('aiSend')}">${icon('send',18)}</button>
+        </div>
+      </div>
+    `;
+  }
+  function renderFriendProfileModal(){
+    if (!state.openFriendId) return '';
+    const f = friendById(state.openFriendId);
+    if (!f) return '';
+    const bio = f.special ? t('friendBarnamehBio') : null;
+    return `
+      <div class="modal-backdrop" onclick="closeFriendProfile()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:2px">
+            <span class="deck-title">${t('friendsTitle')}</span>
+            <button class="modal-close-btn" onclick="closeFriendProfile()">${icon('close',15)}</button>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px">
+            <div class="friend-avatar-wrap" style="width:78px;height:78px">
+              ${friendAvatarImg(f.avatar, 78)}
+              ${f.online ? `<span class="online-dot" style="width:16px;height:16px;bottom:2px;inset-inline-end:2px"></span>` : ''}
+            </div>
+            <div style="font-weight:700;font-size:16px">${esc(f.name)}</div>
+            <div class="hint-text">${f.online ? t('friendsOnline') : t('friendsOffline')}</div>
+          </div>
+          ${bio ? `<div class="hint-text" style="text-align:center;line-height:1.9;margin:6px 0 10px">${esc(bio)}</div>` : ''}
+          <div class="hint-text" style="text-align:center;margin-bottom:8px">${tf('friendDaysInApp',{n:faNum(f.daysInApp)})}</div>
+          <div style="display:flex;gap:8px">
+            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
+              <div style="font-weight:700;font-size:15px;color:var(--brass)">${faNum(f.level)}</div>
+              <div class="hint-text" style="margin-top:2px">${t('friendLevel')}</div>
+            </div>
+            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
+              <div style="font-weight:700;font-size:15px;color:var(--sage-strong)">${faNum(f.wordsLearned)}</div>
+              <div class="hint-text" style="margin-top:2px">${t('friendWordsLearned')}</div>
+            </div>
+            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
+              <div style="font-weight:700;font-size:15px;color:var(--violet)">${faNum(f.streakDays)}</div>
+              <div class="hint-text" style="margin-top:2px">${t('friendStreakDays')}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
   function renderManage(){
     const filter = state.manageFilter;
     const colors = colorsFor(filter);
@@ -2854,26 +3660,50 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     return `
       <div class="panel" style="text-align:center">
         <div style="display:flex;justify-content:center;margin-bottom:12px">${avatarHtml(88)}</div>
-        <div class="avatar-grid">
-          ${DEFAULT_AVATARS.map(a => `
-            <button class="avatar-choice ${!state.profile.customAvatar && state.profile.avatar===a.id ? 'active' : ''}" style="padding:0;overflow:hidden" onclick="setProfileAvatar('${a.id}')"><img src="${AVATAR_IMAGES[a.id]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"></button>
-          `).join('')}
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+          <button class="btn-secondary" style="width:auto;padding:9px 16px" onclick="openAvatarModal()">تغییر عکس پروفایل</button>
+          <label class="btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;width:auto;padding:9px 16px">
+            ${t('profileUploadPhoto')}
+            <input type="file" accept="image/*" style="display:none" onchange="onAvatarFileChange(this)">
+          </label>
         </div>
-        <label class="btn-secondary" style="display:inline-flex;align-items:center;justify-content:center;margin-top:12px;cursor:pointer;width:auto;padding:9px 16px">
-          ${t('profileUploadPhoto')}
-          <input type="file" accept="image/*" style="display:none" onchange="onAvatarFileChange(this)">
-        </label>
-        ${state.profile.userIdLocked ? `
+        <div class="edit-fields" style="margin-top:14px;text-align:start">
+          <label style="font-size:12px;color:var(--muted)">بیوگرافی:</label>
+          <textarea id="profile-bio" class="text-input edit-textarea" placeholder="درباره خودتان بنویسید..." oninput="setProfileBio(this.value)">${esc(state.profile.bio)}</textarea>
+
+          <label style="font-size:12px;color:var(--muted);margin-top:8px">جنسیت:</label>
+          <div style="display:flex;gap:10px;margin-bottom:8px">
+            <button type="button" class="type-btn ${state.profile.gender==='male'?'active-word':''}" onclick="selectGender('male')">♂ مرد</button>
+            <button type="button" class="type-btn ${state.profile.gender==='female'?'active-sentence':''}" onclick="selectGender('female')">♀ زن</button>
+          </div>
+
+          <label style="font-size:12px;color:var(--muted)">تاریخ تولد (میلادی):</label>
+          <input type="date" class="text-input" style="direction:ltr" value="${esc(state.profile.birthdate)}" onchange="setProfileBirthdate(this.value)">
+        </div>
+        ${state.profile.userIdChangeCount >= USER_ID_MAX_CHANGES ? `
           <div class="text-input" style="margin-top:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;cursor:default">
             ${icon('key',15)} <b style="letter-spacing:0.5px">${esc(state.profile.userId)}</b>
           </div>
           <div class="hint-text" style="margin-top:6px">${t('profileIdLockedHint')}</div>
         ` : `
+          ${state.profile.userId ? `
+            <div class="text-input" style="margin-top:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;cursor:default">
+              ${icon('key',15)} <b style="letter-spacing:0.5px">${esc(state.profile.userId)}</b>
+            </div>
+          ` : ''}
           <input class="text-input" style="margin-top:14px;text-align:center" placeholder="${t('profileIdPlaceholder')}" value="${esc(state.uiUserIdDraft)}" oninput="onUserIdDraftInput(this.value)" onkeydown="if(event.key==='Enter')confirmUserId()" maxlength="24">
           <div class="hint-text" style="margin-top:6px">${t('profileIdHint')}</div>
+          <div class="hint-text" style="margin-top:2px">${faNum(USER_ID_MAX_CHANGES - state.profile.userIdChangeCount)} بار دیگر می‌تونید آیدی‌تون رو تغییر بدید.</div>
           ${state.uiUserIdError ? `<div class="hint-text" style="margin-top:2px;color:var(--wine)">${t(state.uiUserIdError)}</div>` : ''}
           <button class="btn-secondary" style="width:auto;padding:9px 18px" ${state.uiUserIdChecking ? 'disabled' : ''} onclick="confirmUserId()">${state.uiUserIdChecking ? t('profileIdChecking') : t('profileIdConfirm')}</button>
         `}
+      </div>
+      <div class="panel">
+        <div class="deck-header">
+          <span class="deck-title" style="color:var(--brass)">${icon('book',16)} سطح شما در ${targetLangLabel()}</span>
+          <span class="deck-sub" style="font-weight:700;color:var(--brass)">${currentLangLevelLabel()}</span>
+        </div>
+        <div class="hint-text" style="margin-top:6px">${faNum(totalXp())} پاسخ درست در این زبان — سطح هر زبان جدا و مستقل از بقیه زبان‌ها محاسبه می‌شه</div>
       </div>
       <div class="panel">
         <div class="deck-header">
@@ -4441,9 +5271,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[t].correct += correct ? 1 : 0;
     state.stats[t].wrong += correct ? 0 : 1;
     persistStats();
+    if (card.curriculumLevel && correct) {
+      const lang = currentTargetLangCode();
+      state.curriculumCorrect[lang] = (state.curriculumCorrect[lang] || 0) + 1;
+      persistCurriculumCorrect();
+    }
     if (correct) incrementDailyProgress(t);
     state.sessionStats = { correct: state.sessionStats.correct+(correct?1:0), wrong: state.sessionStats.wrong+(correct?0:1) };
-    state.lastAction = { cardId: card.id, prevBox, prevNextReview, correct, type: t, sessionIndex: state.sessionIndex };
+    state.lastAction = { cardId: card.id, prevBox, prevNextReview, correct, type: t, sessionIndex: state.sessionIndex, curriculumLevel: card.curriculumLevel || null };
     state.revealed = false;
     state.sessionIndex += 1;
     render();
@@ -4456,6 +5291,11 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[a.type].correct -= a.correct ? 1 : 0;
     state.stats[a.type].wrong -= a.correct ? 0 : 1;
     persistStats();
+    if (a.curriculumLevel && a.correct) {
+      const lang = currentTargetLangCode();
+      state.curriculumCorrect[lang] = Math.max(0, (state.curriculumCorrect[lang] || 0) - 1);
+      persistCurriculumCorrect();
+    }
     if (a.correct) decrementDailyProgress(a.type);
     state.sessionStats = { correct: state.sessionStats.correct-(a.correct?1:0), wrong: state.sessionStats.wrong-(a.correct?0:1) };
     state.sessionIndex = a.sessionIndex;
@@ -4473,9 +5313,9 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats = { word:{correct:0,wrong:0}, sentence:{correct:0,wrong:0}, pronun:{correct:0,wrong:0} };
     state.activityDays = {};
     try {
-      localStorage.setItem(CARDS_KEY, JSON.stringify(state.cards));
-      localStorage.setItem(CATEGORIES_KEY, JSON.stringify(state.categories));
-      localStorage.setItem(STATS_KEY, JSON.stringify(state.stats));
+      localStorage.setItem(cardsKeyFor(currentTargetLangCode()), JSON.stringify(state.cards));
+      localStorage.setItem(categoriesKeyFor(currentTargetLangCode()), JSON.stringify(state.categories));
+      localStorage.setItem(statsKeyFor(currentTargetLangCode()), JSON.stringify(state.stats));
       localStorage.setItem(ACTIVITY_KEY, JSON.stringify(state.activityDays));
     } catch(e){ console.error(e); }
     queueCloudSync();
@@ -4621,9 +5461,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadTranslateLang();
   loadUiLang();
   loadProfile();
+  migrateLegacyLanguageDataIfNeeded();
+  loadTargetLang();
   loadCards();
   loadStats();
   loadCategories();
+  loadCurriculumProgress();
   loadThemeColor();
   loadThemeMode();
   loadReminderState();
@@ -4635,6 +5478,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadDailyGoals();
   loadDailyProgress();
   loadOpenrouterConfig();
+  loadFriendData();
   render();
 
   window.addEventListener('resize', () => {
