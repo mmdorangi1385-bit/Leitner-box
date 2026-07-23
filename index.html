@@ -23,7 +23,9 @@
     } catch (e) {}
   })();
 </script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
@@ -476,8 +478,13 @@
   .ai-settings-section { margin-bottom: 14px; }
   .ai-settings-section:last-child { margin-bottom: 0; }
 /* نشان کوچک سطح کنار عنوان «جعبه کلمه» */
-.level-badge-chip { display: inline-flex; align-items: center; background: linear-gradient(135deg, rgba(201,166,107,0.2), rgba(201,166,107,0.05)); border: 1px solid var(--brass); color: var(--brass); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; cursor: pointer; margin-inline-start: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; transition: all 0.2s ease; vertical-align: middle; }
+.level-badge-chip { display: inline-flex; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid var(--brass); color: var(--brass); font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; cursor: pointer; margin-inline-start: 8px; font-family: 'Vazirmatn', Tahoma, sans-serif; transition: all 0.2s ease; vertical-align: middle; }
 .level-badge-chip:active { transform: scale(0.95); }
+
+/* دایره رنگی + متن سطح در پروفایل، کنار تاریخ تولد */
+.profile-level-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; padding: 8px 10px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 10px; cursor: pointer; }
+.profile-level-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 6px rgba(0,0,0,0.25); }
+.profile-level-text { font-size: 12.5px; color: var(--text); }
 
 /* کارت‌های سطح در پنجره «سطح زبان‌آموزی شما» */
 .level-roadmap-list { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
@@ -488,7 +495,7 @@
 .level-card-title { font-weight: 700; font-size: 14px; color: var(--text); }
 .level-btn-claim { background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; border: none; border-radius: 8px; padding: 7px 12px; font-family: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; }
 .level-btn-claim:disabled { opacity: 0.6; cursor: default; }
-.level-btn-claimed { background: rgba(143,163,122,0.2); color: var(--sage); border: 1px solid var(--sage); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
+.level-btn-claimed { background: rgba(143,163,122,0.2); color: var(--sage); border: 1px solid var(--sage); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; display: inline-block; }
 .level-btn-locked { background: var(--panel); color: var(--muted); border: 1px solid var(--border); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
 .level-btn-coming-soon { background: rgba(139,111,201,0.15); color: var(--violet); border: 1px solid var(--violet); border-radius: 8px; padding: 6px 10px; font-size: 11px; white-space: nowrap; }
 
@@ -497,6 +504,35 @@
 .card-meta-context { margin-top: 8px; padding: 8px 12px; background: rgba(255,255,255,0.03); border-radius: 10px; font-size: 12px; }
 .card-meta-context-de { direction: ltr; color: var(--text); margin-bottom: 4px; }
 .card-meta-context-fa { color: var(--muted); }
+
+/* نسخه فشرده پنل «اهداف روزانه» - بیش از نصف کوچیک‌تر از حالت قبل */
+.daily-goals-panel-compact { padding: 8px 10px !important; margin-bottom: 10px !important; }
+.daily-goals-panel-compact .deck-header { margin-bottom: 5px !important; }
+.daily-goals-panel-compact .deck-title { font-size: 12px !important; }
+.daily-goals-panel-compact .deck-sub { font-size: 9px !important; }
+.daily-goals-panel-compact .daily-goals-list { gap: 5px !important; }
+.daily-goals-panel-compact .daily-goal-row-head { font-size: 10px !important; margin-bottom: 2px !important; }
+.daily-goals-panel-compact .goal-progress-track { height: 3px !important; }
+/* هدر چت با دوست: قابل کلیک برای باز کردن پروفایل و آمار کامل */
+.chat-header-clickable { cursor: pointer; flex-direction: column; align-items: flex-start !important; gap: 1px !important; transition: opacity 0.15s ease; }
+.chat-header-clickable:active { opacity: 0.7; }
+.chat-header-hint { font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 10.5px; font-weight: 400; color: var(--brass); }
+
+/* --- Firebase auth overlay --- */
+#auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+#auth-overlay.hide { display: none; }
+.auth-card { background: var(--panel); border: 1px solid var(--border); border-radius: 20px; padding: 24px; width: 100%; max-width: 380px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); text-align: center; }
+.auth-title { font-family: 'Fraunces', Georgia, serif; font-size: 22px; color: var(--brass); margin-bottom: 6px; }
+.auth-sub { font-size: 12.5px; color: var(--muted); margin-bottom: 20px; line-height: 1.7; }
+.auth-form { display: flex; flex-direction: column; gap: 12px; }
+.auth-input { width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; color: var(--text); padding: 12px; font-family: inherit; font-size: 14px; direction: ltr; text-align: left; }
+.auth-error { color: var(--wine); font-size: 12px; margin-top: 10px; line-height: 1.6; display: none; }
+.auth-link-btn { background: none; border: none; color: var(--brass); font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; cursor: pointer; padding: 8px 0; text-decoration: underline; margin-top: 6px; }
+.auth-guest-btn { background: none; border: none; color: var(--muted); font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12px; cursor: pointer; padding: 10px 0 0; text-decoration: underline; }
+.auth-spinner { width: 34px; height: 34px; border-radius: 50%; border: 3px solid var(--border2); border-top-color: var(--brass); animation: authSpin 0.8s linear infinite; margin: 0 auto 14px; }
+@keyframes authSpin { to { transform: rotate(360deg); } }
+.sync-status-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.sync-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
 </style>
 </head>
 <body>
@@ -514,6 +550,42 @@
   </div>
 </div>
 <div id="app"></div>
+
+<!-- Firebase auth overlay: sits on top of the app, never replaces it. Guest/offline use is always possible. -->
+<div id="auth-overlay" class="hide">
+  <div class="auth-card">
+    <div id="auth-loading-box">
+      <div class="auth-spinner"></div>
+      <div class="auth-sub">در حال بررسی وضعیت ورود...</div>
+    </div>
+
+    <div id="auth-login-box" style="display:none;">
+      <div class="auth-title">ورود به جعبه لایتنر</div>
+      <div class="auth-sub">برای همگام‌سازی کارت‌ها بین گوشی‌ها وارد حساب شو، یا بدون حساب ادامه بده (کارت‌ها همین‌جا روی گوشی ذخیره می‌مونن).</div>
+      <form class="auth-form" onsubmit="handleAuthSubmit(event, 'login')">
+        <input type="email" id="auth-email" class="auth-input" placeholder="ایمیل" required autocomplete="email">
+        <input type="password" id="auth-password" class="auth-input" placeholder="رمز عبور" required autocomplete="current-password">
+        <button type="submit" class="btn-primary">ورود</button>
+      </form>
+      <button class="auth-link-btn" onclick="toggleAuthMode('signup')">حساب نداری؟ ثبت‌نام کن</button>
+      <div><button class="auth-guest-btn" onclick="continueAsGuest()">فعلاً بدون حساب ادامه بده</button></div>
+      <div id="auth-error-msg" class="auth-error"></div>
+    </div>
+
+    <div id="auth-signup-box" style="display:none;">
+      <div class="auth-title">ایجاد حساب جدید</div>
+      <div class="auth-sub">با ثبت‌نام، کارت‌ها و آمارت رو می‌تونی روی هر گوشی دیگه‌ای هم ببینی.</div>
+      <form class="auth-form" onsubmit="handleAuthSubmit(event, 'signup')">
+        <input type="email" id="signup-email" class="auth-input" placeholder="ایمیل" required autocomplete="email">
+        <input type="password" id="signup-password" class="auth-input" placeholder="رمز عبور (حداقل ۶ کاراکتر)" minlength="6" required autocomplete="new-password">
+        <button type="submit" class="btn-primary">ثبت‌نام و ورود</button>
+      </form>
+      <button class="auth-link-btn" onclick="toggleAuthMode('login')">قبلاً ثبت‌نام کردی؟ وارد شو</button>
+      <div><button class="auth-guest-btn" onclick="continueAsGuest()">فعلاً بدون حساب ادامه بده</button></div>
+      <div id="auth-error-msg-signup" class="auth-error"></div>
+    </div>
+  </div>
+</div>
 
 <script>
   const CARDS_KEY = 'leitner_de_fa_cards_v1';
@@ -548,7 +620,6 @@
   const REMINDER_LAST_FIRED_KEY = 'leitner_reminder_last_fired_v1';
   function reminderMessages(){ return t('reminderMessages').split('|'); }
   function pickReminderMessage(){ const msgs = reminderMessages(); return msgs[Math.floor(Math.random() * msgs.length)]; }
-  const GOOGLE_SIGNIN_KEY = 'leitner_google_signed_in_v1';
   const ACTIVITY_KEY = 'leitner_activity_days_v1';
   const AI_FAB_POS_KEY = 'leitner_ai_fab_pos_v1';
   const AI_HISTORY_KEY = 'leitner_ai_history_v1';
@@ -571,20 +642,6 @@
   const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
   const DEFAULT_DAILY_GOALS = { word: 10, sentence: 5, pronun: 10 };
 
-  // --- Google Drive cloud sync config ---
-  // To enable "sign in with Google" + Drive backup you must create your own OAuth
-  // Client ID (this app has no server, so it can't ship a working one for you).
-  // Steps: see the guide at the bottom of the Settings tab in the app, or:
-  // 1) https://console.cloud.google.com/ -> create a project
-  // 2) Enable the "Google Drive API"
-  // 3) "OAuth consent screen" -> External -> add yourself as a Test user
-  // 4) "Credentials" -> Create Credentials -> OAuth Client ID -> Web application
-  //    -> add your app's URL (e.g. https://yourname.github.io) under
-  //    "Authorized JavaScript origins" (add http://localhost too for testing)
-  // 5) Paste the Client ID below.
-  const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
-  const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
-  const DRIVE_BACKUP_FILENAME = 'leitner-backup.json';
 
   const THEME_PRESET_COLORS = ['#c9a66b', '#8B6FC9', '#7fae6a', '#5b8fc9', '#c97b4a', '#b65c5c'];
   function themePresets(){
@@ -650,8 +707,11 @@
     try { state.friendRequests = JSON.parse(localStorage.getItem(FRIEND_REQUESTS_KEY) || '[]'); } catch(e){ state.friendRequests = []; }
     try {
       const raw = JSON.parse(localStorage.getItem(USER_FRIENDS_KEY) || '[]');
-      // سازگاری با نسخه‌ی قبلی که فقط نام کاربری خام ذخیره می‌کرد
-      state.userFriends = raw.map(f => typeof f === 'string' ? makeFriendRecord(f) : f);
+      // سازگاری با نسخه‌ی قبلی که فقط نام کاربری خام ذخیره می‌کرد، یا رکوردهایی که فیلدهای جدیدتر رو نداشتن
+      state.userFriends = raw.map(f => {
+        const username = typeof f === 'string' ? f : f.username;
+        return { ...makeFriendRecord(username), ...(typeof f === 'string' ? {} : f) };
+      });
     } catch(e){ state.userFriends = []; }
     try { state.chats = JSON.parse(localStorage.getItem(CHATS_KEY) || '{}'); } catch(e){ state.chats = {}; }
     try { state.blockedUsers = JSON.parse(localStorage.getItem(BLOCKED_USERS_KEY) || '[]'); } catch(e){ state.blockedUsers = []; }
@@ -661,9 +721,11 @@
   function persistChats(){ try { localStorage.setItem(CHATS_KEY, JSON.stringify(state.chats)); } catch(e){} }
   function persistBlockedUsers(){ try { localStorage.setItem(BLOCKED_USERS_KEY, JSON.stringify(state.blockedUsers)); } catch(e){} }
 
-  // چون سرور نیست، برای دوستِ تازه‌قبول‌شده یک رکورد نمایشی با مقادیر پیش‌فرض می‌سازیم
+  // چون سرور نیست، برای دوستِ تازه‌قبول‌شده یک رکورد نمایشی با مقادیر پیش‌فرض می‌سازیم.
+  // فیلدهای زیر (curriculumLevel, age, totalCards, reviewedToday) فعلاً placeholder هستن؛
+  // وقتی سرور واقعی اضافه بشه، فقط کافیه این مقادیر از پاسخ سرور پر بشن و بقیه UI خودکار کار می‌کنه.
   function makeFriendRecord(username){
-    return { id: username, username, name: username, avatar: null, bio: null, correctCount: 0, streak: 0, league: 'برنز' };
+    return { id: username, username, name: username, avatar: null, bio: null, correctCount: 0, streak: 0, league: 'برنز', curriculumLevel: null, age: null, totalCards: 0, reviewedToday: 0 };
   }
   function userFriendByUsername(username){ return state.userFriends.find(f => f.username === username); }
 
@@ -886,86 +948,98 @@
   }
   function currentLangLevelLabel(){ return langLevelLabel(totalXp()); }
 
-  // --- سطح زبان‌آموزی بر اساس «کلمات دوره‌ای» (مبتدی/A1/A2/B1) ---
-  // این سطح کاملاً مستقل از سیستم لیگ/لول (XP) هست؛ فقط با پاسخ درست به همین کلماتی
-  // که از فایل‌های JSON از پیش تعیین‌شده گرفته شدن بالا می‌ره، نه با کلمات دستی کاربر.
-  const CURRICULUM_LEVELS = [
-    { id: 'beginner', name: 'مبتدی', file: 'words_beginner.json', reqCorrect: 0 },
-    { id: 'A1', name: 'A1', file: 'words_a1.json', reqCorrect: 30 },
-    { id: 'A2', name: 'A2', file: 'words_a2.json', reqCorrect: 150 },
-    { id: 'B1', name: 'B1', file: 'words_b1.json', reqCorrect: 350 },
-    { id: 'B2', name: 'B2', file: null, reqCorrect: null },
-    { id: 'C1', name: 'C1', file: null, reqCorrect: null },
-    { id: 'C2', name: 'C2', file: null, reqCorrect: null }
-  ];
+  // ===================================================================
+  // سطح‌بندی زبان‌آموزی بر اساس «کلمات دوره‌ای» (A0 → A1 → A2 → B1 → B2)
+  // این سیستم کاملاً مستقل از لیگ/XP هست. کلمات هر سطح تا رسیدن رسمی به
+  // اون سطح قفل هستن (به‌جز A0 که ۲۵۰ کلمه رندوم از A1 آزاده).
+  // شرط‌ها بر پایه تعداد «تجمعی» پاسخ‌های درستِ همون سطح کلمه‌ست (نه کل).
+  // ===================================================================
+  const CURRICULUM_STAGE_ORDER = ['A0', 'A1', 'A2', 'B1', 'B2'];
+  const CURRICULUM_STAGE_COLOR = { A0: '#c9793a', A1: '#9aa0b4', A2: '#e0b84a', B1: '#6bb0a8', B2: '#3fc1c9' };
+  const CURRICULUM_FILES = { A1: 'words_a1.json', A2: 'words_a2.json', B1: 'words_b1.json' };
+  const CURRICULUM_A0_UNLOCK_COUNT = 250;
+  // هر مرحله: شرط‌های تجمعی لازم برای ارتقا از مرحله قبل، و اینکه با رسیدن به این مرحله کدوم سطح‌ها یکجا باز می‌شن
+  const CURRICULUM_REQUIREMENTS = {
+    A1: { correctA1: 100 },
+    A2: { correctA1: 200 },
+    B1: { correctA2: 300, correctA1: 150 },
+    B2: { correctB1: 500, correctA2: 300, correctA1: 200 }
+  };
   const CURRICULUM_SUPPORTED_LANG = 'de'; // دیتای کلمات فعلاً فقط برای آلمانی موجوده
+
   function curriculumIsSupported(){ return currentTargetLangCode() === CURRICULUM_SUPPORTED_LANG; }
-  function curriculumClaimedForLang(){ return state.curriculumClaimed[currentTargetLangCode()] || []; }
-  function curriculumLevelForCount(count){
-    let current = CURRICULUM_LEVELS[0];
-    for (const lvl of CURRICULUM_LEVELS){
-      if (lvl.reqCorrect !== null && count >= lvl.reqCorrect) current = lvl; else break;
+
+  function curriculumStageDisplayName(stage){ return stage; }
+
+  function curriculumMeetsRequirement(prog, reqs){
+    if (reqs.correctA1 !== undefined && prog.correctA1 < reqs.correctA1) return false;
+    if (reqs.correctA2 !== undefined && prog.correctA2 < reqs.correctA2) return false;
+    if (reqs.correctB1 !== undefined && prog.correctB1 < reqs.correctB1) return false;
+    return true;
+  }
+
+  // بر اساس شمارنده‌های تجمعی، مرحله واقعی کاربر رو محاسبه می‌کنه (بدون نیاز به state.stage قبلی)
+  function computeCurriculumStage(prog){
+    let stage = 'A0';
+    for (const s of ['A1','A2','B1','B2']) {
+      if (curriculumMeetsRequirement(prog, CURRICULUM_REQUIREMENTS[s])) stage = s; else break;
     }
-    return current;
+    return stage;
   }
-  function currentCurriculumLevel(){
-    if (!curriculumIsSupported()) return null;
-    return curriculumLevelForCount(curriculumCorrectForLang());
-  }
-  async function ensureCurriculumWordsLoaded(levelId){
-    const level = CURRICULUM_LEVELS.find(l => l.id === levelId);
-    if (!level || !level.file) return null;
-    if (state.curriculumWords[levelId]) return state.curriculumWords[levelId];
-    state.curriculumLoadStatus[levelId] = 'loading';
+
+  async function ensureCurriculumWordsLoaded(levelKey){
+    const file = CURRICULUM_FILES[levelKey];
+    if (!file) return null;
+    if (state.curriculumWords[levelKey]) return state.curriculumWords[levelKey];
+    state.curriculumLoadStatus[levelKey] = 'loading';
     render();
     try {
-      const res = await fetch(level.file);
+      const res = await fetch(file);
       if (!res.ok) throw new Error('fetch failed: ' + res.status);
       const data = await res.json();
-      state.curriculumWords[levelId] = Array.isArray(data) ? data : [];
-      state.curriculumLoadStatus[levelId] = 'loaded';
-      return state.curriculumWords[levelId];
+      state.curriculumWords[levelKey] = Array.isArray(data) ? data : [];
+      state.curriculumLoadStatus[levelKey] = 'loaded';
+      return state.curriculumWords[levelKey];
     } catch(e) {
       console.error(e);
-      state.curriculumLoadStatus[levelId] = 'error';
+      state.curriculumLoadStatus[levelKey] = 'error';
       return null;
     } finally {
       render();
     }
   }
-  function curriculumCategoryName(level){ return `${level.name} (${targetLangLabel()})`; }
-  function findOrCreateCurriculumCategory(level){
-    const name = curriculumCategoryName(level);
+
+  function curriculumCategoryName(levelKey){ return `${levelKey} (${targetLangLabel()})`; }
+  function findOrCreateCurriculumCategory(levelKey){
+    const name = curriculumCategoryName(levelKey);
     let cat = state.categories.find(c => c.name === name);
     if (!cat) {
-      cat = { id: `cat-curr-${level.id}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, createdAt: new Date().toISOString() };
+      cat = { id: `cat-curr-${levelKey}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, createdAt: new Date().toISOString() };
       state.categories = [...state.categories, cat];
       persistCategories();
     }
     return cat;
   }
-  async function claimCurriculumLevel(levelId){
-    const level = CURRICULUM_LEVELS.find(l => l.id === levelId);
-    if (!level) return;
-    if (curriculumClaimedForLang().includes(levelId)) return;
-    if (!level.file) { alert('کلمات این سطح در آپدیت بعدی اضافه می‌شود.'); return; }
 
-    const words = await ensureCurriculumWordsLoaded(levelId);
-    if (!words) { alert('مشکلی در دریافت کلمات این سطح پیش آمد. دوباره تلاش کنید.'); return; }
-
-    const cat = findOrCreateCurriculumCategory(level);
-    const existingDe = new Set(state.cards.filter(c => c.type === 'word').map(c => (c.de||'').trim().toLowerCase()));
+  function addCurriculumCardsToBox(levelKey, wordItems){
+    if (!wordItems || wordItems.length === 0) return 0;
+    const cat = findOrCreateCurriculumCategory(levelKey);
+    // فقط داخل همون سطح (categoryId یکسان) تکراری رو رد می‌کنیم؛ یه کلمه مثل «Hund» می‌تونه هم
+    // توی دسته A1 هم توی دسته A2 جدا وجود داشته باشه چون فایل‌های سطح با هم هم‌پوشانی دارن.
+    const existingDeInThisLevel = new Set(
+      state.cards.filter(c => c.type === 'word' && c.categoryId === cat.id).map(c => (c.de||'').trim().toLowerCase())
+    );
     const now = Date.now();
     const nowIso = new Date().toISOString();
     const today = todayStr();
     let addedCount = 0;
     const newCards = [];
-    words.forEach((w, i) => {
+    wordItems.forEach((w, i) => {
       const deText = (w.de || '').trim();
-      if (!deText || existingDe.has(deText.toLowerCase())) return;
-      existingDe.add(deText.toLowerCase());
+      if (!deText || existingDeInThisLevel.has(deText.toLowerCase())) return;
+      existingDeInThisLevel.add(deText.toLowerCase());
       newCards.push({
-        id: `curr-${level.id}-${i}-${now}`,
+        id: `curr-${levelKey}-${w.id || i}-${now}`,
         type: 'word',
         de: deText,
         fa: w.fa || '',
@@ -973,7 +1047,7 @@
         nextReview: today,
         createdAt: nowIso,
         categoryId: cat.id,
-        curriculumLevel: level.id,
+        curriculumLevel: levelKey,
         curriculumCategory: w.category || '',
         curriculumFreqText: w.frequencyText || '',
         curriculumFreqPercent: (typeof w.frequencyPercent === 'number') ? w.frequencyPercent : null,
@@ -982,62 +1056,156 @@
       });
       addedCount++;
     });
-
     if (newCards.length > 0) {
       state.cards = [...state.cards, ...newCards];
       persistCards();
     }
-
-    const claimed = state.curriculumClaimed[currentTargetLangCode()] || [];
-    state.curriculumClaimed[currentTargetLangCode()] = [...claimed, levelId];
-    persistCurriculumClaimed();
-
-    render();
-    alert(addedCount > 0
-      ? `${faNum(addedCount)} کلمه از سطح ${level.name} به دسته «${curriculumCategoryName(level)}» اضافه شد.`
-      : `کلمات سطح ${level.name} قبلاً در جعبه شما موجود بودند.`);
+    return addedCount;
   }
-  function openLevelRoadmapModal(){ state.showLevelRoadmapModal = true; render(); }
+
+  // اجرای آزادسازی کلمات لازم برای یک مرحله (اگه قبلاً باز نشده باشن)
+  async function unlockCurriculumStageWords(stage, prog){
+    if (!prog.categoriesCreated) prog.categoriesCreated = {};
+    if (stage === 'A0') {
+      if (prog.categoriesCreated.A0) return;
+      const words = await ensureCurriculumWordsLoaded('A1');
+      if (!words) return;
+      const shuffled = [...words].sort(() => Math.random() - 0.5);
+      const picked = shuffled.slice(0, Math.min(CURRICULUM_A0_UNLOCK_COUNT, words.length));
+      prog.unlockedA1Ids = picked.map(w => w.id);
+      addCurriculumCardsToBox('A1', picked);
+      prog.categoriesCreated.A0 = true;
+      return;
+    }
+    if (stage === 'A1') {
+      if (prog.categoriesCreated.A1) return;
+      const words = await ensureCurriculumWordsLoaded('A1');
+      if (!words) return;
+      // کل A1 (۵۰۰ تا) آزاد میشه؛ ۲۵۰ تای اول قبلاً اضافه شدن، فقط بقیه‌ش اضافه میشه (addCurriculumCardsToBox خودش تکراری رو رد میکنه)
+      addCurriculumCardsToBox('A1', words);
+      prog.categoriesCreated.A1 = true;
+      return;
+    }
+    if (stage === 'A2') {
+      if (prog.categoriesCreated.A2) return;
+      const words = await ensureCurriculumWordsLoaded('A2');
+      if (!words) return;
+      addCurriculumCardsToBox('A2', words);
+      prog.categoriesCreated.A2 = true;
+      return;
+    }
+    if (stage === 'B1') {
+      if (prog.categoriesCreated.B1) return;
+      const words = await ensureCurriculumWordsLoaded('B1');
+      if (!words) return;
+      addCurriculumCardsToBox('B1', words);
+      prog.categoriesCreated.B1 = true;
+      return;
+    }
+    // B2: فایل کلمات هنوز موجود نیست، کاری برای آزادسازی نیست
+  }
+
+  // بعد از هر تغییر در شمارنده‌های تجمعی صدا زده میشه: مرحله جدید رو حساب می‌کنه،
+  // اگه بالا رفته بود کلمات مرحله‌های جدید رو به‌ترتیب آزاد می‌کنه.
+  async function recomputeCurriculumStage(){
+    if (!curriculumIsSupported()) return;
+    const prog = curriculumProgressForLang();
+    const newStage = computeCurriculumStage(prog);
+    const oldIdx = CURRICULUM_STAGE_ORDER.indexOf(prog.stage || 'A0');
+    const newIdx = CURRICULUM_STAGE_ORDER.indexOf(newStage);
+    if (newIdx > oldIdx) {
+      // به ترتیب همه مرحله‌های بینابین رو هم آزاد می‌کنیم (برای اطمینان از پیوستگی)
+      for (let i = oldIdx + 1; i <= newIdx; i++) {
+        await unlockCurriculumStageWords(CURRICULUM_STAGE_ORDER[i], prog);
+      }
+      prog.stage = newStage;
+      persistCurriculumProgressState();
+      render();
+    }
+  }
+
+  // اولین بار که کاربر وارد یک زبان پشتیبانی‌شده می‌شه، A0 (۲۵۰ کلمه رندوم A1) رو فعال می‌کنه
+  async function ensureCurriculumBootstrapped(){
+    if (!curriculumIsSupported()) return;
+    const prog = curriculumProgressForLang();
+    if (!prog.categoriesCreated || !prog.categoriesCreated.A0) {
+      await unlockCurriculumStageWords('A0', prog);
+      persistCurriculumProgressState();
+      render();
+    }
+  }
+
+  function openLevelRoadmapModal(){ state.showLevelRoadmapModal = true; ensureCurriculumBootstrapped(); render(); }
   function closeLevelRoadmapModal(){ state.showLevelRoadmapModal = false; render(); }
+
   function renderLevelBadge(){
     if (!curriculumIsSupported()) return '';
-    const lvl = currentCurriculumLevel();
-    if (!lvl) return '';
-    return `<button class="level-badge-chip" onclick="openLevelRoadmapModal()" title="سطح زبان‌آموزی شما بر اساس کلمات دوره‌ای">${esc(lvl.name)}</button>`;
+    const prog = curriculumProgressForLang();
+    const stage = prog.stage || 'A0';
+    const color = CURRICULUM_STAGE_COLOR[stage] || 'var(--brass)';
+    return `<button class="level-badge-chip" style="border-color:${color};color:${color}" onclick="openLevelRoadmapModal()" title="سطح زبان‌آموزی شما بر اساس کلمات دوره‌ای">${esc(stage)}</button>`;
   }
+
+  // برای نمایش در پروفایل: دایره رنگی + نام سطح
+  function renderProfileLevelBadge(){
+    if (!curriculumIsSupported()) {
+      return `<div class="profile-level-row" onclick="openLevelRoadmapModal()"><span class="profile-level-dot" style="background:var(--muted)"></span><span class="profile-level-text">سطح زبان: به‌زودی برای ${esc(targetLangLabel())}</span></div>`;
+    }
+    const prog = curriculumProgressForLang();
+    const stage = prog.stage || 'A0';
+    const color = CURRICULUM_STAGE_COLOR[stage] || 'var(--brass)';
+    return `<div class="profile-level-row" onclick="openLevelRoadmapModal()"><span class="profile-level-dot" style="background:${color}"></span><span class="profile-level-text">سطح زبان: <b style="color:${color}">${esc(stage)}</b></span></div>`;
+  }
+
+  function curriculumRequirementRowsHtml(reqs, prog){
+    const parts = [];
+    if (reqs.correctA1 !== undefined) parts.push({ label: 'A1', done: Math.min(prog.correctA1, reqs.correctA1), need: reqs.correctA1 });
+    if (reqs.correctA2 !== undefined) parts.push({ label: 'A2', done: Math.min(prog.correctA2, reqs.correctA2), need: reqs.correctA2 });
+    if (reqs.correctB1 !== undefined) parts.push({ label: 'B1', done: Math.min(prog.correctB1, reqs.correctB1), need: reqs.correctB1 });
+    return parts.map(p => {
+      const pct = Math.round((p.done / p.need) * 100);
+      return `
+        <div class="daily-goal-row">
+          <div class="daily-goal-row-head"><span>پاسخ درست از ${esc(p.label)}</span><span>${faNum(p.done)} / ${faNum(p.need)}</span></div>
+          <div class="goal-progress-track"><div class="goal-progress-fill" style="width:${pct}%;background:${CURRICULUM_STAGE_COLOR[p.label]||'var(--brass)'}"></div></div>
+        </div>
+      `;
+    }).join('');
+  }
+
   function renderLevelRoadmapModal(){
     if (!state.showLevelRoadmapModal) return '';
     const supported = curriculumIsSupported();
-    const correctCount = curriculumCorrectForLang();
-    const claimed = curriculumClaimedForLang();
-    const currentLevel = currentCurriculumLevel();
+    const prog = curriculumProgressForLang();
+    const stage = prog.stage || 'A0';
 
-    const rows = CURRICULUM_LEVELS.map(lvl => {
-      const hasContent = !!lvl.file;
-      const isUnlocked = supported && hasContent && lvl.reqCorrect !== null && correctCount >= lvl.reqCorrect;
-      const isClaimed = claimed.includes(lvl.id);
-      const isLoading = state.curriculumLoadStatus[lvl.id] === 'loading';
-      const isCurrent = supported && currentLevel && currentLevel.id === lvl.id;
+    const rows = CURRICULUM_STAGE_ORDER.map(s => {
+      const isCurrent = stage === s;
+      const stageIdx = CURRICULUM_STAGE_ORDER.indexOf(s);
+      const currentIdx = CURRICULUM_STAGE_ORDER.indexOf(stage);
+      const isPast = stageIdx <= currentIdx;
+      const reqs = CURRICULUM_REQUIREMENTS[s];
+      const hasFile = s === 'A0' || !!CURRICULUM_FILES[s];
 
-      let actionHtml;
+      let body;
       if (!supported) {
-        actionHtml = `<span class="level-btn-coming-soon">⏳ به‌زودی برای ${esc(targetLangLabel())}</span>`;
-      } else if (!hasContent) {
-        actionHtml = `<span class="level-btn-coming-soon">⏳ در آپدیت بعدی اضافه می‌شود</span>`;
-      } else if (!isUnlocked) {
-        actionHtml = `<span class="level-btn-locked">🔒 قفل (${faNum(lvl.reqCorrect)} پاسخ درست از کلمات دوره‌ای لازم است)</span>`;
-      } else if (isClaimed) {
-        actionHtml = `<span class="level-btn-claimed">✓ دریافت شده</span>`;
+        body = `<span class="level-btn-coming-soon">⏳ به‌زودی برای ${esc(targetLangLabel())}</span>`;
+      } else if (s === 'A0') {
+        body = `<span class="level-btn-claimed">${isPast ? '✓ فعال — ۲۵۰ کلمه رندوم از A1 باز است' : ''}</span>`;
+      } else if (!hasFile) {
+        body = `<span class="level-btn-coming-soon">⏳ در آپدیت بعدی اضافه می‌شود</span>`;
+      } else if (isPast) {
+        body = `<span class="level-btn-claimed">✓ به این سطح رسیده‌اید — همه کلمات باز است</span>`;
       } else {
-        actionHtml = `<button class="level-btn-claim" ${isLoading ? 'disabled' : ''} onclick="claimCurriculumLevel('${lvl.id}')">${isLoading ? 'در حال دریافت…' : 'دریافت کلمات این سطح'}</button>`;
+        body = curriculumRequirementRowsHtml(reqs, prog);
       }
 
       return `
-        <div class="level-card-item ${isCurrent ? 'active-level' : ''} ${(!isUnlocked || !supported) ? 'locked-level' : ''}">
+        <div class="level-card-item ${isCurrent ? 'active-level' : ''} ${(!isPast || !supported) ? 'locked-level' : ''}">
           <div class="level-card-head">
-            <span class="level-card-title">سطح ${esc(lvl.name)}${isCurrent ? ' (سطح فعلی شما)' : ''}</span>
-            <div>${actionHtml}</div>
+            <span class="level-card-title">سطح ${esc(s)}${isCurrent ? ' (سطح فعلی شما)' : ''}</span>
           </div>
+          <div>${body}</div>
         </div>
       `;
     }).join('');
@@ -1051,7 +1219,7 @@
           </div>
           <div class="hint-text" style="margin-bottom:6px">
             ${supported
-              ? `این سطح فقط با پاسخ درست به کلمات همین دوره (مبتدی تا B1) بالا می‌رود، نه کلمات دیگر. (پاسخ‌های درست از کلمات دوره‌ای: <b>${faNum(correctCount)}</b>)`
+              ? `این سطح فقط با پاسخ درست به کلمات همین دوره (A1 تا B1) بالا می‌رود. با رسیدن به هر سطح، همه کلمات آن سطح به‌طور خودکار باز می‌شوند.`
               : `دیتای آماده کلمات فعلاً فقط برای زبان آلمانی موجود است. زبان فعلی شما: ${esc(targetLangLabel())}`}
           </div>
           <div class="level-roadmap-list">${rows}</div>
@@ -2135,10 +2303,11 @@
     pronunAttempt: 0, pronunFeedback: null, pronunHeard: '', pronunListening: false,
     micPermState: 'unknown',
     activeCategoryId: null,
-    googleSignedIn: false, googleEmail: '', googleAccessToken: null,
-    syncStatus: 'idle', lastSyncAt: null, driveFileId: null,
+    authUser: null, authGuest: false,
+    syncStatus: 'idle', lastSyncAt: null,
     showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
-    showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumClaimed: {}, curriculumCorrect: {},
+    showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
+    showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
     blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null,
     leaderboardTab: 'league',
@@ -2440,89 +2609,108 @@
     }
   }
 
-  // --- Google sign-in + Google Drive backup (appDataFolder) ---
-  let tokenClient = null;
-  function isGoogleConfigured(){
-    return !!GOOGLE_CLIENT_ID && GOOGLE_CLIENT_ID.indexOf('YOUR_GOOGLE_CLIENT_ID') === -1;
-  }
-  function whenGoogleReady(cb, retries){
-    retries = retries || 0;
-    if (window.google && google.accounts && google.accounts.oauth2){ cb(); return; }
-    if (retries > 40) return;
-    setTimeout(() => whenGoogleReady(cb, retries+1), 250);
-  }
-  function ensureTokenClient(){
-    if (tokenClient) return tokenClient;
-    if (!window.google || !google.accounts || !google.accounts.oauth2) return null;
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: DRIVE_SCOPE,
-      callback: () => {},
-    });
-    return tokenClient;
-  }
-  function googleSignIn(){
-    if (!isGoogleConfigured()){
-      alert(t('alertFeatureNotSetup'));
-      return;
+  // --- Firebase Auth (email/password) + Firestore sync ---
+  // این بخش جایگزین سیستم قبلی «ورود با گوگل + بکاپ روی گوگل درایو» شده.
+  // نکته‌ی مهم: اگه فایربیس لود نشه (مثلاً کاربر آفلاینه)، اپ به‌صورت مهمان/محلی کار می‌کنه؛
+  // هیچ‌وقت کل صفحه رو قفل نمی‌کنیم و دیتای localStorage همیشه منبع اصلی و قابل‌اعتماده.
+  const firebaseConfig = {
+    apiKey: "AIzaSyD0k5N85VibSQxsJVnYFYQoj7XTqZ8iDUU",
+    authDomain: "leitner-box-644ca.firebaseapp.com",
+    databaseURL: "https://leitner-box-644ca-default-rtdb.firebaseio.com/",
+    projectId: "leitner-box-644ca",
+    storageBucket: "leitner-box-644ca.firebasestorage.app",
+    messagingSenderId: "519437943500",
+    appId: "1:519437943500:web:fead3324dd442c15f4b869",
+    measurementId: "G-4FGM5V738N"
+  };
+  const AUTH_GUEST_KEY = 'leitner_auth_guest_v1';
+  let fbAuth = null;
+  let fbDb = null;
+  let firebaseReady = false;
+  try {
+    if (window.firebase && firebase.apps && !firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
-    const client = ensureTokenClient();
-    if (!client){ alert(t('alertGoogleNotLoaded')); return; }
-    client.callback = async (resp) => {
-      if (resp.error){ state.syncStatus = 'error'; render(); return; }
-      state.googleAccessToken = resp.access_token;
-      state.googleSignedIn = true;
-      try { localStorage.setItem(GOOGLE_SIGNIN_KEY, '1'); } catch(e){}
-      await fetchGoogleProfile();
-      await syncWithDrive('initial');
-    };
-    client.requestAccessToken({ prompt: 'consent' });
-  }
-  async function fetchGoogleProfile(){
-    if (!state.googleAccessToken) return;
-    try {
-      const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { Authorization: 'Bearer ' + state.googleAccessToken } });
-      if (res.ok){ const data = await res.json(); state.googleEmail = data.email || ''; }
-    } catch(e){}
-    render();
-  }
-  function googleSignOut(){
-    if (state.googleAccessToken && window.google && google.accounts && google.accounts.oauth2){
-      try { google.accounts.oauth2.revoke(state.googleAccessToken, () => {}); } catch(e){}
+    if (window.firebase && firebase.apps && firebase.apps.length) {
+      fbAuth = firebase.auth();
+      fbDb = firebase.database();
+      firebaseReady = true;
     }
-    state.googleSignedIn = false;
-    state.googleAccessToken = null;
-    state.googleEmail = '';
-    state.driveFileId = null;
-    state.syncStatus = 'idle';
-    try { localStorage.removeItem(GOOGLE_SIGNIN_KEY); } catch(e){}
-    render();
-  }
-  function silentGoogleReauth(){
-    if (!isGoogleConfigured()) return;
-    let wasConnected = false;
-    try { wasConnected = localStorage.getItem(GOOGLE_SIGNIN_KEY) === '1'; } catch(e){}
-    if (!wasConnected) return;
-    const client = ensureTokenClient();
-    if (!client) return;
-    client.callback = async (resp) => {
-      if (resp.error) return;
-      state.googleAccessToken = resp.access_token;
-      state.googleSignedIn = true;
-      await fetchGoogleProfile();
-      await syncWithDrive('startup');
-    };
-    try { client.requestAccessToken({ prompt: '' }); } catch(e){}
+  } catch (e) {
+    console.error('Firebase init failed, continuing in local/guest mode', e);
   }
 
-  function buildBackupPayload(){
-    return JSON.stringify({
+  // مسیر استاندارد ذخیره‌سازی در Realtime Database: users/{uid}/data
+  function userDataRef(uid){ return fbDb.ref('users/' + uid + '/data'); }
+
+  function showAuthOverlay(mode){
+    const overlay = document.getElementById('auth-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hide');
+    document.getElementById('auth-loading-box').style.display = mode === 'loading' ? 'block' : 'none';
+    document.getElementById('auth-login-box').style.display = mode === 'login' ? 'block' : 'none';
+    document.getElementById('auth-signup-box').style.display = mode === 'signup' ? 'block' : 'none';
+  }
+  function hideAuthOverlay(){
+    const overlay = document.getElementById('auth-overlay');
+    if (overlay) overlay.classList.add('hide');
+  }
+  function toggleAuthMode(mode){ showAuthOverlay(mode); }
+  function continueAsGuest(){
+    state.authGuest = true;
+    try { localStorage.setItem(AUTH_GUEST_KEY, '1'); } catch(e){}
+    hideAuthOverlay();
+    render();
+  }
+
+  function firebaseAuthErrorFa(code){
+    switch (code) {
+      case 'auth/email-already-in-use': return 'این ایمیل قبلاً ثبت‌نام شده. وارد شو یا از ایمیل دیگه‌ای استفاده کن.';
+      case 'auth/invalid-email': return 'فرمت ایمیل درست نیست.';
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential': return 'ایمیل یا رمز عبور اشتباهه.';
+      case 'auth/weak-password': return 'رمز عبور باید حداقل ۶ کاراکتر باشه.';
+      case 'auth/network-request-failed': return 'اتصال اینترنت برقرار نیست. می‌تونی بدون حساب هم ادامه بدی.';
+      default: return 'یه خطایی پیش اومد. دوباره امتحان کن.';
+    }
+  }
+
+  async function handleAuthSubmit(event, mode){
+    event.preventDefault();
+    if (!firebaseReady){ alert('اتصال به سرویس ورود برقرار نشد. فعلاً بدون حساب ادامه بده.'); return; }
+    const errBoxId = mode === 'signup' ? 'auth-error-msg-signup' : 'auth-error-msg';
+    const errBox = document.getElementById(errBoxId);
+    errBox.style.display = 'none';
+    const email = document.getElementById(mode === 'signup' ? 'signup-email' : 'auth-email').value.trim();
+    const pass = document.getElementById(mode === 'signup' ? 'signup-password' : 'auth-password').value;
+    try {
+      if (mode === 'signup') await fbAuth.createUserWithEmailAndPassword(email, pass);
+      else await fbAuth.signInWithEmailAndPassword(email, pass);
+      // onAuthStateChanged handles the rest (hide overlay, merge/load data)
+    } catch (e) {
+      errBox.textContent = firebaseAuthErrorFa(e.code);
+      errBox.style.display = 'block';
+    }
+  }
+
+  function signOutAccount(){
+    if (!firebaseReady) return;
+    fbAuth.signOut().catch(() => {});
+    state.authUser = null;
+    state.syncStatus = 'idle';
+    render();
+  }
+
+  function buildSyncPayload(){
+    return {
       cards: state.cards, stats: state.stats, categories: state.categories,
       themeColor: state.themeColor, themeMode: state.themeMode, activityDays: state.activityDays,
       savedAt: new Date().toISOString()
-    });
+    };
   }
-  function applyBackupData(data){
+  function applySyncData(data){
+    if (!data) return;
     const cards = Array.isArray(data.cards) ? data.cards : [];
     state.cards = cards.map(c => ({ ...c, type: c.type==='sentence'?'sentence':'word', categoryId: c.categoryId || null }));
     state.stats = {
@@ -2540,79 +2728,83 @@
     if (data.themeMode){ state.themeMode = data.themeMode; try{localStorage.setItem(THEME_MODE_KEY, data.themeMode);}catch(e){} applyThemeMode(data.themeMode); }
     render();
   }
-  async function driveFindBackup(){
-    const q = encodeURIComponent(`name='${DRIVE_BACKUP_FILENAME}'`);
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&fields=files(id,modifiedTime)&q=${q}`, {
-      headers: { Authorization: 'Bearer ' + state.googleAccessToken }
-    });
-    if (!res.ok) throw new Error('drive-list-failed');
-    const data = await res.json();
-    return (data.files && data.files[0]) || null;
+
+  async function uploadSyncNow(){
+    if (!firebaseReady || !state.authUser) return;
+    await userDataRef(state.authUser.uid).set(buildSyncPayload());
   }
-  async function driveDownloadBackup(fileId){
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
-      headers: { Authorization: 'Bearer ' + state.googleAccessToken }
-    });
-    if (!res.ok) throw new Error('drive-download-failed');
-    return res.json();
-  }
-  async function driveUploadBackup(){
-    const payload = buildBackupPayload();
-    const metadata = state.driveFileId ? {} : { name: DRIVE_BACKUP_FILENAME, parents: ['appDataFolder'] };
-    const boundary = 'leitnerbound' + Date.now();
-    const body =
-      `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
-      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${payload}\r\n--${boundary}--`;
-    const url = state.driveFileId
-      ? `https://www.googleapis.com/upload/drive/v3/files/${state.driveFileId}?uploadType=multipart`
-      : `https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart`;
-    const res = await fetch(url, {
-      method: state.driveFileId ? 'PATCH' : 'POST',
-      headers: { Authorization: 'Bearer ' + state.googleAccessToken, 'Content-Type': `multipart/related; boundary=${boundary}` },
-      body
-    });
-    if (!res.ok) throw new Error('drive-upload-failed');
-    const data = await res.json();
-    state.driveFileId = data.id;
-  }
-  async function syncWithDrive(reason){
-    if (!state.googleSignedIn || !state.googleAccessToken) return;
+
+  // اولین لاگین: اگه هم روی گوشی داده هست و هم توی فایربیس، از کاربر می‌پرسیم کدوم رو نگه داره
+  // (دقیقاً همون رفتار سیستم قبلی گوگل‌درایو، تا کاربر داده‌ای رو از دست نده)
+  async function syncOnLogin(){
+    if (!firebaseReady || !state.authUser) return;
     state.syncStatus = 'syncing';
     render();
     try {
-      const existing = await driveFindBackup();
-      if (existing){
-        state.driveFileId = existing.id;
-        if (reason === 'initial' || reason === 'startup'){
-          const hasLocalData = state.cards.length > 0;
-          if (!hasLocalData){
-            applyBackupData(await driveDownloadBackup(existing.id));
-          } else {
-            const keepLocal = confirm(t('confirmDriveBackupFound'));
-            if (keepLocal) await driveUploadBackup();
-            else applyBackupData(await driveDownloadBackup(existing.id));
-          }
-        } else {
-          await driveUploadBackup();
-        }
+      const snap = await userDataRef(state.authUser.uid).once('value');
+      const remote = snap.exists() ? snap.val() : null;
+      const hasLocalData = state.cards.length > 0;
+      if (remote && hasLocalData) {
+        const keepLocal = confirm('هم روی این گوشی و هم روی حسابت کارت وجود داره.\n\nOK بزن تا اطلاعات همین گوشی جایگزین نسخه‌ی حساب بشه.\nCancel بزن تا نسخه‌ی حساب بیاد روی این گوشی (اطلاعات فعلی این گوشی جایگزین می‌شه).');
+        if (keepLocal) await uploadSyncNow();
+        else applySyncData(remote);
+      } else if (remote && !hasLocalData) {
+        applySyncData(remote);
       } else {
-        await driveUploadBackup();
+        await uploadSyncNow();
       }
       state.syncStatus = 'synced';
       state.lastSyncAt = new Date().toISOString();
-    } catch(e){
+    } catch (e) {
       console.error(e);
       state.syncStatus = 'error';
     }
     render();
   }
+
   let syncDebounceTimer = null;
   function queueCloudSync(){
-    if (!state.googleSignedIn) return;
+    if (!firebaseReady || !state.authUser) return;
     clearTimeout(syncDebounceTimer);
-    syncDebounceTimer = setTimeout(() => { syncWithDrive('auto'); }, 2500);
+    syncDebounceTimer = setTimeout(() => {
+      state.syncStatus = 'syncing'; render();
+      uploadSyncNow().then(() => { state.syncStatus = 'synced'; state.lastSyncAt = new Date().toISOString(); render(); })
+        .catch((e) => { console.error(e); state.syncStatus = 'error'; render(); });
+    }, 2500);
   }
 
+  function initAuthListener(){
+    let wasGuest = false;
+    try { wasGuest = localStorage.getItem(AUTH_GUEST_KEY) === '1'; } catch(e){}
+    if (!firebaseReady) {
+      // فایربیس لود نشده (مثلاً آفلاین) -> مستقیم برو توی حالت مهمان، اپ نباید قفل بشه
+      state.authGuest = true;
+      hideAuthOverlay();
+      return;
+    }
+    showAuthOverlay('loading');
+    fbAuth.onAuthStateChanged(async (user) => {
+      if (user) {
+        state.authUser = user;
+        state.authGuest = false;
+        hideAuthOverlay();
+        await syncOnLogin();
+      } else if (wasGuest) {
+        state.authGuest = true;
+        hideAuthOverlay();
+        render();
+      } else {
+        showAuthOverlay('login');
+      }
+    });
+    // اگه فایربیس خیلی طول بکشه (مثلاً اتصال کند/آفلاینه)، بعد از چند ثانیه مهمانی رو پیشنهاد بده
+    setTimeout(() => {
+      const overlay = document.getElementById('auth-overlay');
+      if (overlay && !overlay.classList.contains('hide') && document.getElementById('auth-loading-box').style.display !== 'none') {
+        showAuthOverlay('login');
+      }
+    }, 6000);
+  }
 
   // --- زبان مقصد یادگیری (جعبه‌ی کلمات/آمار/دسته‌بندی جدا برای هر زبان) ---
   function currentTargetLangCode(){ return LANGUAGE_CODES.includes(state.targetLang) ? state.targetLang : 'de'; }
@@ -2653,7 +2845,8 @@
     loadCards();
     loadCategories();
     loadStats();
-    loadCurriculumProgress();
+    loadCurriculumProgressState();
+    ensureCurriculumBootstrapped();
     state.view = 'home';
     state.sessionQueue = []; state.sessionIndex = 0; state.studyType = null;
     state.activeCategoryId = null; state.manageCategoryFilter = 'all'; state.studyCategoryFilter = 'all';
@@ -2736,32 +2929,29 @@
     } catch(e){ console.error(e); }
   }
   function persistCategories(){ try { localStorage.setItem(categoriesKeyFor(currentTargetLangCode()), JSON.stringify(state.categories)); } catch(e){ console.error(e); } queueCloudSync(); }
-  function curriculumClaimedKeyFor(lang){ return 'leitner_curriculum_claimed_v1_' + lang; }
-  function curriculumCorrectKeyFor(lang){ return 'leitner_curriculum_correct_v1_' + lang; }
-  function loadCurriculumProgress(){
+  function curriculumProgressKeyFor(lang){ return 'leitner_curriculum_progress_v2_' + lang; }
+  function defaultCurriculumProgress(){ return { stage: 'A0', correctA1: 0, correctA2: 0, correctB1: 0, unlockedA1Ids: null, categoriesCreated: {} }; }
+  function loadCurriculumProgressState(){
     const lang = currentTargetLangCode();
-    let claimed = [];
-    let correct = 0;
+    let prog = defaultCurriculumProgress();
     try {
-      const rawClaimed = localStorage.getItem(curriculumClaimedKeyFor(lang));
-      if (rawClaimed) claimed = JSON.parse(rawClaimed);
+      const raw = localStorage.getItem(curriculumProgressKeyFor(lang));
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        prog = { ...defaultCurriculumProgress(), ...parsed };
+      }
     } catch(e){ console.error(e); }
-    try {
-      const rawCorrect = localStorage.getItem(curriculumCorrectKeyFor(lang));
-      if (rawCorrect) correct = parseInt(rawCorrect, 10) || 0;
-    } catch(e){ console.error(e); }
-    state.curriculumClaimed[lang] = Array.isArray(claimed) ? claimed : [];
-    state.curriculumCorrect[lang] = correct;
+    state.curriculumProgress[lang] = prog;
   }
-  function persistCurriculumClaimed(){
+  function persistCurriculumProgressState(){
     const lang = currentTargetLangCode();
-    try { localStorage.setItem(curriculumClaimedKeyFor(lang), JSON.stringify(state.curriculumClaimed[lang] || [])); } catch(e){ console.error(e); }
+    try { localStorage.setItem(curriculumProgressKeyFor(lang), JSON.stringify(state.curriculumProgress[lang] || defaultCurriculumProgress())); } catch(e){ console.error(e); }
   }
-  function persistCurriculumCorrect(){
+  function curriculumProgressForLang(){
     const lang = currentTargetLangCode();
-    try { localStorage.setItem(curriculumCorrectKeyFor(lang), String(state.curriculumCorrect[lang] || 0)); } catch(e){ console.error(e); }
+    if (!state.curriculumProgress[lang]) state.curriculumProgress[lang] = defaultCurriculumProgress();
+    return state.curriculumProgress[lang];
   }
-  function curriculumCorrectForLang(){ return state.curriculumCorrect[currentTargetLangCode()] || 0; }
   function loadStats(){
     state.stats = { word: {correct:0, wrong:0}, sentence: {correct:0, wrong:0}, pronun: {correct:0, wrong:0} };
     try {
@@ -3234,9 +3424,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
   function renderCurriculumCardMeta(card){
     if (!card.curriculumLevel) return '';
-    const levelDef = CURRICULUM_LEVELS.find(l => l.id === card.curriculumLevel);
     const rows = [];
-    rows.push(`<span>سطح: <b>${esc(levelDef ? levelDef.name : card.curriculumLevel)}</b></span>`);
+    rows.push(`<span>سطح: <b>${esc(card.curriculumLevel)}</b></span>`);
     if (card.curriculumCategory) rows.push(`<span>دسته: <b>${esc(card.curriculumCategory)}</b></span>`);
     if (card.curriculumFreqText) rows.push(`<span>پرکاربردی: <b>${esc(card.curriculumFreqText)}</b></span>`);
     let html = `<div class="card-meta-box">${rows.join('')}</div>`;
@@ -3425,6 +3614,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     const username = state.openUserFriendProfile;
     if (!username) return '';
     const f = userFriendByUsername(username) || makeFriendRecord(username);
+    const levelStage = f.curriculumLevel; // فعلاً همیشه null تا سرور واقعی مقدارش رو پر کنه
+    const levelColor = levelStage ? (CURRICULUM_STAGE_COLOR[levelStage] || 'var(--brass)') : 'var(--muted)';
+    const levelText = levelStage || 'نامشخص';
+    const ageText = (f.age !== null && f.age !== undefined) ? faNum(f.age) : 'نامشخص';
     return `
       <div class="modal-backdrop" onclick="closeUserFriendProfile()">
         <div class="modal-card" onclick="event.stopPropagation()">
@@ -3432,8 +3625,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             <div style="width:60px;height:60px;border-radius:50%;background:var(--panel2);display:flex;align-items:center;justify-content:center;font-size:26px;margin:0 auto">👤</div>
             <h3 style="margin:6px 0">${esc(f.name)} (@${esc(f.username)})</h3>
             <p style="font-size:12px;color:var(--muted)">${f.bio ? esc(f.bio) : 'بدون بیوگرافی'}</p>
+            <div class="profile-level-row" style="display:inline-flex;margin-top:4px;cursor:default">
+              <span class="profile-level-dot" style="background:${levelColor}"></span>
+              <span class="profile-level-text">سطح زبان: <b style="color:${levelColor}">${esc(levelText)}</b></span>
+            </div>
           </div>
-          <div class="stats-row" style="margin-bottom:14px">
+          <div class="stats-row" style="margin-bottom:10px">
             <div class="stats-num-box">
               <div class="stats-num">${faNum(f.correctCount || 0)}</div>
               <div class="stat-label">پاسخ درست</div>
@@ -3445,6 +3642,20 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             <div class="stats-num-box">
               <div class="stats-num" style="font-size:14px;color:var(--brass)">${esc(f.league || 'برنز')}</div>
               <div class="stat-label">لیگ</div>
+            </div>
+          </div>
+          <div class="stats-row" style="margin-bottom:14px">
+            <div class="stats-num-box">
+              <div class="stats-num">${faNum(f.totalCards || 0)}</div>
+              <div class="stat-label">کل کارت‌ها</div>
+            </div>
+            <div class="stats-num-box">
+              <div class="stats-num">${faNum(f.reviewedToday || 0)}</div>
+              <div class="stat-label">مرور امروز</div>
+            </div>
+            <div class="stats-num-box">
+              <div class="stats-num" style="font-size:14px">${ageText}</div>
+              <div class="stat-label">سن</div>
             </div>
           </div>
           <div style="display:flex;gap:8px;margin-bottom:8px">
@@ -3519,7 +3730,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       <div class="ai-page">
         <div class="ai-page-header">
           <button class="ai-back-btn" onclick="closeUserChat()" aria-label="${t('aiBackBtn')}">${icon('close',18)}</button>
-          <div class="ai-page-title">${icon('message',17)} ${esc(username)}</div>
+          <div class="ai-page-title chat-header-clickable" onclick="openUserFriendProfile('${esc(username)}')" role="button" tabindex="0">
+            <span>${icon('message',17)} ${esc(username)}</span>
+            <span class="chat-header-hint">مشاهده پروفایل و آمار</span>
+          </div>
         </div>
         <div class="ai-messages" id="userChatMessages">
           ${messages.length === 0 ? `<div class="ai-empty">${icon('message',26)}<div>هنوز پیامی رد و بدل نشده. اولین پیام رو بفرست!</div></div>` : ''}
@@ -3679,6 +3893,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
           <label style="font-size:12px;color:var(--muted)">تاریخ تولد (میلادی):</label>
           <input type="date" class="text-input" style="direction:ltr" value="${esc(state.profile.birthdate)}" onchange="setProfileBirthdate(this.value)">
+
+          ${renderProfileLevelBadge()}
         </div>
         ${state.profile.userIdChangeCount >= USER_ID_MAX_CHANGES ? `
           <div class="text-input" style="margin-top:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;cursor:default">
@@ -3697,13 +3913,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           ${state.uiUserIdError ? `<div class="hint-text" style="margin-top:2px;color:var(--wine)">${t(state.uiUserIdError)}</div>` : ''}
           <button class="btn-secondary" style="width:auto;padding:9px 18px" ${state.uiUserIdChecking ? 'disabled' : ''} onclick="confirmUserId()">${state.uiUserIdChecking ? t('profileIdChecking') : t('profileIdConfirm')}</button>
         `}
-      </div>
-      <div class="panel">
-        <div class="deck-header">
-          <span class="deck-title" style="color:var(--brass)">${icon('book',16)} سطح شما در ${targetLangLabel()}</span>
-          <span class="deck-sub" style="font-weight:700;color:var(--brass)">${currentLangLevelLabel()}</span>
-        </div>
-        <div class="hint-text" style="margin-top:6px">${faNum(totalXp())} پاسخ درست در این زبان — سطح هر زبان جدا و مستقل از بقیه زبان‌ها محاسبه می‌شه</div>
       </div>
       <div class="panel">
         <div class="deck-header">
@@ -3741,8 +3950,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     const rows = ['word','sentence','pronun'].filter(t => g[t] > 0);
     if (!rows.length) return '';
     return `
-      <div class="panel">
-        <div class="deck-header"><span class="deck-title" style="color:var(--brass)">${icon('target',16)} ${t('goalToday')}</span><span class="deck-sub">${t('goalFillHint')}</span></div>
+      <div class="panel daily-goals-panel-compact">
+        <div class="deck-header"><span class="deck-title" style="color:var(--brass)">${icon('target',14)} ${t('goalToday')}</span><span class="deck-sub">${t('goalFillHint')}</span></div>
         <div class="daily-goals-list">
           ${rows.map(t => {
             const goal = g[t];
@@ -3820,7 +4029,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           <div class="action-chip" onclick="requestMicPermission()">${icon('mic',18)}<div><b>${micStatusLabel()}</b><span>${t('settingsMicRetry')}</span></div></div>
         </div>
       </div>
-      ${renderGoogleSyncPanel()}
+      ${renderAccountSyncPanel()}
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px">${t('settingsCategories')}</div>
         ${renderCategoryManageList()}
@@ -3837,37 +4046,25 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       </div>
     `;
   }
-  function renderGoogleSyncPanel(){
-    const configured = isGoogleConfigured();
-    const guide = `
-      <div class="setup-guide">
-        <b>راه‌اندازی ورود با گوگل (یک‌بار، توسط سازنده برنامه):</b><br>
-        ۱) به <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">console.cloud.google.com</a> برو و یه پروژه بساز.<br>
-        ۲) از بخش APIs، سرویس «Google Drive API» رو فعال کن.<br>
-        ۳) از «OAuth consent screen»، نوع External رو انتخاب کن و ایمیل خودت رو به‌عنوان Test user اضافه کن.<br>
-        ۴) از «Credentials»، یه «OAuth Client ID» از نوع Web application بساز و آدرس سایتی که این برنامه روش هاست شده (مثلاً <code>https://username.github.io</code>) رو زیر «Authorized JavaScript origins» اضافه کن (برای تست لوکال، <code>http://localhost</code> رو هم اضافه کن).<br>
-        ۵) Client ID ساخته‌شده رو کپی کن و توی کد برنامه، مقدار <code>GOOGLE_CLIENT_ID</code> رو باهاش جایگزین کن.
-      </div>
-    `;
-    if (!state.googleSignedIn){
+  function renderAccountSyncPanel(){
+    if (!state.authUser){
       return `
         <div class="panel">
-          <div class="stats-title" style="margin-bottom:10px">${icon('cloud',16)} ${t('syncTitle')}</div>
-          <div class="hint-text" style="margin-bottom:12px">${t('syncSignInHint')}</div>
-          <button class="btn-primary" onclick="googleSignIn()">${icon('user',16)} ${t('syncSignInBtn')}</button>
-          ${!configured ? guide : ''}
+          <div class="stats-title" style="margin-bottom:10px">${icon('cloud',16)} حساب کاربری و همگام‌سازی</div>
+          <div class="hint-text" style="margin-bottom:12px">${state.authGuest ? 'فعلاً بدون حساب کار می‌کنی؛ کارت‌ها فقط روی همین گوشی ذخیره می‌شن. برای همگام‌سازی با گوشی‌های دیگه وارد حساب شو.' : 'برای همگام‌سازی کارت‌ها بین گوشی‌ها وارد حساب شو.'}</div>
+          <button class="btn-primary" onclick="showAuthOverlay('login')">${icon('user',16)} ورود / ثبت‌نام</button>
         </div>
       `;
     }
     const dotColor = state.syncStatus==='syncing' ? 'var(--brass)' : state.syncStatus==='error' ? 'var(--wine)' : 'var(--sage)';
-    const statusText = state.syncStatus==='syncing' ? t('syncStatusSyncing') : state.syncStatus==='error' ? t('syncStatusError') : state.lastSyncAt ? t('syncStatusSynced') : t('syncStatusReady');
+    const statusText = state.syncStatus==='syncing' ? 'در حال همگام‌سازی...' : state.syncStatus==='error' ? 'خطا در همگام‌سازی — دوباره امتحان کن' : state.lastSyncAt ? 'همگام‌شده' : 'آماده';
     return `
       <div class="panel">
-        <div class="stats-title" style="margin-bottom:10px">${icon('cloud',16)} ${t('syncTitle')}</div>
-        <div class="hint-text" style="margin-bottom:10px">${tf('syncSignedInAs', {email: esc(state.googleEmail || '...')})}</div>
+        <div class="stats-title" style="margin-bottom:10px">${icon('cloud',16)} حساب کاربری و همگام‌سازی</div>
+        <div class="hint-text" style="margin-bottom:10px">وارد شدی با: ${esc(state.authUser.email || '...')}</div>
         <div class="sync-status-row"><span class="sync-dot" style="background:${dotColor}"></span><span class="hint-text" style="margin:0">${statusText}</span></div>
-        <button class="btn-secondary" style="margin-top:0" onclick="syncWithDrive('manual')">${icon('cloud',15)} ${t('syncNowBtn')}</button>
-        <button class="btn-secondary" onclick="googleSignOut()">${t('syncSignOutBtn')}</button>
+        <button class="btn-secondary" style="margin-top:0" onclick="uploadSyncNow().then(()=>{state.syncStatus='synced';state.lastSyncAt=new Date().toISOString();render();})">${icon('cloud',15)} همگام‌سازی دستی</button>
+        <button class="btn-secondary" onclick="signOutAccount()">خروج از حساب</button>
       </div>
     `;
   }
@@ -5272,9 +5469,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[t].wrong += correct ? 0 : 1;
     persistStats();
     if (card.curriculumLevel && correct) {
-      const lang = currentTargetLangCode();
-      state.curriculumCorrect[lang] = (state.curriculumCorrect[lang] || 0) + 1;
-      persistCurriculumCorrect();
+      const prog = curriculumProgressForLang();
+      if (card.curriculumLevel === 'A1') prog.correctA1 += 1;
+      else if (card.curriculumLevel === 'A2') prog.correctA2 += 1;
+      else if (card.curriculumLevel === 'B1') prog.correctB1 += 1;
+      persistCurriculumProgressState();
+      recomputeCurriculumStage();
     }
     if (correct) incrementDailyProgress(t);
     state.sessionStats = { correct: state.sessionStats.correct+(correct?1:0), wrong: state.sessionStats.wrong+(correct?0:1) };
@@ -5292,9 +5492,11 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.stats[a.type].wrong -= a.correct ? 0 : 1;
     persistStats();
     if (a.curriculumLevel && a.correct) {
-      const lang = currentTargetLangCode();
-      state.curriculumCorrect[lang] = Math.max(0, (state.curriculumCorrect[lang] || 0) - 1);
-      persistCurriculumCorrect();
+      const prog = curriculumProgressForLang();
+      if (a.curriculumLevel === 'A1') prog.correctA1 = Math.max(0, prog.correctA1 - 1);
+      else if (a.curriculumLevel === 'A2') prog.correctA2 = Math.max(0, prog.correctA2 - 1);
+      else if (a.curriculumLevel === 'B1') prog.correctB1 = Math.max(0, prog.correctB1 - 1);
+      persistCurriculumProgressState();
     }
     if (a.correct) decrementDailyProgress(a.type);
     state.sessionStats = { correct: state.sessionStats.correct-(a.correct?1:0), wrong: state.sessionStats.wrong-(a.correct?0:1) };
@@ -5400,6 +5602,39 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     render();
   }
   function syncTranslateInput(){ const ta = document.getElementById('translateInput'); if (ta) state.translateInput = ta.value; }
+  async function fetchGoogleTranslate(text, srcCode, tgtCode){
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${srcCode}&tl=${tgtCode}&dt=t&q=${encodeURIComponent(text)}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('bad-response');
+    const data = await res.json();
+    const translated = (data && data[0]) ? data[0].map(seg => seg[0]).join('') : '';
+    if (!translated) throw new Error('empty');
+    return translated;
+  }
+  // برای اسم‌های آلمانی تک‌کلمه‌ای، به‌جای ترجمه خام کلمه (که آرتیکل نداره)، کلمه رو داخل
+  // یه جمله کوتاه حامل («X ist da») می‌ذاریم تا گوگل مجبور بشه اسم رو با جنسیت درستش
+  // (der/die/das) برگردونه، بعد اون بخش اضافه رو از جواب جدا می‌کنیم.
+  const DE_ARTICLE_CARRIER_SUFFIX_BY_SRC = {
+    fa: ' هست', en: ' is here', es: ' está aquí', it: ' è qui', fr: ' est là', de: ' ist da'
+  };
+  const DE_ARTICLE_TAIL_PATTERNS = [/\s+ist\s+da[.!?]*$/i, /\s+ist[.!?]*$/i, /\s+da[.!?]*$/i];
+  function stripDeArticleCarrierTail(result){
+    for (const re of DE_ARTICLE_TAIL_PATTERNS) {
+      if (re.test(result)) return result.replace(re, '').trim();
+    }
+    return null;
+  }
+  async function translateSingleGermanWordWithArticle(text, srcCode){
+    const carrierSuffix = DE_ARTICLE_CARRIER_SUFFIX_BY_SRC[srcCode] || DE_ARTICLE_CARRIER_SUFFIX_BY_SRC.fa;
+    const wrapped = text + carrierSuffix;
+    const rawResult = await fetchGoogleTranslate(wrapped, srcCode, 'de');
+    const stripped = stripDeArticleCarrierTail(rawResult);
+    // نتیجه معتبره فقط اگه بعد از حذف دنباله، یه عبارت کوتاه (آرتیکل+اسم) باقی مونده باشه
+    if (stripped && stripped.split(/\s+/).length <= 4 && /^(der|die|das)\s+/i.test(stripped)) {
+      return stripped;
+    }
+    return null; // نتونستیم آرتیکل رو استخراج کنیم؛ باید به ترجمه ساده برگردیم
+  }
   async function runTranslate(){
     syncTranslateInput();
     const text = state.translateInput.trim();
@@ -5411,12 +5646,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.translateResult = null;
     render();
     try {
-      const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${srcCode}&tl=${tgtCode}&dt=t&q=${encodeURIComponent(text)}`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error('bad-response');
-      const data = await res.json();
-      const translated = (data && data[0]) ? data[0].map(seg => seg[0]).join('') : '';
-      if (!translated) throw new Error('empty');
+      const isSingleWord = !/\s/.test(text);
+      let translated = null;
+      if (tgtCode === 'de' && state.translateTypeChoice === 'word' && isSingleWord) {
+        translated = await translateSingleGermanWordWithArticle(text, srcCode);
+      }
+      if (!translated) {
+        translated = await fetchGoogleTranslate(text, srcCode, tgtCode);
+      }
       state.translateResult = translated;
     } catch(e){
       state.translateError = t('translateErr');
@@ -5466,7 +5703,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadCards();
   loadStats();
   loadCategories();
-  loadCurriculumProgress();
+  loadCurriculumProgressState();
   loadThemeColor();
   loadThemeMode();
   loadReminderState();
@@ -5480,6 +5717,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadOpenrouterConfig();
   loadFriendData();
   render();
+  ensureCurriculumBootstrapped();
 
   window.addEventListener('resize', () => {
     if (!state.aiFabPos) return;
@@ -5490,7 +5728,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (btn){ btn.style.left = pos.x + 'px'; btn.style.top = pos.y + 'px'; btn.style.right = 'auto'; btn.style.bottom = 'auto'; }
   });
   checkMicPermission().then(() => render());
-  whenGoogleReady(silentGoogleReauth);
+  initAuthListener();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
