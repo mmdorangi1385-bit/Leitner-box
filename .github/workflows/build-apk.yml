@@ -24,6 +24,9 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Install ImageMagick
+        run: sudo apt-get update && sudo apt-get install -y imagemagick
+
       - name: Build APK
         run: |
           mkdir www
@@ -34,17 +37,19 @@ jobs:
           npx cap init "Leitner Box" "com.leitner.app" --web-dir www
           npx cap add android
 
-          convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
-          convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
-          convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
-          convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
-          convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+          if [ -f icon-512.png ]; then
+            convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+            convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+            convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+            convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+            convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
 
-          convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
-          convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
-          convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
-          convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
-          convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+            convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+            convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+            convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+            convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+            convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+          fi
 
           npx cap sync android
           cd android
