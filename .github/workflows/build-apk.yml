@@ -13,23 +13,24 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
       - name: Setup Java JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'temurin'
           java-version: '17'
 
-      - name: Build APK via Capacitor
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build Android App
         run: |
           npm init -y
           npm install @capacitor/core @capacitor/cli @capacitor/android
           npx cap init "Leitner App" "com.leitner.app" --web-dir .
           npx cap add android
+          npx cap sync android
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
@@ -39,4 +40,3 @@ jobs:
         with:
           name: leitner-box-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-
