@@ -555,6 +555,21 @@
 @keyframes authSpin { to { transform: rotate(360deg); } }
 .sync-status-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
 .sync-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+
+/* --- بستن برنامه توسط مدیر (حالت بروزرسانی) --- */
+#maintenance-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 900; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 24px; text-align: center; }
+#maintenance-overlay.show { display: flex; }
+.maint-icon-wrap { width: 84px; height: 84px; border-radius: 20px; overflow: hidden; margin-bottom: 18px; box-shadow: 0 12px 30px rgba(0,0,0,0.35); }
+.maint-icon-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.maint-title { font-family: 'Fraunces', Georgia, serif; font-size: 21px; color: var(--brass); margin-bottom: 10px; }
+.maint-msg { font-size: 13.5px; color: var(--muted); line-height: 1.9; max-width: 380px; white-space: pre-wrap; }
+
+/* --- نوتیفیکیشن‌های همگانی مدیر --- */
+.broadcast-modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 800; display: flex; align-items: center; justify-content: center; padding: 20px; animation: leagueUpFadeIn 0.2s ease; }
+.broadcast-modal-card { background: var(--panel); border: 1px solid var(--border); border-radius: 18px; padding: 22px; width: 100%; max-width: 360px; text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.4); }
+.broadcast-modal-card .bm-icon { width: 46px; height: 46px; border-radius: 12px; margin: 0 auto 12px; display: block; object-fit: cover; }
+.broadcast-modal-card .bm-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; color: var(--brass); margin-bottom: 10px; }
+.broadcast-modal-card .bm-msg { font-size: 13.5px; color: var(--text); line-height: 1.9; white-space: pre-wrap; margin-bottom: 18px; }
 </style>
 </head>
 <body>
@@ -572,6 +587,13 @@
   </div>
 </div>
 <div id="app"></div>
+
+<!-- بستن برنامه توسط مدیر: اگه فعال باشه، روی همه چیز (حتی صفحه‌ی ورود) قرار می‌گیره. -->
+<div id="maintenance-overlay">
+  <div class="maint-icon-wrap"><img src="icon-hero.png" alt=""></div>
+  <div class="maint-title">در دسترس نیست</div>
+  <div class="maint-msg" id="maintenance-msg">برنامه در حال بروزرسانی هست</div>
+</div>
 
 <!-- Firebase auth overlay: sits on top of the app, never replaces it. Guest/offline use is always possible. -->
 <div id="auth-overlay" class="hide">
@@ -779,6 +801,12 @@
   // تا اون موقع، فقط قفلِ محلیِ «حداکثر ۲ بار قابل تغییر» رعایت می‌شه.
   const USER_ID_MIN_LEN = 6;
   const USER_ID_MAX_CHANGES = 2;
+  // مدیر می‌تونه از پنل مدیریت برای یه کاربر خاص تعداد دفعات مجاز تغییر آیدی رو دستی تنظیم کنه
+  // (permissions/{uid}/userIdMaxChanges) — اگه تنظیم نشده باشه، همون مقدار پیش‌فرض بالا اعمال می‌شه.
+  function effectiveUserIdMaxChanges(){
+    return (typeof state.userIdMaxChangesOverride === 'number' && state.userIdMaxChangesOverride >= 0)
+      ? state.userIdMaxChangesOverride : USER_ID_MAX_CHANGES;
+  }
   // آدرس سرویس آنلاینِ آینده (وقتی برنامه آنلاین شد، این مقدار رو با آدرس واقعی API عوض کن).
   const USER_ID_API_BASE = ''; // مثلاً: 'https://your-backend.example.com'
 
@@ -798,7 +826,7 @@
   }
 
   async function confirmUserId(){
-    if (state.profile.userIdChangeCount >= USER_ID_MAX_CHANGES || state.uiUserIdChecking) return;
+    if (state.profile.userIdChangeCount >= effectiveUserIdMaxChanges() || state.uiUserIdChecking) return;
     const val = String(state.uiUserIdDraft || '').trim();
     const errKey = validateUserIdFormat(val);
     if (errKey){ state.uiUserIdError = errKey; render(); return; }
@@ -2303,7 +2331,7 @@
     syncStatus: 'idle', lastSyncAt: null,
     showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
     showSupportModal: false, supportCategory: 'bug', supportTickets: [], supportLoading: false, supportSending: false,
-    lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false,
+    lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false, userIdMaxChangesOverride: null,
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
@@ -2641,6 +2669,90 @@
   // مسیر استاندارد ذخیره‌سازی در Realtime Database: users/{uid}/data
   function userDataRef(uid){ return fbDb.ref('users/' + uid + '/data'); }
 
+  // --- بستن برنامه توسط مدیر (حالت بروزرسانی) — appStatus/{closed, message} ---
+  // مستقل از لاگین چک می‌شه (حتی کاربر مهمان/قبل از ورود هم باید ببینتش) و به‌صورت زنده گوش می‌ده،
+  // یعنی اگه مدیر در همون لحظه برنامه رو دوباره باز کنه، بدون نیاز به رفرش صفحه آزاد می‌شه.
+  function initMaintenanceListener(){
+    if (!firebaseReady) return;
+    try {
+      fbDb.ref('appStatus').on('value', (snap) => {
+        const val = snap.val() || {};
+        const overlay = document.getElementById('maintenance-overlay');
+        const msgEl = document.getElementById('maintenance-msg');
+        if (!overlay) return;
+        if (val.closed) {
+          if (msgEl) msgEl.textContent = val.message || 'برنامه در حال بروزرسانی هست';
+          overlay.classList.add('show');
+        } else {
+          overlay.classList.remove('show');
+        }
+      });
+    } catch (e) { console.error('initMaintenanceListener error', e); }
+  }
+
+  // --- نوتیفیکیشن‌های همگانی مدیر — broadcastNotifications/{id}: { message, sendAt, createdAt } ---
+  // این اپ سرور اختصاصی نداره، پس زمان‌بندی هم کاملاً سمت کلاینت انجام می‌شه: پیام‌ها همیشه
+  // خونده می‌شن ولی فقط وقتی که sendAt رسیده باشه نمایش داده می‌شن؛ شناسه‌ی پیام‌های دیده‌شده
+  // توی localStorage نگه داشته می‌شه تا هر پیام فقط یک‌بار روی هر گوشی نمایش داده بشه.
+  const BROADCAST_SEEN_KEY = 'leitner_seen_broadcasts_v1';
+  let broadcastCache = {};
+  function getSeenBroadcastIds(){
+    try { return new Set(JSON.parse(localStorage.getItem(BROADCAST_SEEN_KEY) || '[]')); } catch(e){ return new Set(); }
+  }
+  function markBroadcastSeen(id){
+    try {
+      const seen = getSeenBroadcastIds();
+      seen.add(id);
+      localStorage.setItem(BROADCAST_SEEN_KEY, JSON.stringify(Array.from(seen)));
+    } catch(e){}
+  }
+  function showBroadcastModal(msg){
+    const backdrop = document.createElement('div');
+    backdrop.className = 'broadcast-modal-backdrop';
+    backdrop.innerHTML = `
+      <div class="broadcast-modal-card" onclick="event.stopPropagation()">
+        <img src="icon-hero.png" class="bm-icon" alt="">
+        <div class="bm-title">پیام از تیم جعبه لایتنر</div>
+        <div class="bm-msg">${esc(msg)}</div>
+        <button class="btn-primary" style="width:auto;padding:9px 24px">باشه</button>
+      </div>
+    `;
+    backdrop.querySelector('button').addEventListener('click', () => backdrop.remove());
+    document.body.appendChild(backdrop);
+  }
+  let broadcastQueue = [];
+  let broadcastShowing = false;
+  function flushBroadcastQueue(){
+    if (broadcastShowing || broadcastQueue.length === 0) return;
+    broadcastShowing = true;
+    const next = broadcastQueue.shift();
+    markBroadcastSeen(next.id);
+    showBroadcastModal(next.message);
+    setTimeout(() => { broadcastShowing = false; flushBroadcastQueue(); }, 400);
+  }
+  function checkDueBroadcasts(){
+    const now = Date.now();
+    const seen = getSeenBroadcastIds();
+    Object.keys(broadcastCache).forEach(id => {
+      const item = broadcastCache[id];
+      if (!item || seen.has(id)) return;
+      if (typeof item.sendAt === 'number' && item.sendAt <= now && item.message) {
+        broadcastQueue.push({ id, message: item.message });
+      }
+    });
+    flushBroadcastQueue();
+  }
+  function initBroadcastListener(){
+    if (!firebaseReady) return;
+    try {
+      fbDb.ref('broadcastNotifications').limitToLast(30).on('value', (snap) => {
+        broadcastCache = snap.val() || {};
+        checkDueBroadcasts();
+      });
+      setInterval(checkDueBroadcasts, 30000);
+    } catch (e) { console.error('initBroadcastListener error', e); }
+  }
+
   function showAuthOverlay(mode){
     const overlay = document.getElementById('auth-overlay');
     if (!overlay) return;
@@ -2698,6 +2810,7 @@
     detachPresence();
     if (adminXpBonusRef) { adminXpBonusRef.off(); adminXpBonusRef = null; }
     if (permissionsRef) { permissionsRef.off(); permissionsRef = null; }
+    if (userIdMaxChangesRef) { userIdMaxChangesRef.off(); userIdMaxChangesRef = null; }
     fbAuth.signOut().catch(() => {});
     state.authUser = null;
     state.syncStatus = 'idle';
@@ -2813,6 +2926,7 @@
     }
     attachAdminXpBonusListener();
     attachPermissionsListener();
+    attachUserIdMaxChangesListener();
     render();
   }
 
@@ -2838,6 +2952,20 @@
     if (permissionsRef) permissionsRef.off();
     permissionsRef = fbDb.ref('permissions/' + state.authUser.uid + '/canCreateGroups');
     permissionsRef.on('value', (snap) => { state.canCreateGroups = !!snap.val(); });
+  }
+
+  // تعداد دفعات مجاز تغییر آیدی — permissions/{uid}/userIdMaxChanges (عدد)، از پنل مدیریت قابل‌تنظیمه.
+  // اگه تنظیم نشده باشه، مقدار پیش‌فرض USER_ID_MAX_CHANGES اعمال می‌شه (نگاه کن به effectiveUserIdMaxChanges).
+  let userIdMaxChangesRef = null;
+  function attachUserIdMaxChangesListener(){
+    if (!firebaseReady || !state.authUser) return;
+    if (userIdMaxChangesRef) userIdMaxChangesRef.off();
+    userIdMaxChangesRef = fbDb.ref('permissions/' + state.authUser.uid + '/userIdMaxChanges');
+    userIdMaxChangesRef.on('value', (snap) => {
+      const v = snap.val();
+      state.userIdMaxChangesOverride = (typeof v === 'number') ? v : null;
+      render();
+    });
   }
 
   let syncDebounceTimer = null;
@@ -4472,7 +4600,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
           ${renderProfileLevelBadge()}
         </div>
-        ${state.profile.userIdChangeCount >= USER_ID_MAX_CHANGES ? `
+        ${state.profile.userIdChangeCount >= effectiveUserIdMaxChanges() ? `
           <div class="text-input" style="margin-top:14px;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;cursor:default">
             ${icon('key',15)} <b style="letter-spacing:0.5px">${esc(state.profile.userId)}</b>
           </div>
@@ -4485,7 +4613,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           ` : ''}
           <input class="text-input" style="margin-top:14px;text-align:center" placeholder="${t('profileIdPlaceholder')}" value="${esc(state.uiUserIdDraft)}" oninput="onUserIdDraftInput(this.value)" onkeydown="if(event.key==='Enter')confirmUserId()" maxlength="24">
           <div class="hint-text" style="margin-top:6px">${t('profileIdHint')}</div>
-          <div class="hint-text" style="margin-top:2px">${faNum(USER_ID_MAX_CHANGES - state.profile.userIdChangeCount)} بار دیگر می‌تونید آیدی‌تون رو تغییر بدید.</div>
+          <div class="hint-text" style="margin-top:2px">${faNum(effectiveUserIdMaxChanges() - state.profile.userIdChangeCount)} بار دیگر می‌تونید آیدی‌تون رو تغییر بدید.</div>
           ${state.uiUserIdError ? `<div class="hint-text" style="margin-top:2px;color:var(--wine)">${t(state.uiUserIdError)}</div>` : ''}
           <button class="btn-secondary" style="width:auto;padding:9px 18px" ${state.uiUserIdChecking ? 'disabled' : ''} onclick="confirmUserId()">${state.uiUserIdChecking ? t('profileIdChecking') : t('profileIdConfirm')}</button>
         `}
@@ -6339,6 +6467,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   });
   checkMicPermission().then(() => render());
   initAuthListener();
+  initMaintenanceListener();
+  initBroadcastListener();
 
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
