@@ -29,17 +29,22 @@ jobs:
           mkdir www
           rsync -av --exclude='www' --exclude='.git' --exclude='.github' . www/
           npm init -y
-          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6 @capacitor/assets
-          
-          # ساخت پروژه با اسم دلخواه
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+
           npx cap init "Leitner Box" "com.leitner.app" --web-dir www
           npx cap add android
 
-          # تنظیم آیکون از روی icon-512.png
-          mkdir -p assets
-          cp icon-512.png assets/icon-only.png
-          cp icon-512.png assets/icon-foreground.png
-          npx @capacitor/assets generate --android
+          convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher.png
+          convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher.png
+          convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+          convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+          convert icon-512.png -resize 48x48 android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+          convert icon-512.png -resize 72x72 android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+          convert icon-512.png -resize 96x96 android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 144x144 android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+          convert icon-512.png -resize 192x192 android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
 
           npx cap sync android
           cd android
