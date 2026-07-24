@@ -24,11 +24,13 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build Android App
+      - name: Build APK
         run: |
+          mkdir www
+          rsync -av --exclude='www' --exclude='.git' --exclude='.github' . www/
           npm init -y
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Leitner App" "com.leitner.app" --web-dir .
+          npm install @capacitor/core@6 @capacitor/cli@6 @capacitor/android@6
+          npx cap init "Leitner App" "com.leitner.app" --web-dir www
           npx cap add android
           npx cap sync android
           cd android
@@ -40,3 +42,4 @@ jobs:
         with:
           name: leitner-box-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+  
