@@ -865,7 +865,8 @@
     while (remaining >= xpNeededForLevel(level)){ remaining -= xpNeededForLevel(level); level++; }
     return { level, xpIntoLevel: remaining, xpForNext: xpNeededForLevel(level) };
   }
-  function totalXp(){ return state.stats.word.correct + state.stats.sentence.correct + state.stats.pronun.correct; }
+  // adminXpBonus: امتیاز اضافه‌ای که مدیر از پنل مدیریت به کاربر می‌ده (جمع می‌شه روی XP واقعی، کم نمی‌کنه از منطق اصلی)
+  function totalXp(){ return state.stats.word.correct + state.stats.sentence.correct + state.stats.pronun.correct + (state.adminXpBonus || 0); }
   // سطح زبانی (مبتدی/A1/A2/B1/B2+) بر اساس تعداد پاسخ‌های درستِ همون زبان — چون state.stats مخصوص زبان فعلیه، این خودش جدا-جدا برای هر زبانه
   function langLevelLabel(correctCount){
     if (correctCount < 100) return 'مبتدی';
@@ -915,6 +916,29 @@
     return stage;
   }
 
+  // اورراید محتوای پنل مدیریت: contentOverrides/{lang}/{levelKey} روی فایربیس، شامل
+  // { edits: {wordId: {...fields}}, adds: [{...word}], deletes: [wordId,...] } — روی فایل استاتیک
+  // words_xx.json اعمال می‌شه بدون نیاز به دیپلوی مجدد اپ. اگه فایربیس در دسترس نباشه، فقط فایل خام استفاده می‌شه.
+  async function fetchContentOverrides(lang, levelKey){
+    if (!firebaseReady) return null;
+    try {
+      const snap = await fbDb.ref('contentOverrides/' + lang + '/' + levelKey).once('value');
+      return snap.val() || null;
+    } catch(e){ return null; }
+  }
+  function applyContentOverrides(baseWords, overrides){
+    if (!overrides) return baseWords;
+    let words = baseWords.slice();
+    const deletes = new Set(overrides.deletes || []);
+    if (deletes.size) words = words.filter(w => !deletes.has(String(w.id)));
+    if (overrides.edits) {
+      words = words.map(w => (overrides.edits[String(w.id)] ? { ...w, ...overrides.edits[String(w.id)] } : w));
+    }
+    if (Array.isArray(overrides.adds) && overrides.adds.length) {
+      words = words.concat(overrides.adds);
+    }
+    return words;
+  }
   async function ensureCurriculumWordsLoaded(levelKey){
     const file = CURRICULUM_FILES[levelKey];
     if (!file) return null;
@@ -925,7 +949,9 @@
       const res = await fetch(file);
       if (!res.ok) throw new Error('fetch failed: ' + res.status);
       const data = await res.json();
-      state.curriculumWords[levelKey] = Array.isArray(data) ? data : [];
+      const base = Array.isArray(data) ? data : [];
+      const overrides = await fetchContentOverrides(currentTargetLangCode(), levelKey);
+      state.curriculumWords[levelKey] = applyContentOverrides(base, overrides);
       state.curriculumLoadStatus[levelKey] = 'loaded';
       return state.curriculumWords[levelKey];
     } catch(e) {
@@ -2277,7 +2303,7 @@
     syncStatus: 'idle', lastSyncAt: null,
     showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
     showSupportModal: false, supportCategory: 'bug', supportTickets: [], supportLoading: false, supportSending: false,
-    lastSeenLeagueKey: null, leagueUpAnimation: null,
+    lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false,
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
@@ -2669,10 +2695,63 @@
   function signOutAccount(){
     if (!firebaseReady) return;
     detachSocialListeners();
+    detachPresence();
+    if (adminXpBonusRef) { adminXpBonusRef.off(); adminXpBonusRef = null; }
+    if (permissionsRef) { permissionsRef.off(); permissionsRef = null; }
     fbAuth.signOut().catch(() => {});
     state.authUser = null;
     state.syncStatus = 'idle';
     render();
+  }
+
+  // --- بن (مسدودسازی) کاربران — bans/{uid}: { until: <timestamp ms یا null برای دائمی>, reason } ---
+  // اگه until گذشته باشه یعنی بن موقت تموم شده و اجازه‌ی ورود داده می‌شه (رکورد پاک نمی‌شه، فقط نادیده گرفته می‌شه).
+  async function checkBanStatus(uid){
+    if (!firebaseReady) return null;
+    try {
+      const snap = await fbDb.ref('bans/' + uid).once('value');
+      const ban = snap.val();
+      if (!ban) return null;
+      if (ban.until && ban.until <= Date.now()) return null; // بن موقت تموم شده
+      const reasonTxt = ban.reason ? ('\nدلیل: ' + ban.reason) : '';
+      if (!ban.until) return 'حساب شما توسط پشتیبانی مسدود شده است.' + reasonTxt;
+      const untilStr = new Date(ban.until).toLocaleDateString('fa-IR');
+      return 'حساب شما تا تاریخ ' + untilStr + ' مسدود شده است.' + reasonTxt;
+    } catch(e){ return null; }
+  }
+
+  // --- حضور آنلاین (presence) — presence/{targetLang}/{uid} ---
+  // با onDisconnect تضمین می‌کنیم اگه کاربر بدون خروج صریح (بستن تب/قطع اینترنت) هم بره،
+  // رکوردش از دیتابیس پاک می‌شه؛ پنل مدیریت همین مسیر رو برای «کاربران آنلاین هر درس» می‌خونه.
+  let presenceRef = null;
+  let presenceLangAttached = null;
+  function initPresence(){
+    if (!firebaseReady || !state.authUser) return;
+    attachPresenceForCurrentLang();
+  }
+  function attachPresenceForCurrentLang(){
+    if (!firebaseReady || !state.authUser) return;
+    const lang = currentTargetLangCode();
+    if (presenceLangAttached === lang && presenceRef) return;
+    detachPresence();
+    const uid = state.authUser.uid;
+    presenceRef = fbDb.ref('presence/' + lang + '/' + uid);
+    presenceLangAttached = lang;
+    presenceRef.onDisconnect().remove();
+    presenceRef.set({
+      name: state.profile.name || state.profile.userId || 'کاربر',
+      userId: state.profile.userId || '',
+      avatar: state.profile.avatar || 'a1',
+      since: Date.now()
+    }).catch(() => {});
+  }
+  function detachPresence(){
+    if (presenceRef) {
+      try { presenceRef.onDisconnect().cancel(); } catch(e){}
+      presenceRef.remove().catch(() => {});
+      presenceRef = null;
+    }
+    presenceLangAttached = null;
   }
 
   function buildSyncPayload(){
@@ -2732,7 +2811,33 @@
       console.error(e);
       state.syncStatus = 'error';
     }
+    attachAdminXpBonusListener();
+    attachPermissionsListener();
     render();
+  }
+
+  // امتیاز جایزه‌ای که مدیر از پنل مدیریت اضافه می‌کنه — users/{uid}/adminXpBonus
+  // جدا از users/{uid}/data نگه داشته می‌شه تا هم‌زمان با syncکردن کارت‌ها/آمار جابه‌جا نشه.
+  let adminXpBonusRef = null;
+  function attachAdminXpBonusListener(){
+    if (!firebaseReady || !state.authUser) return;
+    if (adminXpBonusRef) adminXpBonusRef.off();
+    adminXpBonusRef = fbDb.ref('users/' + state.authUser.uid + '/adminXpBonus');
+    adminXpBonusRef.on('value', (snap) => {
+      state.adminXpBonus = snap.val() || 0;
+      render();
+    });
+  }
+
+  // مجوز ساخت گروه — permissions/{uid}/canCreateGroups (bool)، از پنل مدیریت قابل‌تنظیمه.
+  // فعلاً قابلیت «ساخت گروه» در اپ پیاده‌سازی نشده؛ این فقط پرچمی‌ست که وقتی اون قابلیت
+  // اضافه شد، همون‌جا خونده بشه (state.canCreateGroups از قبل روی true/false در دسترسه).
+  let permissionsRef = null;
+  function attachPermissionsListener(){
+    if (!firebaseReady || !state.authUser) return;
+    if (permissionsRef) permissionsRef.off();
+    permissionsRef = fbDb.ref('permissions/' + state.authUser.uid + '/canCreateGroups');
+    permissionsRef.on('value', (snap) => { state.canCreateGroups = !!snap.val(); });
   }
 
   let syncDebounceTimer = null;
@@ -2758,11 +2863,19 @@
     showAuthOverlay('loading');
     fbAuth.onAuthStateChanged(async (user) => {
       if (user) {
+        const banned = await checkBanStatus(user.uid);
+        if (banned) {
+          alert(banned);
+          try { await fbAuth.signOut(); } catch(e){}
+          showAuthOverlay('login');
+          return;
+        }
         state.authUser = user;
         state.authGuest = false;
         hideAuthOverlay();
         await syncOnLogin();
         initSocialListeners();
+        initPresence();
       } else if (wasGuest) {
         state.authGuest = true;
         hideAuthOverlay();
@@ -3137,6 +3250,7 @@
     state.activeCategoryId = null; state.manageCategoryFilter = 'all'; state.studyCategoryFilter = 'all';
     state.showTargetLangModal = false;
     render();
+    attachPresenceForCurrentLang();
   }
   const TARGET_LANG_EXAMPLES = {
     de: 'Guten Morgen - صبح بخیر', en: 'Good morning - صبح بخیر', es: 'Buenos días - صبح بخیر',
