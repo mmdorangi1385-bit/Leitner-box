@@ -1406,7 +1406,7 @@
       aiAddImage: 'افزودن عکس', aiVoiceInput: 'ورودی صوتی', aiSend: 'ارسال',
       aiHistoryChatFree: 'چت آزاد',
       aiLangRowTeacher: 'زبان جواب‌ها:', aiLangRowTeach: 'زبان تدریس:',
-      aiCachedNote: 'پاسخ ذخیره‌شده (بدون درخواست جدید)', aiCopy: 'کپی',
+      aiCachedNote: 'پاسخ ذخیره‌شده (بدون درخواست جدید)', aiCopy: 'کپی', aiReadAloud: 'خوندن با صدا',
       aiHistoryDelete: 'حذف', aiHistoryEmpty: 'هنوز گفتگویی ذخیره نشده.',
       alertNoSpeechSynth: 'مرورگر شما از پخش صدا پشتیبانی نمی‌کند.',
       alertNoSpeechRecog: 'مرورگر شما از تشخیص گفتار پشتیبانی نمی‌کند. برای این بخش از Chrome استفاده کن.',
@@ -1582,7 +1582,7 @@
       aiAddImage: 'Add image', aiVoiceInput: 'Voice input', aiSend: 'Send',
       aiHistoryChatFree: 'Free chat',
       aiLangRowTeacher: 'Answer language:', aiLangRowTeach: 'Teaching language:',
-      aiCachedNote: 'Cached response (no new request)', aiCopy: 'Copy',
+      aiCachedNote: 'Cached response (no new request)', aiCopy: 'Copy', aiReadAloud: 'Read aloud',
       aiHistoryDelete: 'Delete', aiHistoryEmpty: 'No chats saved yet.',
       alertNoSpeechSynth: 'Your browser does not support audio playback.',
       alertNoSpeechRecog: 'Your browser does not support speech recognition. Use Chrome for this feature.',
@@ -1749,7 +1749,7 @@
       aiAddImage: 'Bild hinzufügen', aiVoiceInput: 'Spracheingabe', aiSend: 'Senden',
       aiHistoryChatFree: 'Freies Gespräch',
       aiLangRowTeacher: 'Antwortsprache:', aiLangRowTeach: 'Unterrichtssprache:',
-      aiCachedNote: 'Gespeicherte Antwort (keine neue Anfrage)', aiCopy: 'Kopieren',
+      aiCachedNote: 'Gespeicherte Antwort (keine neue Anfrage)', aiCopy: 'Kopieren', aiReadAloud: 'Vorlesen',
       aiHistoryDelete: 'Löschen', aiHistoryEmpty: 'Noch keine Gespräche gespeichert.',
       alertNoSpeechSynth: 'Dein Browser unterstützt keine Audiowiedergabe.',
       alertNoSpeechRecog: 'Dein Browser unterstützt keine Spracherkennung. Nutze dafür Chrome.',
@@ -1916,7 +1916,7 @@
       aiAddImage: 'Añadir imagen', aiVoiceInput: 'Entrada de voz', aiSend: 'Enviar',
       aiHistoryChatFree: 'Chat libre',
       aiLangRowTeacher: 'Idioma de las respuestas:', aiLangRowTeach: 'Idioma de enseñanza:',
-      aiCachedNote: 'Respuesta guardada (sin nueva solicitud)', aiCopy: 'Copiar',
+      aiCachedNote: 'Respuesta guardada (sin nueva solicitud)', aiCopy: 'Copiar', aiReadAloud: 'Leer en voz alta',
       aiHistoryDelete: 'Eliminar', aiHistoryEmpty: 'Todavía no hay chats guardados.',
       alertNoSpeechSynth: 'Tu navegador no admite la reproducción de audio.',
       alertNoSpeechRecog: 'Tu navegador no admite el reconocimiento de voz. Usa Chrome para esto.',
@@ -2083,7 +2083,7 @@
       aiAddImage: 'Ajouter une image', aiVoiceInput: 'Entrée vocale', aiSend: 'Envoyer',
       aiHistoryChatFree: 'Chat libre',
       aiLangRowTeacher: 'Langue des réponses :', aiLangRowTeach: 'Langue d\'enseignement :',
-      aiCachedNote: 'Réponse enregistrée (pas de nouvelle requête)', aiCopy: 'Copier',
+      aiCachedNote: 'Réponse enregistrée (pas de nouvelle requête)', aiCopy: 'Copier', aiReadAloud: 'Lire à voix haute',
       aiHistoryDelete: 'Supprimer', aiHistoryEmpty: 'Aucune discussion enregistrée pour l\'instant.',
       alertNoSpeechSynth: 'Ton navigateur ne prend pas en charge la lecture audio.',
       alertNoSpeechRecog: 'Ton navigateur ne prend pas en charge la reconnaissance vocale. Utilise Chrome pour cette fonction.',
@@ -2250,7 +2250,7 @@
       aiAddImage: 'Aggiungi immagine', aiVoiceInput: 'Input vocale', aiSend: 'Invia',
       aiHistoryChatFree: 'Chat libera',
       aiLangRowTeacher: 'Lingua delle risposte:', aiLangRowTeach: 'Lingua di insegnamento:',
-      aiCachedNote: 'Risposta salvata (nessuna nuova richiesta)', aiCopy: 'Copia',
+      aiCachedNote: 'Risposta salvata (nessuna nuova richiesta)', aiCopy: 'Copia', aiReadAloud: 'Leggi ad alta voce',
       aiHistoryDelete: 'Elimina', aiHistoryEmpty: 'Nessuna chat salvata ancora.',
       alertNoSpeechSynth: 'Il tuo browser non supporta la riproduzione audio.',
       alertNoSpeechRecog: 'Il tuo browser non supporta il riconoscimento vocale. Usa Chrome per questa funzione.',
@@ -2407,7 +2407,7 @@
     showOrPanel: false,
     aiOpen: false, aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
     aiFabPos: null, aiHistory: [], aiSessionId: null, showAiHistoryModal: false, aiTeacherCard: null,
-    aiImageData: null, aiListening: false, aiTeachLang: 'de',
+    aiImageData: null, aiListening: false, aiVoiceInputPending: false, aiTeachLang: 'de',
     aiVoiceLang: 'fa', aiVoiceStatus: 'idle', aiVoiceLiveText: '', aiVoiceAutoContinue: true, aiVoiceCallActive: false,
     aiVoiceLastUser: '', aiVoiceLastModel: '',
     dailyGoals: { ...DEFAULT_DAILY_GOALS }, dailyProgress: { date: '', word: 0, sentence: 0, pronun: 0 },
@@ -2490,6 +2490,26 @@
       u.rate = 0.92;
       window.speechSynthesis.speak(u);
     } catch(e){ console.error(e); }
+  }
+  // تشخیص خودکار زبانِ یک متن (برای این‌که پاسخ چت هوش مصنوعی با صدای درست/زبان درست خونده بشه،
+  // دقیقاً به همون زبونی که کاربر باهاش حرف زده، نه همیشه فارسی). یه حدس ساده و سریعه، نه ترجمه‌ی دقیق.
+  function detectTextBcp47(text){
+    const s = String(text || '');
+    if (/[\u0600-\u06FF]/.test(s)) return 'fa-IR'; // حروف فارسی/عربی
+    if (/[äöüßÄÖÜ]/.test(s) || /\b(und|nicht|ich|ist|der|die|das|mit|für|auch|sehr|kann|wird)\b/i.test(s)) return 'de-DE';
+    if (/[àâçèéêëîïôùûœ]/i.test(s) || /\b(le|la|les|est|dans|avec|pour|vous|nous|bonjour|merci)\b/i.test(s)) return 'fr-FR';
+    if (/[ñ¿¡]/.test(s) || /\b(el|la|los|las|es|con|para|gracias|hola|pero|como)\b/i.test(s)) return 'es-ES';
+    if (/\b(che|sono|con|per|questo|grazie|ciao|molto|perché)\b/i.test(s)) return 'it-IT';
+    return 'en-US';
+  }
+  // خوندن یک پاسخ چت با صدا؛ زبانِ درست رو خودش تشخیص می‌ده (اگه صراحتاً داده نشده باشه)
+  function speakAiReply(text, lang){
+    const bcp47 = lang || detectTextBcp47(text);
+    speak(text, bcp47);
+  }
+  function speakAiMessage(i){
+    const m = state.aiMessages[i];
+    if (m && m.text) speakAiReply(m.text);
   }
   function speakCard(id){
     const card = state.cards.find(c => c.id === id);
@@ -3883,15 +3903,6 @@
     persistLastSeenLeague();
   }
   function closeLeagueUpAnimation(){ state.leagueUpAnimation = null; render(); }
-  // دکمه‌ی تست (موقتی): فقط انیمیشن رو نشون می‌ده، به XP/لیگ واقعی کاری نداره
-  function testLeagueUpAnimation(){
-    const currentKey = leagueFor(computeLevelInfo(totalXp()).level).key;
-    const idx = LEAGUES.findIndex(l => l.key === currentKey);
-    const nextKey = LEAGUES[(idx + 1) % LEAGUES.length].key;
-    state.leagueUpAnimation = { from: currentKey, to: nextKey };
-    setTimeout(() => { if (state.leagueUpAnimation) closeLeagueUpAnimation(); }, 7200);
-    render();
-  }
   function loadReminderState(){
     state.remindersEnabled = localStorage.getItem(REMIND_KEY) === '1';
     try { state.reminderTime = localStorage.getItem(REMINDER_TIME_KEY) || '09:00'; } catch(e){ state.reminderTime = '09:00'; }
@@ -4975,7 +4986,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
         <div class="goal-progress-track"><div class="goal-progress-fill" style="width:${pct}%;background:${league.color}"></div></div>
         <div class="hint-text" style="margin-top:8px">${faNum(info.xpIntoLevel)} / ${faNum(info.xpForNext)} ${t('profileToNextLevel')}</div>
-        <button class="btn-secondary" style="margin-top:12px;width:auto;padding:8px 14px;font-size:12.5px" onclick="testLeagueUpAnimation()">🎬 تست انیمیشن ارتقای لیگ</button>
       </div>
     `;
   }
@@ -5431,7 +5441,7 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     chat: {
       label: t('aiModeChat'),
       placeholder: t('aiModeChatPlaceholder'),
-      system: () => `You are a friendly, helpful AI assistant inside the "Leitner Box" language-learning app. Help with any question or request like a normal AI chatbot would, not just language topics. ${aiLangInstruction()} If the user says they're studying or practicing a specific language, or explicitly asks for something to be written in another language (e.g. "count 1 to 10 in German/English"), write exactly that part in the requested language and continue the rest of your explanation in the interface language. Keep answers short and useful.
+      system: () => `You are a friendly, helpful AI assistant inside the "Leitner Box" language-learning app. Help with any question or request like a normal AI chatbot would, not just language topics. Always reply in the SAME language the user just wrote/spoke their message in (their message came from speech, so match its language exactly — e.g. if they spoke Persian, reply in Persian; if German, reply in German; if English, reply in English), regardless of the app's interface language. Only fall back to ${uiLangNativeName()} (the app's interface language) if the user's message language is unclear or mixed. If the user explicitly asks for a specific part of the answer to be written in a different language (e.g. "count 1 to 10 in German/English"), write exactly that part in the requested language and continue the rest in the language they wrote in. Keep answers conversational and natural since they'll be read aloud, and not overly long unless the user clearly wants a detailed answer.
 Special case: if — and only if — the user is clearly asking for the meaning/explanation of a single word or short fixed expression (e.g. "X یعنی چی", "معنی X چیه", "what does X mean", or a bare word/short phrase with no other question attached), do NOT answer in plain text; instead ${wordCardJsonInstruction()} For every other kind of message, answer normally in plain conversational text (never JSON).`
     },
     dictionary: {
@@ -5656,6 +5666,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     const text = (typeof presetText === 'string' ? presetText : state.aiInput).trim();
     const imageData = state.aiImageData;
     if (!text && !imageData) return;
+    const wasVoiceInput = state.aiVoiceInputPending; // این پیام از روی ویس بود؟ پس جوابش رو با صدا هم بخون
+    state.aiVoiceInputPending = false;
     const modeCfg = AI_MODES_FN()[state.aiMode] || AI_MODES_FN().chat;
     const promptText = text || t('aiDescribeImage');
     state.aiMessages = [...state.aiMessages, { role: 'user', text: promptText, image: imageData || undefined }];
@@ -5676,6 +5688,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
         saveCurrentAiSession();
         render();
         scrollAiToBottom();
+        if (wasVoiceInput) speakAiReply(cached);
         return;
       }
     }
@@ -5697,6 +5710,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     saveCurrentAiSession();
     render();
     scrollAiToBottom();
+    if (wasVoiceInput && replyText) speakAiReply(replyText);
   }
 
   // --- AI chat: attach image ---
@@ -5766,6 +5780,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       const transcript = (e.results && e.results[0] && e.results[0][0]) ? e.results[0][0].transcript : '';
       if (transcript){
         state.aiInput = (state.aiInput ? state.aiInput.trim() + ' ' : '') + transcript.trim();
+        state.aiVoiceInputPending = true; // این پیام از روی ویس تایپ شد؛ پس جوابش رو با صدا هم بخون
         const ta = document.getElementById('aiInput');
         if (ta) ta.value = state.aiInput;
       }
@@ -5789,9 +5804,19 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   // خودکار دوباره شروع می‌شه و مکالمه «قطع» نمی‌شه.
   let voiceRecognition = null;
   let voiceSilenceTimer = null;
+  let voiceNoSpeechTimer = null;
   let voiceStopReason = null; // 'finalize' (آماده‌ی ارسال) | 'manual' (کاربر خودش قطع کرد) | null (پایان غیرمنتظره)
   const VOICE_SILENCE_MS = 1100; // مکث لازم بعد از حرف زدن کاربر تا پیام ارسال بشه
+  const VOICE_NO_SPEECH_TIMEOUT_MS = 8000; // اگه کاربر اصلاً هیچی نگه، بعد این‌همه سکوت میکروفون خودکار خاموش می‌شه (به‌جای گوش‌دادن بی‌پایان)
   function clearVoiceSilenceTimer(){ if (voiceSilenceTimer){ clearTimeout(voiceSilenceTimer); voiceSilenceTimer = null; } }
+  function clearVoiceNoSpeechTimer(){ if (voiceNoSpeechTimer){ clearTimeout(voiceNoSpeechTimer); voiceNoSpeechTimer = null; } }
+  function armVoiceNoSpeechTimer(){
+    clearVoiceNoSpeechTimer();
+    voiceNoSpeechTimer = setTimeout(() => {
+      // کاربر هیچی نگفت؛ به‌جای این‌که میکروفون همین‌طوری روشن بمونه، مکالمه رو متوقف می‌کنیم
+      stopVoiceListening();
+    }, VOICE_NO_SPEECH_TIMEOUT_MS);
+  }
   function voiceLangBcp47(){
     const info = TRANSLATE_LANGUAGES_FN()[state.aiVoiceLang];
     return (info && info.bcp47) || 'fa-IR';
@@ -5827,6 +5852,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     state.aiError = null;
     voiceStopReason = null;
     clearVoiceSilenceTimer();
+    armVoiceNoSpeechTimer();
     render();
     rec.onresult = (e) => {
       let finalText = '', interim = '';
@@ -5837,6 +5863,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       }
       const combined = (finalText + ' ' + interim).trim();
       if (!combined) return;
+      // کاربر داره حرف می‌زنه؛ تایمر «هیچی نگفتن» دیگه لازم نیست
+      clearVoiceNoSpeechTimer();
       state.aiVoiceLiveText = combined;
       render();
       // هر بار که چیز جدیدی شنیده می‌شه تایمر سکوت ریست می‌شه؛ یعنی تا وقتی کاربر داره حرف می‌زنه (حتی با مکث‌های کوتاه) قطع نمی‌شه
@@ -5848,6 +5876,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     };
     rec.onerror = (e) => {
       clearVoiceSilenceTimer();
+      clearVoiceNoSpeechTimer();
       const errCode = e && e.error;
       if (errCode === 'not-allowed' || errCode === 'audio-capture'){
         state.aiVoiceCallActive = false;
@@ -5860,6 +5889,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     };
     rec.onend = () => {
       clearVoiceSilenceTimer();
+      clearVoiceNoSpeechTimer();
       if (state.aiVoiceStatus !== 'listening') return;
       const finalText = (state.aiVoiceLiveText || '').trim();
       const reason = voiceStopReason;
@@ -5873,7 +5903,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       // پایان غیرمنتظره (مثل محدودیت داخلی مرورگر برای تشخیص گفتار)؛ اگه تماس هنوز فعاله، بی‌صدا دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه
       if (state.aiVoiceCallActive){
         state.aiVoiceLiveText = '';
-        try { rec.start(); return; } catch(err){}
+        try { rec.start(); armVoiceNoSpeechTimer(); return; } catch(err){}
       }
       state.aiVoiceStatus = 'idle';
       state.aiVoiceLiveText = '';
@@ -5883,6 +5913,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   }
   function stopVoiceListening(){
     clearVoiceSilenceTimer();
+    clearVoiceNoSpeechTimer();
     voiceStopReason = 'manual';
     state.aiVoiceCallActive = false;
     if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; state.aiVoiceLiveText = ''; }
@@ -6275,7 +6306,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
         ${m.image ? `<img class="ai-msg-img" src="${m.image}" alt="">` : ''}
         <div>${esc(m.text)}</div>
         ${m.cached ? `<div class="hint-text" style="margin:4px 0 0;font-size:11px">${icon('history',11)} ${t('aiCachedNote')}</div>` : ''}
-        ${m.role === 'model' ? `<div class="ai-msg-copy"><button onclick="copyAiMessage(${i})">${icon('copy', 12)} ${t('aiCopy')}</button></div>` : ''}
+        ${m.role === 'model' ? `<div class="ai-msg-copy"><button onclick="speakAiMessage(${i})" title="${t('aiReadAloud')}" aria-label="${t('aiReadAloud')}">${icon('volume', 12)}</button><button onclick="copyAiMessage(${i})">${icon('copy', 12)} ${t('aiCopy')}</button></div>` : ''}
       </div>
     `;
   }
