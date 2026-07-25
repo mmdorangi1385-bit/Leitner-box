@@ -438,6 +438,13 @@
   .ai-lang-row-label { flex-shrink: 0; font-size: 12px; color: var(--muted); }
   .ai-lang-chip { flex-shrink: 0; background: var(--panel); border: 1px solid var(--border2); color: var(--muted); border-radius: 20px; padding: 6px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12px; cursor: pointer; white-space: nowrap; }
   .ai-lang-chip.active { background: var(--brass); color: #201a10; border-color: var(--brass); font-weight: 600; }
+  .ai-voice-topic-wrap { padding: 10px 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+  .ai-voice-topic-label { font-size: 13.5px; font-weight: 600; color: var(--text); }
+  .ai-voice-topic-input { width: 100%; background: var(--panel); border: 1px solid var(--border2); color: var(--text); border-radius: 12px; padding: 12px 14px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13.5px; resize: vertical; min-height: 70px; outline: none; }
+  .ai-voice-topic-input:focus { border-color: var(--brass); }
+  .ai-voice-topic-skip { width: 100%; background: none; border: none; color: var(--muted); font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12.5px; padding: 6px; cursor: pointer; text-decoration: underline; }
+  .ai-voice-topic-pill { margin: 0 16px 10px; background: var(--panel); border: 1px solid var(--border2); color: var(--muted); border-radius: 20px; padding: 7px 14px; font-size: 12px; display: flex; align-items: center; gap: 6px; cursor: pointer; width: fit-content; max-width: calc(100% - 32px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ai-voice-topic-pill:hover { border-color: var(--brass); color: var(--text); }
   .ai-messages { flex: 1; overflow-y: auto; padding: 6px 10px; display: flex; flex-direction: column; gap: 9px; }
   .ai-msg { flex: 0 0 auto; align-self: flex-start; width: fit-content; max-width: 92%; padding: 8px 12px; border-radius: 16px; font-size: 14px; line-height: 1.55; white-space: pre-wrap; word-break: break-word; }
   .ai-msg-user { align-self: flex-start; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; }
@@ -1416,6 +1423,10 @@
       aiVoiceListening: 'در حال گوش دادن...', aiVoiceThinking: 'در حال فکر کردن...', aiVoiceSpeaking: 'در حال صحبت کردن...',
       aiVoiceTapToTalk: 'برای صحبت کردن ضربه بزن', aiVoiceTapToStop: 'برای توقف ضربه بزن',
       aiVoiceAutoContinue: 'ادامه‌ی خودکار مکالمه',
+      aiVoiceTopicLabel: 'می‌خوای درباره‌ی چی مکالمه کنی؟',
+      aiVoiceTopicPlaceholder: 'مثلاً: معرفی خودم، خرید کردن، سفارش غذا... (اختیاری)',
+      aiVoiceTopicStart: 'شروع مکالمه', aiVoiceTopicSkip: 'مکالمه‌ی آزاد (بدون موضوع خاص)',
+      aiVoiceChangeTopic: 'تغییر موضوع',
       aiVoiceEndCall: 'پایان مکالمه',
       aiVoiceYouSaid: 'تو گفتی:', aiVoiceReplied: 'پاسخ:',
       tqWhyUsedLabel: 'چرا اینجا این استفاده شده؟', tqWhyUsedQ: 'چرا دقیقاً همین شکل/فعل/کلمه اینجا استفاده شده؟ دلیل گرامری یا کاربردیش رو توضیح بده.',
@@ -2441,7 +2452,7 @@
     aiFabPos: null, aiHistory: [], aiSessionId: null, showAiHistoryModal: false, aiTeacherCard: null,
     aiImageData: null, aiListening: false, aiVoiceInputPending: false, aiTeachLang: 'de',
     aiVoiceLang: 'fa', aiVoiceStatus: 'idle', aiVoiceLiveText: '', aiVoiceAutoContinue: true, aiVoiceCallActive: false,
-    aiVoiceLastUser: '', aiVoiceLastModel: '',
+    aiVoiceLastUser: '', aiVoiceLastModel: '', aiVoiceTopic: '', aiVoiceTopicSet: false,
     dailyGoals: { ...DEFAULT_DAILY_GOALS }, dailyProgress: { date: '', word: 0, sentence: 0, pronun: 0 },
     aiSentenceLoading: false, aiSentenceResult: null, aiSentenceError: null, aiSentenceCardId: null,
     aiExplainLoading: false, aiExplainResult: null, aiExplainError: null, aiExplainCardId: null,
@@ -6269,12 +6280,17 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       placeholder: '',
       system: () => {
         const langInfo = TRANSLATE_LANGUAGES_FN()[state.aiVoiceLang] || TRANSLATE_LANGUAGES_FN().fa;
+        const topic = (state.aiVoiceTopic || '').trim();
+        const topicRule = topic
+          ? `The topic/theme for this conversation, chosen by the user, is: "${topic}". Actually have the conversation about this topic — ask questions, react, and keep steering the conversation back to it if it drifts too far.`
+          : `No specific topic was chosen; have a warm, natural everyday conversation and feel free to pick a simple, friendly topic yourself if the user seems unsure what to talk about.`;
         return `You are a warm, natural voice conversation partner inside a language-learning app called "Leitner Box". This is a live spoken call: the user's words came from speech recognition, and your reply will be read aloud by text-to-speech, NOT shown as a chat. So follow these rules strictly:
 - Never use markdown, headers, bullet points, numbered lists, or asterisks. Write only plain, natural spoken sentences, exactly as a person would say them out loud.
 - Keep replies short and conversational (usually 1-4 sentences), like a real phone conversation, unless the user clearly asks for a longer explanation.
-- The main language of this call is ${langInfo.label}. Speak mostly in ${langInfo.label}.
-- If the user asks what a word or sentence means, asks for a translation, or asks about grammar, answer clearly and simply in ${uiLangNativeName()} (switching briefly out of ${langInfo.label} just for that explanation), give one short example if it helps, then continue the conversation in ${langInfo.label}.
-- If the user speaks in a different language than ${langInfo.label} at some point, just respond naturally in whatever language they used for that turn.
+- The user is practicing ${langInfo.label}. ${topicRule}
+- Speak mostly in ${langInfo.label} once the real conversation is underway, but understand whatever language the user speaks to you in (${uiLangNativeName()}, ${langInfo.label}, or any other language) and respond sensibly to it.
+- If the user asks what a word or sentence means, asks for a translation, asks about grammar, seems confused, or clearly can't follow in ${langInfo.label}, immediately and briefly switch to ${uiLangNativeName()} to explain, give one short example if it helps, then gently continue the conversation in ${langInfo.label}. Never leave the user stuck without an explanation in ${uiLangNativeName()} just to stay "in character".
+- If the user replies with just a single word or a very short/minimal utterance in ${langInfo.label} (e.g. just "${langInfo.label === 'Deutsch' || langInfo.label === 'German' ? 'ich' : 'a short word'}"), that's completely normal for a beginner — treat it as their real turn, respond naturally and encouragingly in ${langInfo.label} (helping them complete/extend the thought if useful), and keep the conversation moving. Do not get confused or repeat yourself.
 - Be warm, patient, and encouraging, like a real conversation partner who enjoys talking with them.`;
       }
     },
@@ -6432,6 +6448,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       state.aiVoiceLastModel = '';
       state.aiMessages = [];
       state.aiSessionId = null;
+      state.aiVoiceTopicSet = false;
+      state.aiVoiceTopic = '';
     }
     render();
     const ta = document.getElementById('aiInput');
@@ -6593,6 +6611,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   let voiceRestartTimer = null; // مکثِ کوتاه قبل از ساختن یه شیءِ کاملاً تازه‌ی تشخیص گفتار بعد از یک ری‌استارتِ بی‌صدا
   let voiceTurnDone = false; // جلوگیری از پردازش دوباره‌ی یک نوبت صحبت، چه با رویداد onend مرورگر و چه بدون آن
   let voiceTurnFinalText = ''; // متنِ نهاییِ جمع‌شده‌ی این نوبت که از قبلِ یک ری‌استارتِ میانیِ تشخیص گفتار باقی مونده (رفع باگ گم‌شدن/دوبار شنیده‌شدنِ صدا)
+  let voiceFinalizedText = ''; // تکه‌های finalِ همینِ جلسه‌ی فعلیِ تشخیص گفتار که تا الان دیده شده‌ن (طبق e.resultIndex) — جدا از voiceTurnFinalText که مالِ ری‌استارتِ قبلیه
   const VOICE_SILENCE_MS = 1100; // مکث لازم بعد از حرف زدن کاربر تا پیام ارسال بشه
   const VOICE_NO_SPEECH_TIMEOUT_MS = 8000; // اگه کاربر اصلاً هیچی نگه، بعد این‌همه سکوت میکروفون خودکار خاموش می‌شه (به‌جای گوش‌دادن بی‌پایان)
   // مکثِ کوتاه قبل از ری‌استارتِ بی‌صدای تشخیص گفتار. روی بعضی گوشی‌های اندروید، اگه بلافاصله بعد از
@@ -6621,6 +6640,25 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     state.aiVoiceLang = code;
     render();
   }
+  // کاربر موضوع مکالمه رو مشخص کرد (یا آزادش گذاشت) — از اینجا واقعاً وارد صفحه‌ی تماس می‌شیم
+  function startVoiceTopicConversation(skip){
+    const ta = document.getElementById('aiVoiceTopicInput');
+    const topic = skip ? '' : ((ta ? ta.value : state.aiVoiceTopic) || '').trim();
+    state.aiVoiceTopic = topic;
+    state.aiVoiceTopicSet = true;
+    render();
+  }
+  // برگشت به صفحه‌ی انتخاب موضوع، بدون این‌که تماس/متن فعلی به‌هم بریزه اگه کاربر منصرف بشه
+  function changeVoiceTopic(){
+    stopVoiceListening();
+    stopAiSpeechPlayback();
+    state.aiVoiceTopicSet = false;
+    state.aiVoiceLastUser = '';
+    state.aiVoiceLastModel = '';
+    state.aiMessages = [];
+    state.aiSessionId = null;
+    render();
+  }
   function getVoiceRecognition(){
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) return null;
@@ -6646,6 +6684,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     state.aiVoiceStatus = 'idle';
     state.aiVoiceLiveText = '';
     voiceTurnFinalText = '';
+    voiceFinalizedText = '';
     if (voiceRecognition){
       try { voiceRecognition.onresult = null; voiceRecognition.onerror = null; voiceRecognition.onend = null; voiceRecognition.abort(); } catch(e){}
     }
@@ -6668,7 +6707,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     }
     state.aiVoiceCallActive = true;
     state.aiVoiceStatus = 'listening';
-    if (!silentRestart){ state.aiVoiceLiveText = ''; voiceTurnFinalText = ''; }
+    if (!silentRestart){ state.aiVoiceLiveText = ''; voiceTurnFinalText = ''; voiceFinalizedText = ''; }
+    else { voiceFinalizedText = ''; } // شیءِ تشخیص گفتار تازه‌ست، پس شمارشِ resultIndex هم از صفر شروع می‌شه؛ متنِ قبلی همین نوبت توی voiceTurnFinalText امنه
     state.aiError = null;
     voiceTurnDone = false;
     clearVoiceSilenceTimer();
@@ -6676,16 +6716,20 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     render();
     rec.onresult = (e) => {
       if (voiceTurnDone) return;
-      // finalText/interim فقط مربوط به همین جلسه‌ی فعلیِ تشخیص گفتاره (از لحظه‌ی start شدنش)؛ هر چیزی
-      // که از یه ری‌استارتِ قبلیِ همین نوبت باقی مونده توی voiceTurnFinalText نگه‌داری می‌شه و این‌جا
-      // بهش اضافه می‌شه — نه این‌که دوباره محاسبه/جمع بشه.
-      let sessionFinal = '', interim = '';
-      for (let i = 0; i < e.results.length; i++){
+      // نکته‌ی مهم رفعِ باگِ «تکرارِ متن»: خیلی از مرورگرها/گوشی‌ها (مخصوصاً با continuous:true) هر بار که
+      // onresult شلیک می‌شه، کل آرایه‌ی e.results رو از ایندکس ۰ برمی‌گردونن (شاملِ نتایجِ finalِ قبلی که
+      // قبلاً هم دیده بودیم)، نه فقط نتیجه‌ی تازه. اگه بدون توجه به این، هر بار از صفر جمعشون بزنیم، هر
+      // تکه‌ی final قبلی دوباره به combined اضافه می‌شه و متن مدام تکرار می‌شه (مثل "SarahSarahSarah...").
+      // e.resultIndex دقیقاً همون نقطه‌ای رو مشخص می‌کنه که این batch از اونجا شروع شده؛ نتایجِ final که
+      // قبل از اون ایندکس هستن رو قبلاً به voiceFinalizedText اضافه کرده‌ایم، پس فقط از resultIndex به بعد رو پردازش می‌کنیم.
+      let newFinal = '', interim = '';
+      for (let i = e.resultIndex; i < e.results.length; i++){
         const r = e.results[i];
-        if (r.isFinal) sessionFinal += r[0].transcript;
+        if (r.isFinal) newFinal += r[0].transcript;
         else interim += r[0].transcript;
       }
-      const combined = (voiceTurnFinalText + ' ' + sessionFinal + ' ' + interim).replace(/\s+/g, ' ').trim();
+      if (newFinal) voiceFinalizedText = (voiceFinalizedText + ' ' + newFinal).replace(/\s+/g, ' ').trim();
+      const combined = (voiceTurnFinalText + ' ' + voiceFinalizedText + ' ' + interim).replace(/\s+/g, ' ').trim();
       if (!combined) return;
       // کاربر داره حرف می‌زنه؛ تایمر «هیچی نگفتن» دیگه لازم نیست
       clearVoiceNoSpeechTimer();
@@ -6747,6 +6791,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     clearVoiceNoSpeechTimer();
     clearVoiceRestartTimer();
     voiceTurnFinalText = '';
+    voiceFinalizedText = '';
     state.aiVoiceCallActive = false;
     if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; state.aiVoiceLiveText = ''; }
     if (voiceRecognition){
@@ -6755,8 +6800,15 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     voiceRecognition = null;
     render();
   }
+  // لمسِ دستیِ دکمه‌ی میکروفون وسطِ صفحه، وقتی در حال گوش‌دادنه: یعنی کاربر می‌گه «حرفم تموم شد،
+  // همین الان بفرست» — نه صرفاً «میکروفون رو خاموش کن». اگه چیزی گفته باشه، بلافاصله جمع‌بندی و
+  // ارسال می‌کنیم (finishVoiceTurn)؛ اگه هنوز هیچی نگفته، فقط لغو می‌کنیم (stopVoiceListening).
   function toggleVoiceListening(){
-    if (state.aiVoiceStatus === 'listening') stopVoiceListening();
+    if (state.aiVoiceStatus === 'listening'){
+      clearVoiceSilenceTimer();
+      if ((state.aiVoiceLiveText || '').trim()) finishVoiceTurn();
+      else stopVoiceListening();
+    }
     else if (state.aiVoiceStatus === 'idle') startVoiceListening();
     else if (state.aiVoiceStatus === 'speaking'){
       stopAiSpeechPlayback();
@@ -7034,6 +7086,33 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     const statusLabel = status === 'listening' ? t('aiVoiceListening') : status === 'thinking' ? t('aiVoiceThinking') : status === 'speaking' ? t('aiVoiceSpeaking') : (state.aiVoiceCallActive ? t('aiVoiceCallActiveHint') : (state.aiVoiceLastUser ? t('aiVoiceTapToTalk') : t('aiVoiceIdleHint')));
     const micIcon = status === 'thinking' ? 'ai' : status === 'speaking' ? 'volume' : 'mic';
     const shownUser = state.aiVoiceLiveText || state.aiVoiceLastUser;
+    const langChipsHtml = `
+        <div class="ai-lang-row">
+          <span class="ai-lang-row-label">${t('aiVoiceLangLabel')}</span>
+          ${Object.keys(TRANSLATE_LANGUAGES_FN()).map(code => `<button class="ai-lang-chip ${state.aiVoiceLang===code?'active':''}" onclick="setAiVoiceLang('${code}')">${TRANSLATE_LANGUAGES_FN()[code].flag} ${esc(TRANSLATE_LANGUAGES_FN()[code].label)}</button>`).join('')}
+        </div>`;
+    if (!state.aiVoiceTopicSet) {
+      return `
+        <div class="ai-page">
+          <div class="ai-page-header">
+            <button class="ai-back-btn" onclick="closeAiPage()" aria-label="${t('aiBackBtn')}">${icon('close', 18)}</button>
+            <div class="ai-page-title">${icon('ai', 17)} ${t('aiModeVoice')}</div>
+            <button class="ai-history-btn" onclick="openAiHistoryModal()" title="${t('aiPastChats')}">${icon('history', 16)}</button>
+          </div>
+          <div class="ai-quick-row">
+            ${Object.keys(AI_MODES_FN()).filter(k => k !== 'chat').map(k => `<button class="ai-quick-chip ${state.aiMode===k?'active':''}" onclick="setAiMode('${k}')">${esc(AI_MODES_FN()[k].label)}</button>`).join('')}
+          </div>
+          ${langChipsHtml}
+          <div class="ai-voice-topic-wrap">
+            <label class="ai-voice-topic-label">${t('aiVoiceTopicLabel')}</label>
+            <textarea class="ai-voice-topic-input" id="aiVoiceTopicInput" placeholder="${esc(t('aiVoiceTopicPlaceholder'))}" rows="3">${esc(state.aiVoiceTopic || '')}</textarea>
+            <button class="btn-primary" onclick="startVoiceTopicConversation()">${t('aiVoiceTopicStart')}</button>
+            <button class="ai-voice-topic-skip" onclick="startVoiceTopicConversation(true)">${t('aiVoiceTopicSkip')}</button>
+          </div>
+        </div>
+        ${renderAiHistoryModal()}
+      `;
+    }
     return `
       <div class="ai-page">
         <div class="ai-page-header">
@@ -7044,10 +7123,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
         <div class="ai-quick-row">
           ${Object.keys(AI_MODES_FN()).filter(k => k !== 'chat').map(k => `<button class="ai-quick-chip ${state.aiMode===k?'active':''}" onclick="setAiMode('${k}')">${esc(AI_MODES_FN()[k].label)}</button>`).join('')}
         </div>
-        <div class="ai-lang-row">
-          <span class="ai-lang-row-label">${t('aiVoiceLangLabel')}</span>
-          ${Object.keys(TRANSLATE_LANGUAGES_FN()).map(code => `<button class="ai-lang-chip ${state.aiVoiceLang===code?'active':''}" onclick="setAiVoiceLang('${code}')">${TRANSLATE_LANGUAGES_FN()[code].flag} ${esc(TRANSLATE_LANGUAGES_FN()[code].label)}</button>`).join('')}
-        </div>
+        ${langChipsHtml}
+        ${state.aiVoiceTopic ? `<div class="ai-voice-topic-pill" onclick="changeVoiceTopic()">${icon('edit',12)} ${esc(state.aiVoiceTopic)}</div>` : `<div class="ai-voice-topic-pill" onclick="changeVoiceTopic()">${icon('edit',12)} ${t('aiVoiceChangeTopic')}</div>`}
         <div class="ai-voice-body">
           <div class="ai-voice-caption">
             ${shownUser ? `<div class="voice-user-line">${icon('mic',12)} ${esc(shownUser)}</div>` : ''}
