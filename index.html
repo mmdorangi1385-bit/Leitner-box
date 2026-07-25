@@ -715,7 +715,7 @@
   // --- دستیار هوش مصنوعی (فقط Gemini) ---
   // این اپ دیگه کلید شخصی از کاربر نمی‌گیره؛ دسترسی هوش مصنوعی فقط از طریق پنل مدیریت
   // (permissions/{uid}/canUseAi + aiConfig/geminiKey توی فایربیس) فعال می‌شه.
-  const GEMINI_MODEL = 'gemini-3-flash-preview';
+  const GEMINI_MODEL = 'gemini-3.6-flash';
   const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
   const DAILY_GOALS_KEY = 'leitner_daily_goals_v1';
   const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
@@ -5326,7 +5326,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     return null;
   }
 
-  // اجرای یک پرامپت روی Gemini API (google gemini-3-flash-preview) و برگردوندن متن پاسخ.
+  // اجرای یک پرامپت روی Gemini API (google gemini-3.6-flash) و برگردوندن متن پاسخ.
   // کلید همیشه از دسترسی اعطاشده‌ی مدیر میاد (state.aiGrantedKey)؛ کاربر دیگه کلید شخصی وارد نمی‌کنه.
   async function runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, apiKeyOverride){
     const key = (apiKeyOverride || state.aiGrantedKey || '').trim();
@@ -5805,7 +5805,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   let voiceRecognition = null;
   let voiceSilenceTimer = null;
   let voiceNoSpeechTimer = null;
-  let voiceStopReason = null; // 'finalize' (آماده‌ی ارسال) | 'manual' (کاربر خودش قطع کرد) | null (پایان غیرمنتظره)
+  let voiceTurnDone = false; // جلوگیری از پردازش دوباره‌ی یک نوبت صحبت، چه با رویداد onend مرورگر و چه بدون آن
   const VOICE_SILENCE_MS = 1100; // مکث لازم بعد از حرف زدن کاربر تا پیام ارسال بشه
   const VOICE_NO_SPEECH_TIMEOUT_MS = 8000; // اگه کاربر اصلاً هیچی نگه، بعد این‌همه سکوت میکروفون خودکار خاموش می‌شه (به‌جای گوش‌دادن بی‌پایان)
   function clearVoiceSilenceTimer(){ if (voiceSilenceTimer){ clearTimeout(voiceSilenceTimer); voiceSilenceTimer = null; } }
@@ -5837,6 +5837,26 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     voiceRecognition.continuous = true; // گوش دادن پیوسته، مثل یه تماس واقعی
     return voiceRecognition;
   }
+  // یک نوبتِ صحبت رو جمع‌بندی و ارسال می‌کنه — مستقل از این‌که مرورگر رویداد onend رو شلیک کنه یا نه.
+  // نکته‌ی مهم: روی بعضی گوشی‌های اندروید (مخصوصاً با continuous:true)، بعد از rec.stop() ممکنه
+  // مرورگر اصلاً onend رو شلیک نکنه و میکروفون برای همیشه روی «در حال گوش‌دادن» بمونه و هیچ جوابی
+  // نیاد. برای همین دیگه منتظر onend نمی‌مونیم؛ همین که کاربر ساکت شد (تایمر سکوت تموم شد)،
+  // خودمون مستقیم متن رو می‌فرستیم و جدا هم تلاش می‌کنیم rec رو متوقف/ری‌ست کنیم.
+  function finishVoiceTurn(){
+    if (voiceTurnDone) return;
+    voiceTurnDone = true;
+    clearVoiceSilenceTimer();
+    clearVoiceNoSpeechTimer();
+    const finalText = (state.aiVoiceLiveText || '').trim();
+    state.aiVoiceStatus = 'idle';
+    state.aiVoiceLiveText = '';
+    if (voiceRecognition){
+      try { voiceRecognition.onresult = null; voiceRecognition.onerror = null; voiceRecognition.onend = null; voiceRecognition.abort(); } catch(e){}
+    }
+    voiceRecognition = null; // نوبت بعدی یه شیء کاملاً تازه بساز؛ از گیرکردن حالت داخلیِ این‌یکی جلوگیری می‌کنه
+    if (finalText) sendVoiceMessage(finalText);
+    else render();
+  }
   async function startVoiceListening(){
     if (state.aiVoiceStatus === 'listening') return;
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -5850,11 +5870,12 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     state.aiVoiceStatus = 'listening';
     state.aiVoiceLiveText = '';
     state.aiError = null;
-    voiceStopReason = null;
+    voiceTurnDone = false;
     clearVoiceSilenceTimer();
     armVoiceNoSpeechTimer();
     render();
     rec.onresult = (e) => {
+      if (voiceTurnDone) return;
       let finalText = '', interim = '';
       for (let i = 0; i < e.results.length; i++){
         const r = e.results[i];
@@ -5867,44 +5888,35 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       clearVoiceNoSpeechTimer();
       state.aiVoiceLiveText = combined;
       render();
-      // هر بار که چیز جدیدی شنیده می‌شه تایمر سکوت ریست می‌شه؛ یعنی تا وقتی کاربر داره حرف می‌زنه (حتی با مکث‌های کوتاه) قطع نمی‌شه
+      // هر بار که چیز جدیدی شنیده می‌شه تایمر سکوت ریست می‌شه؛ یعنی تا وقتی کاربر داره حرف می‌زنه (حتی با مکث‌های کوتاه) قطع نمی‌شه.
+      // وقتی این تایمر تموم بشه (یعنی کاربر ساکت شده)، مستقیم جمع‌بندی و ارسال می‌کنیم، بدون نیاز به منتظرِ onend موندن.
       clearVoiceSilenceTimer();
-      voiceSilenceTimer = setTimeout(() => {
-        voiceStopReason = 'finalize';
-        try { rec.stop(); } catch(err){}
-      }, VOICE_SILENCE_MS);
+      voiceSilenceTimer = setTimeout(finishVoiceTurn, VOICE_SILENCE_MS);
     };
     rec.onerror = (e) => {
-      clearVoiceSilenceTimer();
-      clearVoiceNoSpeechTimer();
+      if (voiceTurnDone) return;
       const errCode = e && e.error;
       if (errCode === 'not-allowed' || errCode === 'audio-capture'){
+        clearVoiceSilenceTimer();
+        clearVoiceNoSpeechTimer();
+        voiceTurnDone = true;
+        voiceRecognition = null;
         state.aiVoiceCallActive = false;
         state.aiVoiceStatus = 'idle';
         state.aiVoiceLiveText = '';
         render();
-        return;
       }
-      // خطاهای موقتی مثل no-speech نباید تماس رو تموم کنن؛ onend به‌زودی خودش رو دوباره راه‌اندازی می‌کنه
+      // خطاهای موقتی مثل no-speech نباید تماس رو تموم کنن؛ اگه کاربر ساکت مونده، تایمر سکوت خودش finishVoiceTurn رو صدا می‌زنه
     };
     rec.onend = () => {
-      clearVoiceSilenceTimer();
-      clearVoiceNoSpeechTimer();
-      if (state.aiVoiceStatus !== 'listening') return;
-      const finalText = (state.aiVoiceLiveText || '').trim();
-      const reason = voiceStopReason;
-      voiceStopReason = null;
-      if (reason === 'finalize' && finalText){
-        state.aiVoiceStatus = 'idle';
-        state.aiVoiceLiveText = '';
-        sendVoiceMessage(finalText);
-        return;
-      }
-      // پایان غیرمنتظره (مثل محدودیت داخلی مرورگر برای تشخیص گفتار)؛ اگه تماس هنوز فعاله، بی‌صدا دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه
+      if (voiceTurnDone) return; // finishVoiceTurn قبلاً (با یا بدون کمک مرورگر) این نوبت رو تموم کرده
+      // پایانِ غیرمنتظره‌ی تشخیص گفتار (بدون این‌که کاربر ساکت مونده باشه)؛ اگه تماس هنوز فعاله، بی‌صدا دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه
       if (state.aiVoiceCallActive){
-        state.aiVoiceLiveText = '';
         try { rec.start(); armVoiceNoSpeechTimer(); return; } catch(err){}
       }
+      clearVoiceSilenceTimer();
+      clearVoiceNoSpeechTimer();
+      voiceTurnDone = true;
       state.aiVoiceStatus = 'idle';
       state.aiVoiceLiveText = '';
       render();
@@ -5912,14 +5924,15 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     try { rec.start(); } catch(e){ state.aiVoiceStatus = 'idle'; render(); }
   }
   function stopVoiceListening(){
+    voiceTurnDone = true;
     clearVoiceSilenceTimer();
     clearVoiceNoSpeechTimer();
-    voiceStopReason = 'manual';
     state.aiVoiceCallActive = false;
     if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; state.aiVoiceLiveText = ''; }
     if (voiceRecognition){
-      try { voiceRecognition.abort(); } catch(e){}
+      try { voiceRecognition.onresult = null; voiceRecognition.onerror = null; voiceRecognition.onend = null; voiceRecognition.abort(); } catch(e){}
     }
+    voiceRecognition = null;
     render();
   }
   function toggleVoiceListening(){
