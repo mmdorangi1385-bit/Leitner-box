@@ -751,8 +751,37 @@
   // --- دستیار هوش مصنوعی (فقط Gemini) ---
   // این اپ دیگه کلید شخصی از کاربر نمی‌گیره؛ دسترسی هوش مصنوعی فقط از طریق پنل مدیریت
   // (permissions/{uid}/canUseAi + aiConfig/geminiKey توی فایربیس) فعال می‌شه.
-  const GEMINI_MODEL = 'gemini-3.6-flash';
-  const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
+  // مدل پیش‌فرض (اگه مدیر هنوز از پنل مدل رو انتخاب نکرده باشه) + لیست مدل‌های فعلیِ Gemini که
+  // هنوز از رده خارج نشدن و توی رده‌ی رایگان (Flash / Flash-Lite) قرار دارن. مدل‌های Pro و نسخه‌های
+  // قدیمی‌تر (Gemini 1.0 / 1.5 / 2.0) عمداً این‌جا نیستن چون گوگل کاملاً از کارشون انداخته (404).
+  const DEFAULT_GEMINI_MODEL = 'gemini-3.6-flash';
+  const AVAILABLE_GEMINI_MODELS = [
+    'gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3-flash',
+    'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-2.5-flash-lite',
+  ];
+  function geminiEndpointFor(model){
+    const m = AVAILABLE_GEMINI_MODELS.includes(model) ? model : DEFAULT_GEMINI_MODEL;
+    return `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
+  }
+  // چرخش کلید بین چند کلید Gemini (aiConfig/geminiKeys): برای این‌که همه‌ی کاربرها روی هم از سقف
+  // رایگانِ چند کلید مختلف استفاده کنن (نه فقط یکی)، یک شمارنده‌ی مشترک توی فایربیس
+  // (aiConfig/geminiKeyRotationIndex) با transaction افزایش پیدا می‌کنه و هر درخواست، کلید بعدی توی
+  // چرخه رو می‌گیره. نکته‌ی امنیتی: باید توی Realtime Database Rules اجازه‌ی نوشتن روی این مسیر به
+  // هر کاربرِ authenticated داده بشه (این مسیر فقط یه عدد شمارنده‌ست، هیچ کلیدی توش نیست).
+  async function pickNextGeminiKey(keys){
+    if (!keys || !keys.length) return '';
+    if (keys.length === 1) return keys[0];
+    try {
+      const idxRef = fbDb.ref('aiConfig/geminiKeyRotationIndex');
+      const txResult = await idxRef.transaction((cur) => (((typeof cur === 'number' ? cur : 0) + 1) % 1000000));
+      const idx = (txResult && txResult.committed && txResult.snapshot && typeof txResult.snapshot.val() === 'number')
+        ? txResult.snapshot.val() : Math.floor(Math.random() * keys.length);
+      return keys[idx % keys.length];
+    } catch(e){
+      // اگه transaction شکست خورد (مثلاً آفلاین)، به‌جای گیر کردن، یه کلید تصادفی انتخاب کن
+      return keys[Math.floor(Math.random() * keys.length)];
+    }
+  }
   const DAILY_GOALS_KEY = 'leitner_daily_goals_v1';
   const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
   const DEFAULT_DAILY_GOALS = { word: 10, sentence: 5, pronun: 10 };
@@ -2432,7 +2461,7 @@
     showSupportModal: false, supportCategory: 'bug', supportTickets: [], supportLoading: false, supportSending: false,
     viewingBroadcastId: null,
     lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false, userIdMaxChangesOverride: null,
-    canUseAi: false, aiGrantedKey: '',
+    canUseAi: false, aiGrantedKeys: [], aiGrantedModel: DEFAULT_GEMINI_MODEL,
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
@@ -3235,22 +3264,41 @@
   // بتونه aiConfig/geminiKey رو بخونه که permissions/{uid}/canUseAi روی true باشه)؛ چون این یه اپ
   // کاملاً کلاینت‌ساید‌ه، هر کاربری که دسترسی گرفته، فنی می‌تونه کلید رو توی Network تب مرورگرش ببینه.
   let aiAccessRef = null;
-  let aiConfigKeyRef = null;
+  let aiConfigKeysRef = null;
+  let aiConfigModelRef = null;
   function attachAiAccessListener(){
     if (!firebaseReady || !state.authUser) return;
     if (aiAccessRef) aiAccessRef.off();
     aiAccessRef = fbDb.ref('permissions/' + state.authUser.uid + '/canUseAi');
     aiAccessRef.on('value', (snap) => {
       state.canUseAi = !!snap.val();
-      if (aiConfigKeyRef) { aiConfigKeyRef.off(); aiConfigKeyRef = null; }
+      if (aiConfigKeysRef) { aiConfigKeysRef.off(); aiConfigKeysRef = null; }
+      if (aiConfigModelRef) { aiConfigModelRef.off(); aiConfigModelRef = null; }
       if (state.canUseAi){
-        aiConfigKeyRef = fbDb.ref('aiConfig/geminiKey');
-        aiConfigKeyRef.on('value', (keySnap) => {
-          state.aiGrantedKey = keySnap.val() || '';
+        aiConfigKeysRef = fbDb.ref('aiConfig/geminiKeys');
+        aiConfigKeysRef.on('value', (keysSnap) => {
+          const raw = keysSnap.val();
+          const keys = Array.isArray(raw) ? raw.filter((k) => k && String(k).trim()) : [];
+          if (keys.length){
+            state.aiGrantedKeys = keys;
+            render();
+          } else {
+            // سازگاری با نسخه‌ی قدیمی که فقط یک کلید تکی داشت (aiConfig/geminiKey)
+            fbDb.ref('aiConfig/geminiKey').once('value').then((legacySnap) => {
+              const legacy = (legacySnap.val() || '').trim();
+              state.aiGrantedKeys = legacy ? [legacy] : [];
+              render();
+            }).catch(() => { state.aiGrantedKeys = []; render(); });
+          }
+        });
+        aiConfigModelRef = fbDb.ref('aiConfig/geminiModel');
+        aiConfigModelRef.on('value', (modelSnap) => {
+          state.aiGrantedModel = modelSnap.val() || DEFAULT_GEMINI_MODEL;
           render();
         });
       } else {
-        state.aiGrantedKey = '';
+        state.aiGrantedKeys = [];
+        state.aiGrantedModel = DEFAULT_GEMINI_MODEL;
       }
       render();
     });
@@ -5941,7 +5989,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   }
 
   // --- دسترسی هوش مصنوعی: فقط از طریق پنل مدیریت فعال می‌شه (کلید شخصی دیگه گرفته نمی‌شه) ---
-  function hasAdminGrantedAiAccess(){ return !!(state.canUseAi && state.aiGrantedKey && state.aiGrantedKey.trim()); }
+  function hasAdminGrantedAiAccess(){ return !!(state.canUseAi && state.aiGrantedKeys && state.aiGrantedKeys.length); }
   function hasActiveAiKey(){ return hasAdminGrantedAiAccess(); }
 
   // --- کش پاسخ‌های هوش مصنوعی در IndexedDB ---
@@ -6004,8 +6052,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 IMPORTANT — an image is attached to this message. Analyze the ENTIRE image thoroughly, not just the most obvious part of it:
 - If the user is asking you to extract words/vocabulary/keywords from the image, extract EVERY relevant and important word or phrase visible in the image (all text, labels, and named objects) — do not cap the list to just one or a few items, and do not stop early.
 - If the user is asking for a description/explanation of the image, give a complete, detailed, and accurate description covering all relevant parts of it — do not summarize away important details.`;
-  async function runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, apiKeyOverride){
-    const key = (apiKeyOverride || state.aiGrantedKey || '').trim();
+  async function runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, apiKeyOverride, modelOverride){
+    const key = (apiKeyOverride || (state.aiGrantedKeys && state.aiGrantedKeys[0]) || '').trim();
     if (!key) throw new Error(t('aiKeyNeeded'));
     const parts = [{ text: userPrompt }];
     if (imageDataUrl){
@@ -6015,7 +6063,7 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
     const finalSystemPrompt = imageDataUrl ? (systemPrompt + IMAGE_ANALYSIS_INSTRUCTION) : systemPrompt;
     let res;
     try {
-      res = await fetch(GEMINI_ENDPOINT, {
+      res = await fetch(geminiEndpointFor(modelOverride || state.aiGrantedModel), {
         method: 'POST',
         headers: {
           'x-goog-api-key': key,
@@ -6052,7 +6100,8 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
   // اپ (چت، مکالمه‌ی صوتی، مثال‌سازی، توضیح جمله) باید فقط از این تابع استفاده کنن.
   async function runAiPrompt(systemPrompt, userPrompt, imageDataUrl){
     if (!hasAdminGrantedAiAccess()) throw new Error(t('aiKeyNeeded'));
-    return runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, state.aiGrantedKey);
+    const key = await pickNextGeminiKey(state.aiGrantedKeys);
+    return runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, key, state.aiGrantedModel);
   }
 
   // --- صدای واقعیِ خودِ هوش مصنوعی (Gemini TTS) ---
@@ -6100,7 +6149,7 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
   // از مدل TTS واقعیِ Gemini یه فایل صوتی می‌گیره و آدرس قابل‌پخششو برمی‌گردونه؛ اگه هر مرحله‌ای
   // (کلید، اینترنت، پاسخ نامعتبر) شکست بخوره null برمی‌گردونه تا کد صدا زننده بره سراغ جایگزین.
   async function fetchGeminiSpeechUrl(text){
-    const key = (state.aiGrantedKey || '').trim();
+    const key = ((state.aiGrantedKeys && state.aiGrantedKeys[0]) || '').trim();
     if (!key || !text) return null;
     let res;
     try {
