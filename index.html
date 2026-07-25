@@ -476,6 +476,8 @@
   .ai-wordcard-context-target { color: var(--text); font-size: 13px; }
   .ai-wordcard-context-fa { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
   .ai-wordcard-example { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-top: 6px; }
+  .ai-wordcard-example-sentence-row { display: flex; align-items: flex-start; gap: 4px; }
+  .ai-wordcard-example-sentence-row .speak-icon-btn { padding: 2px; margin-top: 1px; }
   .ai-wordcard-example-sentence { color: var(--text); font-size: 13px; }
   .ai-wordcard-example-translation { color: var(--muted); font-size: 12px; margin-top: 3px; }
   .ai-wordcard-add-btn { width: 100%; margin-top: 12px; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; border: none; border-radius: 12px; padding: 10px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
@@ -5983,6 +5985,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
   // اجرای یک پرامپت روی Gemini API (google gemini-3.6-flash) و برگردوندن متن پاسخ.
   // کلید همیشه از دسترسی اعطاشده‌ی مدیر میاد (state.aiGrantedKey)؛ کاربر دیگه کلید شخصی وارد نمی‌کنه.
+  // وقتی کاربر عکسی ضمیمه می‌کنه، این دستورالعمل به سیستم‌پرامپتِ همون حالت (چت/دیکشنری/...) اضافه
+  // می‌شه تا هوش مصنوعی تصویر رو کامل و بدون کوتاه‌کردن تحلیل کنه: نه فقط یکی-دو کلمه از عکس دربیاره،
+  // و نه توضیح تصویر رو خلاصه/ناقص بده.
+  const IMAGE_ANALYSIS_INSTRUCTION = `
+
+IMPORTANT — an image is attached to this message. Analyze the ENTIRE image thoroughly, not just the most obvious part of it:
+- If the user is asking you to extract words/vocabulary/keywords from the image, extract EVERY relevant and important word or phrase visible in the image (all text, labels, and named objects) — do not cap the list to just one or a few items, and do not stop early.
+- If the user is asking for a description/explanation of the image, give a complete, detailed, and accurate description covering all relevant parts of it — do not summarize away important details.`;
   async function runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, apiKeyOverride){
     const key = (apiKeyOverride || state.aiGrantedKey || '').trim();
     if (!key) throw new Error(t('aiKeyNeeded'));
@@ -5991,6 +6001,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       const m = /^data:([^;]+);base64,(.+)$/.exec(imageDataUrl);
       if (m) parts.push({ inline_data: { mime_type: m[1], data: m[2] } });
     }
+    const finalSystemPrompt = imageDataUrl ? (systemPrompt + IMAGE_ANALYSIS_INSTRUCTION) : systemPrompt;
     let res;
     try {
       res = await fetch(GEMINI_ENDPOINT, {
@@ -6000,7 +6011,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          system_instruction: { parts: [{ text: systemPrompt }] },
+          system_instruction: { parts: [{ text: finalSystemPrompt }] },
           contents: [{ role: 'user', parts }],
         }),
       });
@@ -6109,15 +6120,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   // خودِ گوشی/مرورگر؛ فقط اگه این کار به هر دلیلی (بی‌اینترنتی، نبودِ دسترسی و ...) ممکن نشد، به‌عنوان
   // جایگزین از موتور صدای مرورگر استفاده می‌کنه تا حداقل یه صدایی شنیده بشه.
   // onDone (اختیاری): بعد از تمومِ پخش (با هر روش) صدا زده می‌شه.
-  // فاصله‌ی عمدی بین نمایش متن و شروعِ پخش صدا (میلی‌ثانیه). قبلاً صدا بی‌قاعده و با تأخیر متغیر
-  // (بسته به سرعت اینترنت/API) پخش می‌شد؛ این مکث ثابت و کوتاه باعث می‌شه صدا همیشه یه فاصله‌ی
-  // مشخص و کوتاه بعد از نمایش متن شروع بشه.
-  const AI_SPEECH_DELAY_MS = 700;
+  // قبلاً یه مکثِ عمدیِ ثابت (۷۰۰ میلی‌ثانیه) قبل از شروع پخش صدا وجود داشت. طبق بازخورد، این تأخیر
+  // باعث کندی و دیرشروع‌شدنِ صدا می‌شد؛ برای پخش آنی و بی‌تأخیر حذف شد — همین که متن آماده شد، بلافاصله
+  // درخواست صدا زده می‌شه.
   function playAiSpeech(text, fallbackBcp47, onDone){
     if (!text){ if (onDone) onDone(); return; }
     if (geminiAudioEl){ try { geminiAudioEl.pause(); } catch(e){} geminiAudioEl = null; }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-    setTimeout(() => { playAiSpeechNow(text, fallbackBcp47, onDone); }, AI_SPEECH_DELAY_MS);
+    playAiSpeechNow(text, fallbackBcp47, onDone);
   }
   async function playAiSpeechNow(text, fallbackBcp47, onDone){
     if (hasActiveAiKey()){
@@ -6580,11 +6590,20 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   let voiceRecognition = null;
   let voiceSilenceTimer = null;
   let voiceNoSpeechTimer = null;
+  let voiceRestartTimer = null; // مکثِ کوتاه قبل از ساختن یه شیءِ کاملاً تازه‌ی تشخیص گفتار بعد از یک ری‌استارتِ بی‌صدا
   let voiceTurnDone = false; // جلوگیری از پردازش دوباره‌ی یک نوبت صحبت، چه با رویداد onend مرورگر و چه بدون آن
+  let voiceTurnFinalText = ''; // متنِ نهاییِ جمع‌شده‌ی این نوبت که از قبلِ یک ری‌استارتِ میانیِ تشخیص گفتار باقی مونده (رفع باگ گم‌شدن/دوبار شنیده‌شدنِ صدا)
   const VOICE_SILENCE_MS = 1100; // مکث لازم بعد از حرف زدن کاربر تا پیام ارسال بشه
   const VOICE_NO_SPEECH_TIMEOUT_MS = 8000; // اگه کاربر اصلاً هیچی نگه، بعد این‌همه سکوت میکروفون خودکار خاموش می‌شه (به‌جای گوش‌دادن بی‌پایان)
+  // مکثِ کوتاه قبل از ری‌استارتِ بی‌صدای تشخیص گفتار. روی بعضی گوشی‌های اندروید، اگه بلافاصله بعد از
+  // onend یه start دوباره (چه روی همون شیء چه شیء تازه) صدا زده بشه، موتور تشخیص گفتار داخلیِ گوشی
+  // ممکنه هنوز بافر صوتیِ نوبتِ قبلی رو کامل نبسته باشه و همون تیکه صدا/متن رو دوباره برگردونه —
+  // یعنی کاربر می‌بینه/می‌شنوه که ورودیِ خودش دوبار پردازش شده. یه مکثِ کوتاه + ساختنِ یه شیءِ کاملاً
+  // تازه (به‌جای start دوباره‌ی همون شیء) این مشکل رو برطرف می‌کنه.
+  const VOICE_RESTART_DELAY_MS = 300;
   function clearVoiceSilenceTimer(){ if (voiceSilenceTimer){ clearTimeout(voiceSilenceTimer); voiceSilenceTimer = null; } }
   function clearVoiceNoSpeechTimer(){ if (voiceNoSpeechTimer){ clearTimeout(voiceNoSpeechTimer); voiceNoSpeechTimer = null; } }
+  function clearVoiceRestartTimer(){ if (voiceRestartTimer){ clearTimeout(voiceRestartTimer); voiceRestartTimer = null; } }
   function armVoiceNoSpeechTimer(){
     clearVoiceNoSpeechTimer();
     voiceNoSpeechTimer = setTimeout(() => {
@@ -6622,9 +6641,11 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     voiceTurnDone = true;
     clearVoiceSilenceTimer();
     clearVoiceNoSpeechTimer();
+    clearVoiceRestartTimer();
     const finalText = (state.aiVoiceLiveText || '').trim();
     state.aiVoiceStatus = 'idle';
     state.aiVoiceLiveText = '';
+    voiceTurnFinalText = '';
     if (voiceRecognition){
       try { voiceRecognition.onresult = null; voiceRecognition.onerror = null; voiceRecognition.onend = null; voiceRecognition.abort(); } catch(e){}
     }
@@ -6632,18 +6653,22 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     if (finalText) sendVoiceMessage(finalText);
     else render();
   }
-  async function startVoiceListening(){
-    if (state.aiVoiceStatus === 'listening') return;
-    stopAiSpeechPlayback();
+  // silentRestart=true یعنی این یه ری‌استارتِ داخلیِ همون نوبت صحبت هست (بعد از قطعِ غیرمنتظره‌ی
+  // تشخیص گفتار وسط حرف زدن کاربر)، نه شروعِ یه نوبت کاملاً تازه؛ در این حالت متنِ تا این‌جا جمع‌شده
+  // (voiceTurnFinalText) رو نگه می‌داریم و از اول شروع نمی‌کنیم، تا هم چیزی گم نشه و هم چیزی دوبار
+  // پردازش/شنیده نشه.
+  async function startVoiceListening(silentRestart){
+    if (state.aiVoiceStatus === 'listening' && !silentRestart) return;
+    if (!silentRestart) stopAiSpeechPlayback();
     const rec = getVoiceRecognition();
     if (!rec){ alert(t('alertNoSpeechRecog')); return; }
-    if (state.micPermState !== 'granted'){
+    if (!silentRestart && state.micPermState !== 'granted'){
       await requestMicPermission();
       if (state.micPermState !== 'granted'){ alert(t('alertMicNeededVoice')); return; }
     }
     state.aiVoiceCallActive = true;
     state.aiVoiceStatus = 'listening';
-    state.aiVoiceLiveText = '';
+    if (!silentRestart){ state.aiVoiceLiveText = ''; voiceTurnFinalText = ''; }
     state.aiError = null;
     voiceTurnDone = false;
     clearVoiceSilenceTimer();
@@ -6651,13 +6676,16 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     render();
     rec.onresult = (e) => {
       if (voiceTurnDone) return;
-      let finalText = '', interim = '';
+      // finalText/interim فقط مربوط به همین جلسه‌ی فعلیِ تشخیص گفتاره (از لحظه‌ی start شدنش)؛ هر چیزی
+      // که از یه ری‌استارتِ قبلیِ همین نوبت باقی مونده توی voiceTurnFinalText نگه‌داری می‌شه و این‌جا
+      // بهش اضافه می‌شه — نه این‌که دوباره محاسبه/جمع بشه.
+      let sessionFinal = '', interim = '';
       for (let i = 0; i < e.results.length; i++){
         const r = e.results[i];
-        if (r.isFinal) finalText += r[0].transcript;
+        if (r.isFinal) sessionFinal += r[0].transcript;
         else interim += r[0].transcript;
       }
-      const combined = (finalText + ' ' + interim).trim();
+      const combined = (voiceTurnFinalText + ' ' + sessionFinal + ' ' + interim).replace(/\s+/g, ' ').trim();
       if (!combined) return;
       // کاربر داره حرف می‌زنه؛ تایمر «هیچی نگفتن» دیگه لازم نیست
       clearVoiceNoSpeechTimer();
@@ -6674,8 +6702,10 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       if (errCode === 'not-allowed' || errCode === 'audio-capture'){
         clearVoiceSilenceTimer();
         clearVoiceNoSpeechTimer();
+        clearVoiceRestartTimer();
         voiceTurnDone = true;
         voiceRecognition = null;
+        voiceTurnFinalText = '';
         state.aiVoiceCallActive = false;
         state.aiVoiceStatus = 'idle';
         state.aiVoiceLiveText = '';
@@ -6685,15 +6715,28 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     };
     rec.onend = () => {
       if (voiceTurnDone) return; // finishVoiceTurn قبلاً (با یا بدون کمک مرورگر) این نوبت رو تموم کرده
-      // پایانِ غیرمنتظره‌ی تشخیص گفتار (بدون این‌که کاربر ساکت مونده باشه)؛ اگه تماس هنوز فعاله، بی‌صدا دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه
+      // پایانِ غیرمنتظره‌ی تشخیص گفتار (بدون این‌که کاربر ساکت مونده باشه)؛ اگه تماس هنوز فعاله، بی‌صدا
+      // دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه. نکته‌ی مهم: به‌جای start دوباره‌ی همینِ شیء
+      // (که روی بعضی گوشی‌های اندروید باعث می‌شه موتور تشخیص گفتارِ داخلیِ گوشی همون تیکه صدا/متن رو
+      // یه‌بار دیگه هم برگردونه، یعنی ورودیِ کاربر دوبار شنیده/پردازش بشه)، اول هر چی تا این‌جا شنیده
+      // شده رو نگه می‌داریم، بعد یه مکث کوتاه یه شیءِ کاملاً تازه‌ی تشخیص گفتار می‌سازیم.
       if (state.aiVoiceCallActive){
-        try { rec.start(); armVoiceNoSpeechTimer(); return; } catch(err){}
+        voiceTurnFinalText = (state.aiVoiceLiveText || '').trim();
+        voiceRecognition = null;
+        clearVoiceRestartTimer();
+        voiceRestartTimer = setTimeout(() => {
+          voiceRestartTimer = null;
+          if (voiceTurnDone || !state.aiVoiceCallActive) return;
+          startVoiceListening(true);
+        }, VOICE_RESTART_DELAY_MS);
+        return;
       }
       clearVoiceSilenceTimer();
       clearVoiceNoSpeechTimer();
       voiceTurnDone = true;
       state.aiVoiceStatus = 'idle';
       state.aiVoiceLiveText = '';
+      voiceTurnFinalText = '';
       render();
     };
     try { rec.start(); } catch(e){ state.aiVoiceStatus = 'idle'; render(); }
@@ -6702,6 +6745,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     voiceTurnDone = true;
     clearVoiceSilenceTimer();
     clearVoiceNoSpeechTimer();
+    clearVoiceRestartTimer();
+    voiceTurnFinalText = '';
     state.aiVoiceCallActive = false;
     if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; state.aiVoiceLiveText = ''; }
     if (voiceRecognition){
@@ -7042,12 +7087,27 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     } catch(e){}
     return null;
   }
+  function speakWordCardWord(i){
+    const m = state.aiMessages[i];
+    const card = m ? parseAiWordCard(m.text) : null;
+    if (!card) return;
+    const bcp47 = targetLangMeta(currentTargetLangCode()).bcp47;
+    speak(card.article ? card.article + ' ' + card.word : card.word, bcp47);
+  }
+  function speakWordCardExample(i, idx){
+    const m = state.aiMessages[i];
+    const card = m ? parseAiWordCard(m.text) : null;
+    if (!card || !Array.isArray(card.examples) || !card.examples[idx]) return;
+    const bcp47 = targetLangMeta(currentTargetLangCode()).bcp47;
+    speak(card.examples[idx].sentence, bcp47);
+  }
   function renderAiWordCard(card, i){
     const freq = Math.max(0, Math.min(100, Number(card.frequencyScore) || 50));
     const examples = Array.isArray(card.examples) ? card.examples.slice(0, 3) : [];
     return `
       <div class="ai-wordcard">
         <div class="ai-wordcard-head">
+          <button class="speak-icon-btn" onclick="speakWordCardWord(${i})" title="${t('aiReadAloud')}" aria-label="${t('aiReadAloud')}">${icon('volume', 15)}</button>
           <span class="ai-wordcard-word">${esc(card.article ? card.article + ' ' + card.word : card.word)}</span>
           ${card.level ? `<span class="ai-wordcard-level-badge"><span class="ai-wordcard-level-dot"></span>${esc(card.level)}</span>` : ''}
         </div>
@@ -7062,9 +7122,12 @@ Special case: if — and only if — the user is clearly asking for the meaning/
         ` : ''}
         ${examples.length ? `
           <div class="ai-wordcard-section-title">${t('aiWordCardExamplesTitle')}</div>
-          ${examples.map(ex => `
+          ${examples.map((ex, idx) => `
             <div class="ai-wordcard-example">
-              <div class="ai-wordcard-example-sentence">${esc(ex.sentence || '')}</div>
+              <div class="ai-wordcard-example-sentence-row">
+                <button class="speak-icon-btn" onclick="speakWordCardExample(${i}, ${idx})" title="${t('aiReadAloud')}" aria-label="${t('aiReadAloud')}">${icon('volume', 12)}</button>
+                <div class="ai-wordcard-example-sentence">${esc(ex.sentence || '')}</div>
+              </div>
               ${ex.translation ? `<div class="ai-wordcard-example-translation">${esc(ex.translation)}</div>` : ''}
             </div>
           `).join('')}
