@@ -518,6 +518,9 @@
   .chat-media-video { max-width: 240px; max-height: 260px; border-radius: 12px; display: block; }
   .chat-audio-msg audio { max-width: 220px; height: 40px; }
   .chat-upload-hint { font-size: 11.5px; color: var(--muted); padding: 2px 12px 8px; }
+  .ai-msg { position: relative; }
+  .chat-msg-del-btn { position: absolute; top: -7px; inset-inline-start: -7px; width: 22px; height: 22px; border-radius: 50%; background: var(--wine); color: #fff; border: 1.5px solid var(--panel); display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.9; box-shadow: 0 2px 6px rgba(0,0,0,0.3); z-index: 2; }
+  .chat-msg-del-btn:hover { opacity: 1; }
   .ai-key-setup { padding: 16px; overflow-y: auto; }
   .ai-history-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
   .ai-history-item { display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
@@ -760,23 +763,11 @@
     { id: 'a9' }, { id: 'a10' }, { id: 'a11' }, { id: 'a12' },
   ];
   // --- دوستان (چت) ---
-  const FRIENDS = [
-    { id: 'barnameh', name: 'برنامه', avatar: 'a12', online: false, special: true, bio: null, level: 30, wordsLearned: 4210, streakDays: 999, daysInApp: 999 },
-    { id: 'f1', name: 'سارا', avatar: 'a2', online: true, level: 9, wordsLearned: 340, streakDays: 21, daysInApp: 64 },
-    { id: 'f2', name: 'امیر', avatar: 'a3', online: true, level: 14, wordsLearned: 610, streakDays: 45, daysInApp: 120 },
-    { id: 'f3', name: 'نیلوفر', avatar: 'a5', online: false, level: 6, wordsLearned: 180, streakDays: 3, daysInApp: 30 },
-    { id: 'f4', name: 'رضا', avatar: 'a7', online: true, level: 4, wordsLearned: 95, streakDays: 8, daysInApp: 15 },
-    { id: 'f5', name: 'مهسا', avatar: 'a9', online: false, level: 11, wordsLearned: 470, streakDays: 0, daysInApp: 90 },
-    { id: 'f6', name: 'کیان', avatar: 'a4', online: false, level: 2, wordsLearned: 40, streakDays: 1, daysInApp: 7 },
-  ];
-  function friendById(id){ return FRIENDS.find(f => f.id === id); }
   function friendAvatarImg(avatarId, size){
     const src = AVATAR_IMAGES[avatarId] || AVATAR_IMAGES.a1;
     return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
   }
-  function goFriends(){ stopListening(); state.view = 'friends'; state.openFriendId = null; render(); }
-  function openFriendProfile(id){ state.openFriendId = id; render(); }
-  function closeFriendProfile(){ state.openFriendId = null; render(); }
+  function goFriends(){ stopListening(); state.view = 'friends'; render(); }
 
   // --- درخواست‌های دوستی + چت واقعی (چون سرور نیست، فعلاً همه‌چیز محلی روی خود گوشی شبیه‌سازی می‌شه) ---
   function loadFriendData(){
@@ -2397,7 +2388,7 @@
     activeCategoryId: null,
     authUser: null, authGuest: false,
     syncStatus: 'idle', lastSyncAt: null,
-    showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
+    showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {},
     showSupportModal: false, supportCategory: 'bug', supportTickets: [], supportLoading: false, supportSending: false,
     viewingBroadcastId: null,
     lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false, userIdMaxChangesOverride: null,
@@ -3606,6 +3597,7 @@
       const m = snap.val();
       if (!state.chats[username]) state.chats[username] = [];
       state.chats[username].push({
+        id: snap.key,
         sender: m.sender === uid ? 'me' : 'friend',
         text: m.text,
         type: m.type || 'text',
@@ -3616,6 +3608,26 @@
       render();
       const msgsEl = document.getElementById('userChatMessages');
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+    activeChatRef.on('child_removed', (snap) => {
+      if (!state.chats[username]) return;
+      state.chats[username] = state.chats[username].filter(m => m.id !== snap.key);
+      render();
+    });
+  }
+  // حذف تکی یک پیام (متن/ویس/عکس/ویدیو) از چت — چون chats/{chatId} یه گره‌ی مشترکه که هر دو طرفِ
+  // چت روش دسترسی نوشتن دارن، حذف از اینجا همون لحظه برای طرف مقابل هم (به‌خاطر شنونده‌ی
+  // child_removed بالا) ناپدید می‌شه. توجه: فایل آپلودشده روی Cloudinary خودش پاک نمی‌شه، فقط
+  // رکورد پیام از دیتابیس حذف می‌شه.
+  function deleteChatMessage(username, id){
+    if (!confirm('این پیام حذف بشه؟ برای طرف مقابل هم دیگه نمایش داده نمی‌شه.')) return;
+    const f = userFriendByUsername(username);
+    const uid = myUid();
+    if (!f || !f.uid || !uid) return;
+    const chatId = chatIdFor(uid, f.uid);
+    fbDb.ref('chats/' + chatId + '/' + id).remove().catch((e) => {
+      console.error('deleteChatMessage error', e);
+      alert('حذف پیام ناموفق بود.');
     });
   }
   function detachChatListener(){
@@ -4050,7 +4062,6 @@
         ${renderLangPicker()}
         ${renderTargetLangPicker()}
         ${renderAvatarModal()}
-        ${renderFriendProfileModal()}
         ${renderRequestsModal()}
         ${renderUserFriendProfileModal()}
         ${renderBroadcastDetailModal()}
@@ -4201,7 +4212,6 @@
     `;
   }
   function renderHomeChatChip(){
-    const onlineCount = FRIENDS.filter(f => f.online).length;
     return `
       <div class="panel" style="display:flex;align-items:center;gap:12px;cursor:pointer" onclick="goFriends()">
         <span style="width:44px;height:44px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;background:var(--panel2);color:var(--brass);border:1px solid var(--border2)">${icon('message',20)}</span>
@@ -4209,7 +4219,6 @@
           <div style="font-weight:700;font-size:14px">${t('homeChatTitle')}</div>
           <div class="hint-text" style="margin-top:2px">${t('homeChatDesc')}</div>
         </div>
-        ${onlineCount>0 ? `<span style="display:flex;align-items:center;gap:5px;background:rgba(63,161,90,0.12);color:var(--sage-strong);border:1px solid rgba(63,161,90,0.35);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:700;flex-shrink:0"><span style="width:7px;height:7px;border-radius:50%;background:var(--sage-strong);display:inline-block"></span>${faNum(onlineCount)}</span>` : ''}
       </div>
     `;
   }
@@ -4587,19 +4596,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   }
 
   function renderFriends(){
-    const rows = FRIENDS.map(f => `
-      <div class="friend-row" onclick="openFriendProfile('${f.id}')">
-        <div class="friend-avatar-wrap">
-          ${friendAvatarImg(f.avatar, 46)}
-          ${f.online ? `<span class="online-dot"></span>` : ''}
-        </div>
-        <div style="flex:1;min-width:0">
-          <div style="font-weight:700;font-size:13.5px">${esc(f.name)}</div>
-          <div class="hint-text" style="margin-top:1px">${f.online ? t('friendsOnline') : t('friendsOffline')}</div>
-        </div>
-        ${icon('chevronLeft',16)}
-      </div>
-    `).join('');
     const myFriendRows = state.userFriends.map(f => `
       <div class="friend-row" onclick="openUserFriendProfile('${esc(f.username)}')">
         <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 46)}</div>
@@ -4633,10 +4629,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
         ${preview}
         ${myFriendRows ? `<div class="friend-list" style="margin-top:12px">${myFriendRows}</div>` : `<div class="hint-text" style="text-align:center;margin-top:14px">هنوز دوستی اضافه نکردی. نام کاربری‌شون رو بالا وارد کن.</div>`}
-      </div>
-      <div class="panel">
-        <div class="deck-header"><span class="deck-title">${t('friendsTitle')}</span></div>
-        <div class="friend-list">${rows}</div>
       </div>
     `;
   }
@@ -4805,16 +4797,18 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   }
   function renderChatMessageBubble(m){
     const cls = m.sender === 'me' ? 'ai-msg-user' : 'ai-msg-model';
+    const canDelete = m.sender === 'me' && m.id;
+    const delBtn = canDelete ? `<button class="chat-msg-del-btn" onclick="event.stopPropagation();deleteChatMessage('${esc(state.openChatUsername)}','${esc(m.id)}')" aria-label="حذف پیام" title="حذف پیام">${icon('trash',12)}</button>` : '';
     if (m.type === 'image') {
-      return `<div class="ai-msg ${cls} chat-media-msg"><img src="${esc(m.url)}" class="chat-media-img" onclick="window.open('${esc(m.url)}','_blank')" alt="عکس ارسالی"></div>`;
+      return `<div class="ai-msg ${cls} chat-media-msg">${delBtn}<img src="${esc(m.url)}" class="chat-media-img" onclick="window.open('${esc(m.url)}','_blank')" alt="عکس ارسالی"></div>`;
     }
     if (m.type === 'video') {
-      return `<div class="ai-msg ${cls} chat-media-msg"><video src="${esc(m.url)}" class="chat-media-video" controls playsinline></video></div>`;
+      return `<div class="ai-msg ${cls} chat-media-msg">${delBtn}<video src="${esc(m.url)}" class="chat-media-video" controls playsinline></video></div>`;
     }
     if (m.type === 'audio') {
-      return `<div class="ai-msg ${cls} chat-media-msg chat-audio-msg">${icon('mic',14)} <audio src="${esc(m.url)}" controls></audio></div>`;
+      return `<div class="ai-msg ${cls} chat-media-msg chat-audio-msg">${delBtn}${icon('mic',14)} <audio src="${esc(m.url)}" controls></audio></div>`;
     }
-    return `<div class="ai-msg ${cls}">${esc(m.text)}</div>`;
+    return `<div class="ai-msg ${cls}">${delBtn}${esc(m.text)}</div>`;
   }
   function renderUserChatPage(){
     const username = state.openChatUsername;
@@ -4840,46 +4834,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           <button class="ai-send-btn" onclick="sendUserChatMessage()" aria-label="${t('aiSend')}">${icon('send',18)}</button>
         </div>
         <input type="file" id="chatMediaInput" accept="image/*,video/*" style="display:none" onchange="handleChatMediaSelected(event)">
-      </div>
-    `;
-  }
-  function renderFriendProfileModal(){
-    if (!state.openFriendId) return '';
-    const f = friendById(state.openFriendId);
-    if (!f) return '';
-    const bio = f.special ? t('friendBarnamehBio') : null;
-    return `
-      <div class="modal-backdrop" onclick="closeFriendProfile()">
-        <div class="modal-card" onclick="event.stopPropagation()">
-          <div class="deck-header" style="margin-bottom:2px">
-            <span class="deck-title">${t('friendsTitle')}</span>
-            <button class="modal-close-btn" onclick="closeFriendProfile()">${icon('close',15)}</button>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0 4px">
-            <div class="friend-avatar-wrap" style="width:78px;height:78px">
-              ${friendAvatarImg(f.avatar, 78)}
-              ${f.online ? `<span class="online-dot" style="width:16px;height:16px;bottom:2px;inset-inline-end:2px"></span>` : ''}
-            </div>
-            <div style="font-weight:700;font-size:16px">${esc(f.name)}</div>
-            <div class="hint-text">${f.online ? t('friendsOnline') : t('friendsOffline')}</div>
-          </div>
-          ${bio ? `<div class="hint-text" style="text-align:center;line-height:1.9;margin:6px 0 10px">${esc(bio)}</div>` : ''}
-          <div class="hint-text" style="text-align:center;margin-bottom:8px">${tf('friendDaysInApp',{n:faNum(f.daysInApp)})}</div>
-          <div style="display:flex;gap:8px">
-            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
-              <div style="font-weight:700;font-size:15px;color:var(--brass)">${faNum(f.level)}</div>
-              <div class="hint-text" style="margin-top:2px">${t('friendLevel')}</div>
-            </div>
-            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
-              <div style="font-weight:700;font-size:15px;color:var(--sage-strong)">${faNum(f.wordsLearned)}</div>
-              <div class="hint-text" style="margin-top:2px">${t('friendWordsLearned')}</div>
-            </div>
-            <div class="panel" style="flex:1;text-align:center;margin-bottom:0;padding:12px 6px">
-              <div style="font-weight:700;font-size:15px;color:var(--violet)">${faNum(f.streakDays)}</div>
-              <div class="hint-text" style="margin-top:2px">${t('friendStreakDays')}</div>
-            </div>
-          </div>
-        </div>
       </div>
     `;
   }
