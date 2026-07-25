@@ -459,6 +459,27 @@
   .ai-empty { text-align: center; color: var(--muted); padding: 34px 20px; font-size: 13px; line-height: 1.9; }
   .ai-empty svg { color: var(--violet); margin-bottom: 10px; }
 
+  /* AI word-meaning card */
+  .ai-wordcard { align-self: flex-end; width: 100%; max-width: 100%; background: var(--panel2); border: 1px solid var(--border2); border-radius: 16px; padding: 14px; font-size: 13.5px; line-height: 1.7; }
+  .ai-wordcard-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ai-wordcard-word { font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; color: var(--brass); }
+  .ai-wordcard-article { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .ai-wordcard-level-badge { margin-inline-start: auto; display: inline-flex; align-items: center; gap: 5px; background: var(--panel); border: 1px solid var(--border2); border-radius: 20px; padding: 3px 10px; font-size: 11.5px; font-weight: 600; color: var(--text); }
+  .ai-wordcard-level-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--wine); flex-shrink: 0; }
+  .ai-wordcard-table { display: flex; flex-direction: column; gap: 9px; background: var(--panel); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; }
+  .ai-wordcard-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .ai-wordcard-row-label { color: var(--muted); font-size: 12px; flex-shrink: 0; }
+  .ai-wordcard-row-value { color: var(--text); font-size: 12.5px; font-weight: 500; text-align: end; }
+  .ai-wordcard-freq-bar { flex: 1; height: 6px; border-radius: 4px; background: var(--divider); overflow: hidden; margin: 0 8px; }
+  .ai-wordcard-freq-fill { height: 100%; background: linear-gradient(90deg, var(--brass-dark), var(--brass)); border-radius: 4px; }
+  .ai-wordcard-section-title { font-size: 12px; font-weight: 600; color: var(--muted); margin: 10px 0 5px; }
+  .ai-wordcard-context-target { color: var(--text); font-size: 13px; }
+  .ai-wordcard-context-fa { color: var(--muted); font-size: 12.5px; margin-top: 3px; }
+  .ai-wordcard-example { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; margin-top: 6px; }
+  .ai-wordcard-example-sentence { color: var(--text); font-size: 13px; }
+  .ai-wordcard-example-translation { color: var(--muted); font-size: 12px; margin-top: 3px; }
+  .ai-wordcard-add-btn { width: 100%; margin-top: 12px; background: linear-gradient(180deg, var(--brass), var(--brass-dark)); color: #201a10; border: none; border-radius: 12px; padding: 10px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+
   /* AI voice-call mode */
   .ai-voice-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 10px 20px 26px; overflow-y: auto; }
   .ai-voice-caption { width: 100%; max-width: 420px; text-align: center; min-height: 74px; display: flex; flex-direction: column; gap: 6px; justify-content: center; }
@@ -488,6 +509,15 @@
   .ai-input-row textarea { flex: 1; min-height: 44px; max-height: 120px; }
   .ai-send-btn { background: var(--violet); color: #fff; border: none; border-radius: 12px; width: 48px; height: 44px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
   .ai-send-btn:disabled { opacity: 0.4; cursor: default; }
+  .chat-icon-btn { background: var(--panel2); border: 1px solid var(--border2); color: var(--muted); width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+  .chat-icon-btn:disabled { opacity: 0.4; cursor: default; }
+  .chat-icon-btn.recording { background: var(--wine); color: #fff; border-color: var(--wine); animation: chatRecPulse 1s ease-in-out infinite; }
+  @keyframes chatRecPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+  .chat-media-msg { padding: 5px !important; background: transparent !important; border: none !important; }
+  .chat-media-img { max-width: 220px; max-height: 220px; border-radius: 12px; display: block; cursor: pointer; object-fit: cover; }
+  .chat-media-video { max-width: 240px; max-height: 260px; border-radius: 12px; display: block; }
+  .chat-audio-msg audio { max-width: 220px; height: 40px; }
+  .chat-upload-hint { font-size: 11.5px; color: var(--muted); padding: 2px 12px 8px; }
   .ai-key-setup { padding: 16px; overflow-y: auto; }
   .ai-history-list { display: flex; flex-direction: column; gap: 8px; max-height: 55vh; overflow-y: auto; }
   .ai-history-item { display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; }
@@ -570,6 +600,13 @@
 .broadcast-modal-card .bm-icon { width: 46px; height: 46px; border-radius: 12px; margin: 0 auto 12px; display: block; object-fit: cover; }
 .broadcast-modal-card .bm-title { font-family: 'Fraunces', Georgia, serif; font-size: 17px; color: var(--brass); margin-bottom: 10px; }
 .broadcast-modal-card .bm-msg { font-size: 13.5px; color: var(--text); line-height: 1.9; white-space: pre-wrap; margin-bottom: 18px; }
+
+/* --- بنر پیشنهاد فعال‌سازی نوتیفیکیشن --- */
+.notif-nudge-banner { position: fixed; bottom: 16px; inset-inline: 16px; z-index: 250; background: var(--panel); border: 1px solid var(--border2); border-radius: 14px; padding: 12px 14px; box-shadow: 0 12px 28px rgba(0,0,0,0.35); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; animation: leagueUpFadeIn 0.25s ease; }
+.notif-nudge-text { font-size: 12.5px; color: var(--text); flex: 1; min-width: 180px; line-height: 1.7; }
+.notif-nudge-actions { display: flex; gap: 8px; }
+.notif-nudge-btn { border: none; border-radius: 9px; padding: 8px 14px; font-size: 12px; font-family: inherit; cursor: pointer; background: var(--panel2); color: var(--muted); }
+.notif-nudge-btn.primary { background: var(--brass); color: #1a1710; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -672,16 +709,11 @@
   const TRANSLATE_LANG_KEY = 'leitner_translate_lang_v1';
   const UI_LANG_KEY = 'leitner_ui_lang_v1';
 
-  // --- دستیار هوش مصنوعی (OpenRouter API) ---
-  // این اپ سرور نداره، پس کلید API فقط توی مرورگر خودت (localStorage) ذخیره می‌شه، نه داخل کد.
-  // یه کلید از https://openrouter.ai/keys بگیر و توی تنظیمات همین اپ وارد کن.
-  // لیست مدل‌های رایگان از خودِ OpenRouter (که هر روز ممکنه عوض بشه) به‌صورت زنده خونده می‌شه،
-  // نه از یه لیست ثابت داخل کد که ممکنه قدیمی و از رده خارج بشه.
-  const OPENROUTER_API_KEY_STORAGE = 'leitner_openrouter_key_v1';
-  const OPENROUTER_MODEL_STORAGE = 'leitner_openrouter_model_v1';
-  const OPENROUTER_MODELS_ENDPOINT = 'https://openrouter.ai/api/v1/models';
-  const OPENROUTER_FREE_FALLBACK = 'meta-llama/llama-3.3-70b-instruct:free'; // فقط اگه لیست زنده لود نشد
-  const DEFAULT_OPENROUTER_MODEL = OPENROUTER_FREE_FALLBACK;
+  // --- دستیار هوش مصنوعی (فقط Gemini) ---
+  // این اپ دیگه کلید شخصی از کاربر نمی‌گیره؛ دسترسی هوش مصنوعی فقط از طریق پنل مدیریت
+  // (permissions/{uid}/canUseAi + aiConfig/geminiKey توی فایربیس) فعال می‌شه.
+  const GEMINI_MODEL = 'gemini-3-flash-preview';
+  const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
   const DAILY_GOALS_KEY = 'leitner_daily_goals_v1';
   const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
   const DEFAULT_DAILY_GOALS = { word: 10, sentence: 5, pronun: 10 };
@@ -1419,7 +1451,7 @@
       reminderMessages: 'پاشو بیا تنبل خان وقت حفظ کردنه|یه سرم به ما بزن بذار یکم خوش بگذره|موفقیت رو از دست نده، از همین الان شروع کن',
       aiGenSentenceLoading: '✨ در حال ساختن جمله...', aiGenSentenceBtn: '✨ تولید جمله با AI',
       aiSuggestedSentence: 'جمله پیشنهادی AI', aiMeaningLabel: 'معنی', aiListenBtn: 'شنیدن', aiAnotherSentence: '✨ جمله دیگه',
-      aiKeyNeeded: 'اول باید کلید OpenRouter رو از تنظیمات وارد کنی.',
+      aiKeyNeeded: 'مدیر هنوز دسترسی هوش مصنوعی رو برات فعال نکرده. از مدیر بخواه فعالش کنه.',
       aiNoReply: 'جوابی دریافت نشد، دوباره امتحان کن.', aiUnreadableReply: 'پاسخ هوش مصنوعی قابل خواندن نبود، دوباره امتحان کن.',
       aiConnectionFailed: 'ارتباط با هوش مصنوعی برقرار نشد. اتصال اینترنتت رو چک کن.',
       aiExplainLoading: '✨ در حال آماده‌سازی توضیح...', aiExplainBtn: '✨ توضیح با AI',
@@ -1428,15 +1460,21 @@
       themeColorNames: 'برنزی,یاسی,سبز,آبی,گلبهی,قرمز',
       orKeySavedToast: 'کلید ذخیره شد.', orKeyClearedToast: 'کلید پاک شد.',
       orModelsLoadFailed: 'لیست مدل‌های رایگان لود نشد. اتصال اینترنتت رو چک کن.',
-      orConnFailed: 'اتصال به OpenRouter برقرار نشد. اینترنتت رو چک کن.',
-      orErrorCode: 'خطای OpenRouter (کد {code}).', orInvalidKey: 'کلید OpenRouter نامعتبره. از تنظیمات دوباره چکش کن.',
+      orConnFailed: 'اتصال به Gemini برقرار نشد. اینترنتت رو چک کن.',
+      orErrorCode: 'خطای Gemini (کد {code}).', orInvalidKey: 'دسترسی هوش مصنوعی نامعتبره؛ از مدیر بخواه دوباره فعالش کنه.',
       orInsufficientCredit: 'اعتبار حساب OpenRouterت کافی نیست.', orTooManyRequests: 'درخواست‌ها زیاد شده، یه کم صبر کن و دوباره امتحان کن.',
       orNoImageSupport: 'این مدل از عکس پشتیبانی نمی‌کنه. از تنظیمات یه مدل دیگه (با پشتیبانی تصویر) انتخاب کن.',
       orNoModelReply: 'پاسخی از مدل دریافت نشد.',
       aiDefaultChatTitle: 'گفتگو',
       aiSuggestPrompt: 'چند جمله کاربردی {lang} برام پیشنهاد بده.', aiPracticeStartPrompt: 'بیا شروع کنیم. اول ازم بپرس می‌خوام گفتگوی {lang} درباره‌ی چه موضوعی باشه.',
-      aiOpenrouterConnFailed: 'ارتباط با OpenRouter برقرار نشد. دوباره امتحان کن.', aiKeyNeededFab: 'اول باید کلید OpenRouter رو از تنظیمات وارد کنی، بعدش دستیار همیشه در دسترسه.',
+      aiOpenrouterConnFailed: 'ارتباط با Gemini برقرار نشد. دوباره امتحان کن.', aiKeyNeededFab: 'مدیر هنوز دسترسی هوش مصنوعی رو برات فعال نکرده. از مدیر بخواه فعالش کنه.',
       aiFabAriaLabel: 'دستیار هوشمند',
+      aiWordCardAddBtn: '+ افزودن به جعبه', aiWordCardCategoryLabel: 'دسته‌بندی', aiWordCardFrequencyLabel: 'میزان کاربرد',
+      aiWordCardLevelLabel: 'سطح زبان', aiWordCardContextTitle: 'در چه بافتی؟', aiWordCardExamplesTitle: 'مثال‌ها',
+      aiWordCardChooseCategory: 'می‌خوای این کلمه به کدوم دسته‌بندی اضافه بشه؟', aiWordCardAdded: 'به جعبه اضافه شد.',
+      aiWordCardModalTitle: 'افزودن کلمه', aiWordCardConfirmAdd: 'افزودن', aiWordCardCancel: 'انصراف',
+      aiVoiceCallStart: 'شروع تماس', aiVoiceCallActiveHint: 'تماس برقراره؛ راحت صحبت کن',
+      aiModeDictionary: 'معنی کلمه', aiModeDictionaryPlaceholder: 'یه کلمه یا اصطلاح {lang} بنویس تا معنیش رو کامل توضیح بدم...',
     },
     en: {
       appTitle: 'Leitner Box',
@@ -1589,7 +1627,7 @@
       reminderMessages: "Time to review, don't be lazy!|Come say hi and have some fun learning|Don't lose your streak — start now",
       aiGenSentenceLoading: '✨ Generating a sentence...', aiGenSentenceBtn: '✨ Generate sentence with AI',
       aiSuggestedSentence: 'AI-suggested sentence', aiMeaningLabel: 'Meaning', aiListenBtn: 'Listen', aiAnotherSentence: '✨ Another sentence',
-      aiKeyNeeded: 'First enter your OpenRouter key in Settings.',
+      aiKeyNeeded: 'The admin hasn\'t enabled AI access for you yet. Ask the admin to enable it.',
       aiNoReply: 'No reply received, try again.', aiUnreadableReply: "The AI's reply couldn't be read, try again.",
       aiConnectionFailed: 'Could not reach the AI. Check your internet connection.',
       aiExplainLoading: '✨ Preparing explanation...', aiExplainBtn: '✨ Explain with AI',
@@ -1598,15 +1636,21 @@
       themeColorNames: 'Bronze,Lilac,Green,Blue,Peach,Red',
       orKeySavedToast: 'Key saved.', orKeyClearedToast: 'Key removed.',
       orModelsLoadFailed: "The free model list couldn't load. Check your internet connection.",
-      orConnFailed: 'Could not connect to OpenRouter. Check your internet connection.',
-      orErrorCode: 'OpenRouter error (code {code}).', orInvalidKey: 'The OpenRouter key is invalid. Check it again in Settings.',
+      orConnFailed: 'Could not connect to Gemini. Check your internet connection.',
+      orErrorCode: 'Gemini error (code {code}).', orInvalidKey: 'AI access is invalid; ask the admin to re-enable it.',
       orInsufficientCredit: "Your OpenRouter account doesn't have enough credit.", orTooManyRequests: 'Too many requests, wait a bit and try again.',
       orNoImageSupport: "This model doesn't support images. Pick a different model (with image support) in Settings.",
       orNoModelReply: 'No reply received from the model.',
       aiDefaultChatTitle: 'Chat',
       aiSuggestPrompt: 'Suggest a few practical {lang} sentences for me.', aiPracticeStartPrompt: "Let's get started. First ask me what topic I'd like our {lang} conversation to be about.",
-      aiOpenrouterConnFailed: 'Could not connect to OpenRouter. Try again.', aiKeyNeededFab: 'First enter your OpenRouter key in Settings — after that the assistant is always available.',
+      aiOpenrouterConnFailed: 'Could not connect to Gemini. Try again.', aiKeyNeededFab: 'The admin hasn\'t enabled AI access for you yet. Ask the admin to enable it.',
       aiFabAriaLabel: 'AI assistant',
+      aiWordCardAddBtn: '+ Add to box', aiWordCardCategoryLabel: 'Category', aiWordCardFrequencyLabel: 'Usage frequency',
+      aiWordCardLevelLabel: 'Language level', aiWordCardContextTitle: 'In which context?', aiWordCardExamplesTitle: 'Examples',
+      aiWordCardChooseCategory: 'Which category should this word be added to?', aiWordCardAdded: 'Added to the box.',
+      aiWordCardModalTitle: 'Add word', aiWordCardConfirmAdd: 'Add', aiWordCardCancel: 'Cancel',
+      aiVoiceCallStart: 'Start call', aiVoiceCallActiveHint: 'Call is live — just talk',
+      aiModeDictionary: 'Word meaning', aiModeDictionaryPlaceholder: 'Type a {lang} word or phrase and I\'ll explain it fully...',
     },
     de: {
       appTitle: 'Leitner-Box',
@@ -1750,7 +1794,7 @@
       reminderMessages: 'Zeit zum Wiederholen, sei nicht faul!|Schau vorbei und hab etwas Spaß beim Lernen|Verpass deine Serie nicht — jetzt starten',
       aiGenSentenceLoading: '✨ Satz wird erstellt...', aiGenSentenceBtn: '✨ Satz mit KI erstellen',
       aiSuggestedSentence: 'Von der KI vorgeschlagener Satz', aiMeaningLabel: 'Bedeutung', aiListenBtn: 'Anhören', aiAnotherSentence: '✨ Anderer Satz',
-      aiKeyNeeded: 'Gib zuerst deinen OpenRouter-Schlüssel in den Einstellungen ein.',
+      aiKeyNeeded: 'Der Admin hat den KI-Zugriff für dich noch nicht freigeschaltet. Bitte den Admin darum.',
       aiNoReply: 'Keine Antwort erhalten, versuch es erneut.', aiUnreadableReply: 'Die KI-Antwort konnte nicht gelesen werden, versuch es erneut.',
       aiConnectionFailed: 'Die KI konnte nicht erreicht werden. Prüfe deine Internetverbindung.',
       aiExplainLoading: '✨ Erklärung wird vorbereitet...', aiExplainBtn: '✨ Mit KI erklären',
@@ -1759,15 +1803,21 @@
       themeColorNames: 'Bronze,Lila,Grün,Blau,Pfirsich,Rot',
       orKeySavedToast: 'Schlüssel gespeichert.', orKeyClearedToast: 'Schlüssel entfernt.',
       orModelsLoadFailed: 'Die Liste der kostenlosen Modelle konnte nicht geladen werden. Prüfe deine Internetverbindung.',
-      orConnFailed: 'Verbindung zu OpenRouter fehlgeschlagen. Prüfe deine Internetverbindung.',
-      orErrorCode: 'OpenRouter-Fehler (Code {code}).', orInvalidKey: 'Der OpenRouter-Schlüssel ist ungültig. Prüfe ihn erneut in den Einstellungen.',
+      orConnFailed: 'Verbindung zu Gemini fehlgeschlagen. Prüfe deine Internetverbindung.',
+      orErrorCode: 'Gemini-Fehler (Code {code}).', orInvalidKey: 'Der KI-Zugriff ist ungültig; bitte den Admin, ihn erneut freizuschalten.',
       orInsufficientCredit: 'Dein OpenRouter-Konto hat nicht genug Guthaben.', orTooManyRequests: 'Zu viele Anfragen, warte kurz und versuch es erneut.',
       orNoImageSupport: 'Dieses Modell unterstützt keine Bilder. Wähle in den Einstellungen ein anderes Modell (mit Bildunterstützung).',
       orNoModelReply: 'Keine Antwort vom Modell erhalten.',
       aiDefaultChatTitle: 'Gespräch',
       aiSuggestPrompt: 'Schlag mir ein paar praktische {lang}-Sätze vor.', aiPracticeStartPrompt: 'Lass uns anfangen. Frag mich zuerst, worüber unser {lang}-Gespräch gehen soll.',
-      aiOpenrouterConnFailed: 'Verbindung zu OpenRouter fehlgeschlagen. Versuch es erneut.', aiKeyNeededFab: 'Gib zuerst deinen OpenRouter-Schlüssel in den Einstellungen ein — danach ist der Assistent immer verfügbar.',
+      aiOpenrouterConnFailed: 'Verbindung zu Gemini fehlgeschlagen. Versuch es erneut.', aiKeyNeededFab: 'Der Admin hat den KI-Zugriff für dich noch nicht freigeschaltet. Bitte den Admin darum.',
       aiFabAriaLabel: 'KI-Assistent',
+      aiWordCardAddBtn: '+ Zur Box hinzufügen', aiWordCardCategoryLabel: 'Kategorie', aiWordCardFrequencyLabel: 'Häufigkeit',
+      aiWordCardLevelLabel: 'Sprachniveau', aiWordCardContextTitle: 'In welchem Kontext?', aiWordCardExamplesTitle: 'Beispiele',
+      aiWordCardChooseCategory: 'Zu welcher Kategorie soll dieses Wort hinzugefügt werden?', aiWordCardAdded: 'Zur Box hinzugefügt.',
+      aiWordCardModalTitle: 'Wort hinzufügen', aiWordCardConfirmAdd: 'Hinzufügen', aiWordCardCancel: 'Abbrechen',
+      aiVoiceCallStart: 'Anruf starten', aiVoiceCallActiveHint: 'Anruf läuft — sprich einfach',
+      aiModeDictionary: 'Wortbedeutung', aiModeDictionaryPlaceholder: 'Schreib ein {lang}-Wort oder eine Phrase, ich erkläre es vollständig...',
     },
     es: {
       appTitle: 'Caja de Leitner',
@@ -1911,7 +1961,7 @@
       reminderMessages: '¡Hora de repasar, no seas perezoso!|Ven a saludar y diviértete aprendiendo|No pierdas tu racha — empieza ahora',
       aiGenSentenceLoading: '✨ Generando una frase...', aiGenSentenceBtn: '✨ Generar frase con IA',
       aiSuggestedSentence: 'Frase sugerida por la IA', aiMeaningLabel: 'Significado', aiListenBtn: 'Escuchar', aiAnotherSentence: '✨ Otra frase',
-      aiKeyNeeded: 'Primero introduce tu clave de OpenRouter en Configuración.',
+      aiKeyNeeded: 'El administrador aún no ha activado el acceso de IA para ti. Pídeselo al administrador.',
       aiNoReply: 'No se recibió respuesta, inténtalo de nuevo.', aiUnreadableReply: 'No se pudo leer la respuesta de la IA, inténtalo de nuevo.',
       aiConnectionFailed: 'No se pudo contactar con la IA. Comprueba tu conexión a internet.',
       aiExplainLoading: '✨ Preparando explicación...', aiExplainBtn: '✨ Explicar con IA',
@@ -1920,15 +1970,21 @@
       themeColorNames: 'Bronce,Lila,Verde,Azul,Melocotón,Rojo',
       orKeySavedToast: 'Clave guardada.', orKeyClearedToast: 'Clave eliminada.',
       orModelsLoadFailed: 'No se pudo cargar la lista de modelos gratuitos. Comprueba tu conexión a internet.',
-      orConnFailed: 'No se pudo conectar con OpenRouter. Comprueba tu conexión a internet.',
-      orErrorCode: 'Error de OpenRouter (código {code}).', orInvalidKey: 'La clave de OpenRouter no es válida. Compruébala de nuevo en Configuración.',
+      orConnFailed: 'No se pudo conectar con Gemini. Comprueba tu conexión a internet.',
+      orErrorCode: 'Error de Gemini (código {code}).', orInvalidKey: 'El acceso de IA no es válido; pide al administrador que lo reactive.',
       orInsufficientCredit: 'Tu cuenta de OpenRouter no tiene crédito suficiente.', orTooManyRequests: 'Demasiadas solicitudes, espera un poco e inténtalo de nuevo.',
       orNoImageSupport: 'Este modelo no admite imágenes. Elige otro modelo (con soporte de imágenes) en Configuración.',
       orNoModelReply: 'No se recibió respuesta del modelo.',
       aiDefaultChatTitle: 'Chat',
       aiSuggestPrompt: 'Sugiéreme algunas frases prácticas en {lang}.', aiPracticeStartPrompt: 'Empecemos. Primero pregúntame sobre qué tema quiero que sea nuestra conversación en {lang}.',
-      aiOpenrouterConnFailed: 'No se pudo conectar con OpenRouter. Inténtalo de nuevo.', aiKeyNeededFab: 'Primero introduce tu clave de OpenRouter en Configuración — después el asistente estará siempre disponible.',
+      aiOpenrouterConnFailed: 'No se pudo conectar con Gemini. Inténtalo de nuevo.', aiKeyNeededFab: 'El administrador aún no ha activado el acceso de IA para ti. Pídeselo al administrador.',
       aiFabAriaLabel: 'Asistente de IA',
+      aiWordCardAddBtn: '+ Añadir a la caja', aiWordCardCategoryLabel: 'Categoría', aiWordCardFrequencyLabel: 'Frecuencia de uso',
+      aiWordCardLevelLabel: 'Nivel de idioma', aiWordCardContextTitle: '¿En qué contexto?', aiWordCardExamplesTitle: 'Ejemplos',
+      aiWordCardChooseCategory: '¿A qué categoría quieres añadir esta palabra?', aiWordCardAdded: 'Añadido a la caja.',
+      aiWordCardModalTitle: 'Añadir palabra', aiWordCardConfirmAdd: 'Añadir', aiWordCardCancel: 'Cancelar',
+      aiVoiceCallStart: 'Iniciar llamada', aiVoiceCallActiveHint: 'Llamada en curso — solo habla',
+      aiModeDictionary: 'Significado de palabra', aiModeDictionaryPlaceholder: 'Escribe una palabra o frase en {lang} y te la explico...',
     },
     fr: {
       appTitle: 'Boîte de Leitner',
@@ -2072,7 +2128,7 @@
       reminderMessages: 'C\'est l\'heure de réviser, ne sois pas paresseux !|Viens dire bonjour et amuse-toi en apprenant|Ne perds pas ta série — commence maintenant',
       aiGenSentenceLoading: '✨ Génération d\'une phrase...', aiGenSentenceBtn: '✨ Générer une phrase avec l\'IA',
       aiSuggestedSentence: 'Phrase suggérée par l\'IA', aiMeaningLabel: 'Sens', aiListenBtn: 'Écouter', aiAnotherSentence: '✨ Autre phrase',
-      aiKeyNeeded: 'Saisis d\'abord ta clé OpenRouter dans les paramètres.',
+      aiKeyNeeded: 'L\'administrateur n\'a pas encore activé l\'accès IA pour toi. Demande-le-lui.',
       aiNoReply: 'Aucune réponse reçue, réessaie.', aiUnreadableReply: 'La réponse de l\'IA n\'a pas pu être lue, réessaie.',
       aiConnectionFailed: 'Impossible de contacter l\'IA. Vérifie ta connexion internet.',
       aiExplainLoading: '✨ Préparation de l\'explication...', aiExplainBtn: '✨ Expliquer avec l\'IA',
@@ -2081,15 +2137,21 @@
       themeColorNames: 'Bronze,Lilas,Vert,Bleu,Pêche,Rouge',
       orKeySavedToast: 'Clé enregistrée.', orKeyClearedToast: 'Clé supprimée.',
       orModelsLoadFailed: 'La liste des modèles gratuits n\'a pas pu être chargée. Vérifie ta connexion internet.',
-      orConnFailed: 'Connexion à OpenRouter impossible. Vérifie ta connexion internet.',
-      orErrorCode: 'Erreur OpenRouter (code {code}).', orInvalidKey: 'La clé OpenRouter est invalide. Vérifie-la à nouveau dans les paramètres.',
+      orConnFailed: 'Connexion à Gemini impossible. Vérifie ta connexion internet.',
+      orErrorCode: 'Erreur Gemini (code {code}).', orInvalidKey: "L'accès IA est invalide ; demande à l'administrateur de le réactiver.",
       orInsufficientCredit: 'Ton compte OpenRouter n\'a pas assez de crédit.', orTooManyRequests: 'Trop de requêtes, attends un peu et réessaie.',
       orNoImageSupport: 'Ce modèle ne prend pas en charge les images. Choisis un autre modèle (avec prise en charge des images) dans les paramètres.',
       orNoModelReply: 'Aucune réponse reçue du modèle.',
       aiDefaultChatTitle: 'Discussion',
       aiSuggestPrompt: 'Suggère-moi quelques phrases pratiques en {lang}.', aiPracticeStartPrompt: 'Commençons. Demande-moi d\'abord de quel sujet je veux que parle notre conversation en {lang}.',
-      aiOpenrouterConnFailed: 'Connexion à OpenRouter impossible. Réessaie.', aiKeyNeededFab: 'Saisis d\'abord ta clé OpenRouter dans les paramètres — ensuite l\'assistant est toujours disponible.',
+      aiOpenrouterConnFailed: 'Connexion à Gemini impossible. Réessaie.', aiKeyNeededFab: 'L\'administrateur n\'a pas encore activé l\'accès IA pour toi. Demande-le-lui.',
       aiFabAriaLabel: 'Assistant IA',
+      aiWordCardAddBtn: '+ Ajouter à la boîte', aiWordCardCategoryLabel: 'Catégorie', aiWordCardFrequencyLabel: "Fréquence d'usage",
+      aiWordCardLevelLabel: 'Niveau de langue', aiWordCardContextTitle: 'Dans quel contexte ?', aiWordCardExamplesTitle: 'Exemples',
+      aiWordCardChooseCategory: 'À quelle catégorie ajouter ce mot ?', aiWordCardAdded: 'Ajouté à la boîte.',
+      aiWordCardModalTitle: 'Ajouter un mot', aiWordCardConfirmAdd: 'Ajouter', aiWordCardCancel: 'Annuler',
+      aiVoiceCallStart: "Démarrer l'appel", aiVoiceCallActiveHint: 'Appel en cours — parle simplement',
+      aiModeDictionary: 'Sens du mot', aiModeDictionaryPlaceholder: 'Écris un mot ou une expression en {lang} et je l\'explique...',
     },
     it: {
       appTitle: 'Scatola di Leitner',
@@ -2233,7 +2295,7 @@
       reminderMessages: 'Ora di ripassare, non essere pigro!|Vieni a salutare e divertiti imparando|Non perdere la tua serie — inizia ora',
       aiGenSentenceLoading: '✨ Generazione frase in corso...', aiGenSentenceBtn: '✨ Genera frase con IA',
       aiSuggestedSentence: 'Frase suggerita dall\'IA', aiMeaningLabel: 'Significato', aiListenBtn: 'Ascolta', aiAnotherSentence: '✨ Un\'altra frase',
-      aiKeyNeeded: 'Prima inserisci la tua chiave OpenRouter nelle Impostazioni.',
+      aiKeyNeeded: 'L\'amministratore non ha ancora attivato l\'accesso IA per te. Chiediglielo.',
       aiNoReply: 'Nessuna risposta ricevuta, riprova.', aiUnreadableReply: 'La risposta dell\'IA non è leggibile, riprova.',
       aiConnectionFailed: 'Impossibile contattare l\'IA. Controlla la tua connessione internet.',
       aiExplainLoading: '✨ Preparazione spiegazione...', aiExplainBtn: '✨ Spiega con IA',
@@ -2242,15 +2304,21 @@
       themeColorNames: 'Bronzo,Lilla,Verde,Blu,Pesca,Rosso',
       orKeySavedToast: 'Chiave salvata.', orKeyClearedToast: 'Chiave rimossa.',
       orModelsLoadFailed: 'Impossibile caricare l\'elenco dei modelli gratuiti. Controlla la tua connessione internet.',
-      orConnFailed: 'Connessione a OpenRouter non riuscita. Controlla la tua connessione internet.',
-      orErrorCode: 'Errore OpenRouter (codice {code}).', orInvalidKey: 'La chiave OpenRouter non è valida. Ricontrollala nelle Impostazioni.',
+      orConnFailed: 'Connessione a Gemini non riuscita. Controlla la tua connessione internet.',
+      orErrorCode: 'Errore Gemini (codice {code}).', orInvalidKey: "L'accesso IA non è valido; chiedi all'amministratore di riattivarlo.",
       orInsufficientCredit: 'Il tuo account OpenRouter non ha credito sufficiente.', orTooManyRequests: 'Troppe richieste, aspetta un po\' e riprova.',
       orNoImageSupport: 'Questo modello non supporta le immagini. Scegli un altro modello (con supporto immagini) nelle Impostazioni.',
       orNoModelReply: 'Nessuna risposta ricevuta dal modello.',
       aiDefaultChatTitle: 'Chat',
       aiSuggestPrompt: 'Suggeriscimi alcune frasi pratiche in {lang}.', aiPracticeStartPrompt: 'Iniziamo. Prima chiedimi di quale argomento vorrei parlare nella nostra conversazione in {lang}.',
-      aiOpenrouterConnFailed: 'Connessione a OpenRouter non riuscita. Riprova.', aiKeyNeededFab: 'Prima inserisci la tua chiave OpenRouter nelle Impostazioni — poi l\'assistente sarà sempre disponibile.',
+      aiOpenrouterConnFailed: 'Connessione a Gemini non riuscita. Riprova.', aiKeyNeededFab: 'L\'amministratore non ha ancora attivato l\'accesso IA per te. Chiediglielo.',
       aiFabAriaLabel: 'Assistente IA',
+      aiWordCardAddBtn: '+ Aggiungi alla scatola', aiWordCardCategoryLabel: 'Categoria', aiWordCardFrequencyLabel: "Frequenza d'uso",
+      aiWordCardLevelLabel: 'Livello linguistico', aiWordCardContextTitle: 'In quale contesto?', aiWordCardExamplesTitle: 'Esempi',
+      aiWordCardChooseCategory: 'A quale categoria vuoi aggiungere questa parola?', aiWordCardAdded: 'Aggiunta alla scatola.',
+      aiWordCardModalTitle: 'Aggiungi parola', aiWordCardConfirmAdd: 'Aggiungi', aiWordCardCancel: 'Annulla',
+      aiVoiceCallStart: 'Avvia chiamata', aiVoiceCallActiveHint: 'Chiamata in corso — parla pure',
+      aiModeDictionary: 'Significato parola', aiModeDictionaryPlaceholder: 'Scrivi una parola o frase in {lang} e te la spiego...',
     },
   };
   function t(key){
@@ -2331,27 +2399,30 @@
     syncStatus: 'idle', lastSyncAt: null,
     showHeaderMenu: false, showStreakModal: false, showLeagueModal: false, activityDays: {}, openFriendId: null,
     showSupportModal: false, supportCategory: 'bug', supportTickets: [], supportLoading: false, supportSending: false,
+    viewingBroadcastId: null,
     lastSeenLeagueKey: null, leagueUpAnimation: null, adminXpBonus: 0, canCreateGroups: false, userIdMaxChangesOverride: null,
+    canUseAi: false, aiGrantedKey: '',
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumProgress: {},
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
+    chatUploading: false, chatRecording: false,
     blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null, friendSearchLoading: false,
     leaderboardTab: 'league', leaderboardEntries: null, leaderboardLoading: false,
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
     translateInput: '', translateResult: null, translateError: null, translateLoading: false,
     translateSrcLang: 'fa', translateTgtLang: 'de',
     showTranslateTypeModal: false, translateTypeChoice: 'word',
+    showAiWordCardModal: false, aiWordCardPending: null, aiWordCardCategoryId: 'none',
     showOrPanel: false,
     aiOpen: false, aiMode: 'chat', aiMessages: [], aiInput: '', aiLoading: false, aiError: null,
     aiFabPos: null, aiHistory: [], aiSessionId: null, showAiHistoryModal: false, aiTeacherCard: null,
     aiImageData: null, aiListening: false, aiTeachLang: 'de',
-    aiVoiceLang: 'fa', aiVoiceStatus: 'idle', aiVoiceLiveText: '', aiVoiceAutoContinue: true,
+    aiVoiceLang: 'fa', aiVoiceStatus: 'idle', aiVoiceLiveText: '', aiVoiceAutoContinue: true, aiVoiceCallActive: false,
     aiVoiceLastUser: '', aiVoiceLastModel: '',
     dailyGoals: { ...DEFAULT_DAILY_GOALS }, dailyProgress: { date: '', word: 0, sentence: 0, pronun: 0 },
     aiSentenceLoading: false, aiSentenceResult: null, aiSentenceError: null, aiSentenceCardId: null,
     aiExplainLoading: false, aiExplainResult: null, aiExplainError: null, aiExplainCardId: null,
-    openrouterKey: '', openrouterModel: DEFAULT_OPENROUTER_MODEL, showOpenrouterKey: false,
-    openrouterFreeModels: [], openrouterModelsStatus: 'idle', openrouterModelsError: null,
+
   };
 
   function faNum(n){ return String(n).replace(/[0-9]/g, d => FA_DIGITS[d]); }
@@ -2691,9 +2762,14 @@
   }
 
   // --- نوتیفیکیشن‌های همگانی مدیر — broadcastNotifications/{id}: { message, sendAt, createdAt } ---
-  // این اپ سرور اختصاصی نداره، پس زمان‌بندی هم کاملاً سمت کلاینت انجام می‌شه: پیام‌ها همیشه
-  // خونده می‌شن ولی فقط وقتی که sendAt رسیده باشه نمایش داده می‌شن؛ شناسه‌ی پیام‌های دیده‌شده
-  // توی localStorage نگه داشته می‌شه تا هر پیام فقط یک‌بار روی هر گوشی نمایش داده بشه.
+  // این اپ سرور اختصاصی (Push/FCM) نداره، پس زمان‌بندی هم کاملاً سمت کلاینت انجام می‌شه: پیام‌ها
+  // همیشه خونده می‌شن ولی فقط وقتی که sendAt رسیده باشه نمایش داده می‌شن؛ شناسه‌ی پیام‌های
+  // دیده‌شده توی localStorage نگه داشته می‌شه تا هر پیام فقط یک‌بار روی هر گوشی نمایش داده بشه.
+  // نکته‌ی مهم: چون سرور push نداریم، این فقط وقتی کار می‌کنه که اپ باز باشه (پیش‌زمینه یا پس‌زمینه‌ی
+  // تب/PWA نصب‌شده) — اگه اپ کاملاً بسته باشه، هیچ راهی برای رسوندن نوتیف در همون لحظه نیست.
+  // برای این‌که پیام واقعاً به‌صورت نوتیفیکیشن بالای گوشی نمایش داده بشه (نه یه کارت داخل اپ)،
+  // اگه اجازه‌ی نوتیفیکیشن قبلاً گرفته شده باشه (همون اجازه‌ای که برای یادآور روزانه گرفته می‌شه)
+  // از reg.showNotification استفاده می‌کنیم؛ فقط اگه اجازه گرفته نشده باشه، به کارت داخل اپ برمی‌گردیم.
   const BROADCAST_SEEN_KEY = 'leitner_seen_broadcasts_v1';
   let broadcastCache = {};
   function getSeenBroadcastIds(){
@@ -2706,19 +2782,106 @@
       localStorage.setItem(BROADCAST_SEEN_KEY, JSON.stringify(Array.from(seen)));
     } catch(e){}
   }
+  // --- مرکز پیام‌های تیم برنامه (زنگوله‌ی داخل اپ) ---
+  // «دیده‌شده» (بالا) فقط یعنی یک‌بار به‌صورت toast/نوتیف نمایش داده شده تا دوباره popup نشه.
+  // «خونده‌شده» جداست: یعنی کاربر خودش از توی زنگوله بازش کرده و کامل خونده؛ تا وقتی این کار رو
+  // نکرده، پیام همچنان با نشونه‌ی «جدید» توی لیست زنگوله می‌مونه، حتی اگه toast‌ش رو هم دیده باشه.
+  const BROADCAST_READ_KEY = 'leitner_read_broadcasts_v1';
+  function getReadBroadcastIds(){
+    try { return new Set(JSON.parse(localStorage.getItem(BROADCAST_READ_KEY) || '[]')); } catch(e){ return new Set(); }
+  }
+  function markBroadcastRead(id){
+    try {
+      const read = getReadBroadcastIds();
+      read.add(id);
+      localStorage.setItem(BROADCAST_READ_KEY, JSON.stringify(Array.from(read)));
+    } catch(e){}
+  }
+  function dueBroadcastList(){
+    const now = Date.now();
+    return Object.keys(broadcastCache)
+      .map((id) => ({ id, ...broadcastCache[id] }))
+      .filter((b) => b && b.message && typeof b.sendAt === 'number' && b.sendAt <= now)
+      .sort((a, b) => (b.sendAt || 0) - (a.sendAt || 0));
+  }
+  function unreadBroadcastCount(){
+    const read = getReadBroadcastIds();
+    return dueBroadcastList().filter((b) => !read.has(b.id)).length;
+  }
+  function openBroadcastDetail(id){
+    markBroadcastRead(id);
+    state.viewingBroadcastId = id;
+    render();
+  }
+  function closeBroadcastDetail(){ state.viewingBroadcastId = null; render(); }
+  function renderBroadcastDetailModal(){
+    if (!state.viewingBroadcastId) return '';
+    const b = broadcastCache[state.viewingBroadcastId];
+    if (!b) return '';
+    return `
+      <div class="broadcast-modal-backdrop" onclick="closeBroadcastDetail()">
+        <div class="broadcast-modal-card" onclick="event.stopPropagation()">
+          <img src="icon-hero.png" class="bm-icon" alt="">
+          <div class="bm-title">پیام از تیم جعبه لایتنر</div>
+          <div class="bm-msg">${esc(b.message || '')}</div>
+          <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+            <button class="btn-primary" style="width:auto;padding:9px 24px" onclick="closeBroadcastDetail()">باشه</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
   function showBroadcastModal(msg){
     const backdrop = document.createElement('div');
     backdrop.className = 'broadcast-modal-backdrop';
+    const canOfferNotif = ('Notification' in window) && Notification.permission !== 'granted' && !(isIos() && !isStandalone());
     backdrop.innerHTML = `
       <div class="broadcast-modal-card" onclick="event.stopPropagation()">
         <img src="icon-hero.png" class="bm-icon" alt="">
         <div class="bm-title">پیام از تیم جعبه لایتنر</div>
         <div class="bm-msg">${esc(msg)}</div>
-        <button class="btn-primary" style="width:auto;padding:9px 24px">باشه</button>
+        ${canOfferNotif ? `<div class="hint-text" style="margin-bottom:12px">نوتیفیکیشن رو فعال کن تا پیام‌های بعدی مستقیم بالای گوشی‌ات بیاد.</div>` : ''}
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          ${canOfferNotif ? `<button class="btn-secondary" style="width:auto;padding:9px 18px" id="bmEnableNotifBtn">فعال‌سازی نوتیفیکیشن</button>` : ''}
+          <button class="btn-primary" style="width:auto;padding:9px 24px" id="bmOkBtn">باشه</button>
+        </div>
       </div>
     `;
-    backdrop.querySelector('button').addEventListener('click', () => backdrop.remove());
+    backdrop.querySelector('#bmOkBtn').addEventListener('click', () => backdrop.remove());
+    const enableBtn = backdrop.querySelector('#bmEnableNotifBtn');
+    if (enableBtn) enableBtn.addEventListener('click', async () => { await enableSystemNotifications(); backdrop.remove(); });
     document.body.appendChild(backdrop);
+  }
+  // اجازه‌ی نوتیفیکیشن سیستمی رو می‌گیره (بدون فعال‌کردن یادآور روزانه‌ی جدا) تا پیام‌های مدیر
+  // هم بتونن از همون مسیر reg.showNotification به‌صورت نوتیف واقعی بالای گوشی نمایش داده بشن.
+  async function enableSystemNotifications(){
+    if (isIos() && !isStandalone()){ alert(t('alertIosNotifSetup')); return false; }
+    if (!('Notification' in window)) { alert(t('alertNoNotifSupport')); return false; }
+    try {
+      const perm = await Notification.requestPermission();
+      if (perm !== 'granted') { alert(t('alertNotifDenied')); return false; }
+      await registerBackgroundSyncTags();
+      return true;
+    } catch(e){ return false; }
+  }
+  async function deliverBroadcast(id, message){
+    markBroadcastSeen(id);
+    let shown = false;
+    if (('Notification' in window) && Notification.permission === 'granted' && 'serviceWorker' in navigator) {
+      try {
+        const reg = await navigator.serviceWorker.ready;
+        await reg.showNotification('پیام از تیم جعبه لایتنر', {
+          body: message,
+          icon: 'icon-192.png',
+          badge: 'icon-badge.png',
+          vibrate: [300, 150, 300],
+          tag: 'broadcast-' + id,
+          data: { url: './index.html' }
+        });
+        shown = true;
+      } catch(e) { console.error('deliverBroadcast showNotification error', e); }
+    }
+    if (!shown) showBroadcastModal(message);
   }
   let broadcastQueue = [];
   let broadcastShowing = false;
@@ -2726,9 +2889,9 @@
     if (broadcastShowing || broadcastQueue.length === 0) return;
     broadcastShowing = true;
     const next = broadcastQueue.shift();
-    markBroadcastSeen(next.id);
-    showBroadcastModal(next.message);
-    setTimeout(() => { broadcastShowing = false; flushBroadcastQueue(); }, 400);
+    Promise.resolve(deliverBroadcast(next.id, next.message)).finally(() => {
+      setTimeout(() => { broadcastShowing = false; flushBroadcastQueue(); }, 400);
+    });
   }
   function checkDueBroadcasts(){
     const now = Date.now();
@@ -2742,14 +2905,62 @@
     });
     flushBroadcastQueue();
   }
+  // --- بنر پیشنهاد فعال‌سازی نوتیفیکیشن ---
+  // یه‌بار بعد از ورود/ادامه‌ی مهمان نشون داده می‌شه (اگه قبلاً جواب نداده و رد نکرده باشه) تا
+  // شانس رسیدن پیام‌های مدیر و یادآور روزانه به‌صورت نوتیف واقعی بیشتر بشه.
+  const NOTIF_NUDGE_KEY = 'leitner_notif_nudge_dismissed_v1';
+  function maybeShowNotifNudge(){
+    try {
+      if (!('Notification' in window)) return;
+      if (Notification.permission !== 'default') return;
+      if (isIos() && !isStandalone()) return;
+      if (localStorage.getItem(NOTIF_NUDGE_KEY) === '1') return;
+      if (document.getElementById('notif-nudge-banner')) return;
+      setTimeout(() => {
+        if (Notification.permission !== 'default') return;
+        if (document.getElementById('notif-nudge-banner')) return;
+        const el = document.createElement('div');
+        el.id = 'notif-nudge-banner';
+        el.className = 'notif-nudge-banner';
+        el.innerHTML = `
+          <span class="notif-nudge-text">برای دریافت پیام‌های مهم و یادآور روزانه، نوتیفیکیشن رو فعال کن.</span>
+          <div class="notif-nudge-actions">
+            <button class="notif-nudge-btn primary" id="notifNudgeEnableBtn">فعال کن</button>
+            <button class="notif-nudge-btn" id="notifNudgeDismissBtn">بعداً</button>
+          </div>
+        `;
+        document.body.appendChild(el);
+        document.getElementById('notifNudgeDismissBtn').addEventListener('click', () => {
+          try { localStorage.setItem(NOTIF_NUDGE_KEY, '1'); } catch(e){}
+          el.remove();
+        });
+        document.getElementById('notifNudgeEnableBtn').addEventListener('click', async () => {
+          await enableSystemNotifications();
+          try { localStorage.setItem(NOTIF_NUDGE_KEY, '1'); } catch(e){}
+          el.remove();
+        });
+      }, 1500);
+    } catch(e){}
+  }
+
   function initBroadcastListener(){
     if (!firebaseReady) return;
     try {
       fbDb.ref('broadcastNotifications').limitToLast(30).on('value', (snap) => {
         broadcastCache = snap.val() || {};
         checkDueBroadcasts();
+        render();
       });
       setInterval(checkDueBroadcasts, 30000);
+      // به‌محض اینکه کاربر برگرده به تب/اپ (مثلاً بعد از قفل‌کردن گوشی)، فوراً یه نسخه‌ی تازه از
+      // فایربیس بگیر و چک کن — به تایمر ۳۰ ثانیه‌ای‌ای که ممکنه توی پس‌زمینه throttle شده باشه صبر نکن.
+      const refreshNow = () => {
+        fbDb.ref('broadcastNotifications').limitToLast(30).once('value')
+          .then((snap) => { broadcastCache = snap.val() || {}; checkDueBroadcasts(); render(); })
+          .catch(() => {});
+      };
+      document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') refreshNow(); });
+      window.addEventListener('focus', refreshNow);
     } catch (e) { console.error('initBroadcastListener error', e); }
   }
 
@@ -2764,6 +2975,7 @@
   function hideAuthOverlay(){
     const overlay = document.getElementById('auth-overlay');
     if (overlay) overlay.classList.add('hide');
+    maybeShowNotifNudge();
   }
   function toggleAuthMode(mode){ showAuthOverlay(mode); }
   function continueAsGuest(){
@@ -2795,7 +3007,12 @@
     const email = document.getElementById(mode === 'signup' ? 'signup-email' : 'auth-email').value.trim();
     const pass = document.getElementById(mode === 'signup' ? 'signup-password' : 'auth-password').value;
     try {
-      if (mode === 'signup') await fbAuth.createUserWithEmailAndPassword(email, pass);
+      if (mode === 'signup') {
+        const cred = await fbAuth.createUserWithEmailAndPassword(email, pass);
+        // ثبت زمان ساخت حساب برای گزارش «کاربران جدید» در پنل مدیریت
+        const newUid = cred && cred.user ? cred.user.uid : null;
+        if (newUid) fbDb.ref('users/' + newUid + '/createdAt').set(Date.now()).catch(() => {});
+      }
       else await fbAuth.signInWithEmailAndPassword(email, pass);
       // onAuthStateChanged handles the rest (hide overlay, merge/load data)
     } catch (e) {
@@ -2927,6 +3144,7 @@
     attachAdminXpBonusListener();
     attachPermissionsListener();
     attachUserIdMaxChangesListener();
+    attachAiAccessListener();
     render();
   }
 
@@ -2952,6 +3170,35 @@
     if (permissionsRef) permissionsRef.off();
     permissionsRef = fbDb.ref('permissions/' + state.authUser.uid + '/canCreateGroups');
     permissionsRef.on('value', (snap) => { state.canCreateGroups = !!snap.val(); });
+  }
+
+  // مجوز استفاده از هوش مصنوعی — permissions/{uid}/canUseAi (bool)، فقط از پنل مدیریت قابل‌تنظیمه.
+  // بخش هوش مصنوعی به‌صورت پیش‌فرض برای همه بسته‌ست؛ وقتی مدیر این پرچم رو برای یک کاربر true کنه،
+  // اپ خودکار کلید Gemini مرکزی (aiConfig/geminiKey، که فقط مدیر می‌نویسدش) رو می‌خونه و بدون
+  // این‌که کاربر لازم باشه هیچ کلیدی وارد کنه، هوش مصنوعی براش فعال می‌شه — انگار خودش کد رو زده.
+  // نکته‌ی امنیتی: این فقط با قوانین امنیتی مناسب توی فایربیس واقعاً امنه (کاربر باید فقط وقتی
+  // بتونه aiConfig/geminiKey رو بخونه که permissions/{uid}/canUseAi روی true باشه)؛ چون این یه اپ
+  // کاملاً کلاینت‌ساید‌ه، هر کاربری که دسترسی گرفته، فنی می‌تونه کلید رو توی Network تب مرورگرش ببینه.
+  let aiAccessRef = null;
+  let aiConfigKeyRef = null;
+  function attachAiAccessListener(){
+    if (!firebaseReady || !state.authUser) return;
+    if (aiAccessRef) aiAccessRef.off();
+    aiAccessRef = fbDb.ref('permissions/' + state.authUser.uid + '/canUseAi');
+    aiAccessRef.on('value', (snap) => {
+      state.canUseAi = !!snap.val();
+      if (aiConfigKeyRef) { aiConfigKeyRef.off(); aiConfigKeyRef = null; }
+      if (state.canUseAi){
+        aiConfigKeyRef = fbDb.ref('aiConfig/geminiKey');
+        aiConfigKeyRef.on('value', (keySnap) => {
+          state.aiGrantedKey = keySnap.val() || '';
+          render();
+        });
+      } else {
+        state.aiGrantedKey = '';
+      }
+      render();
+    });
   }
 
   // تعداد دفعات مجاز تغییر آیدی — permissions/{uid}/userIdMaxChanges (عدد)، از پنل مدیریت قابل‌تنظیمه.
@@ -3247,6 +3494,105 @@
     }
   }
 
+  // --- ارسال عکس/ویدیو/ویس توی چت — فایل روی Cloudinary آپلود می‌شه (Unsigned Upload Preset)
+  // و فقط لینک مستقیم برگشتی + حجم فایل توی رکورد پیام (chats/{chatId}) توی Realtime Database
+  // ذخیره می‌شه. mediaStats/{type} هم یه شمارنده‌ی سراسریه (تعداد + مجموع حجم بایت) که پنل
+  // مدیریت ازش برای نمایش آمار کلی استفاده می‌کنه.
+  const CLOUDINARY_CLOUD_NAME = 'crk0ggty';
+  const CLOUDINARY_UPLOAD_PRESET = 'leitner_preset';
+  // نکته: عکس با اندپوینت image/upload می‌ره، اما ویدیو و صدا (ضبط پیام صوتی با MediaRecorder،
+  // معمولاً audio/webm) باید با اندپوینت video/upload آپلود بشن چون کلودیناری صدا رو زیرمجموعه‌ی
+  // «video» حساب می‌کنه و اگه با image/upload بفرستیمش رد می‌شه.
+  async function uploadToCloudinary(fileOrBlob, type){
+    const resourceType = (type === 'audio' || type === 'video') ? 'video' : 'image';
+    const endpoint = `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/${resourceType}/upload`;
+    const formData = new FormData();
+    formData.append('file', fileOrBlob);
+    formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+    const res = await fetch(endpoint, { method: 'POST', body: formData });
+    if (!res.ok) throw new Error('Cloudinary upload failed: ' + res.status);
+    const data = await res.json();
+    if (!data || !data.secure_url) throw new Error('Cloudinary upload: no secure_url in response');
+    return data.secure_url;
+  }
+  function triggerChatMediaPicker(){
+    const input = document.getElementById('chatMediaInput');
+    if (input) input.click();
+  }
+  async function handleChatMediaSelected(event){
+    const file = event.target.files && event.target.files[0];
+    event.target.value = '';
+    if (!file) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage) { alert('فقط عکس یا ویدیو رو می‌تونی از این‌جا بفرستی.'); return; }
+    const maxMb = isVideo ? 40 : 10;
+    if (file.size > maxMb * 1024 * 1024) { alert(`حجم فایل نباید بیشتر از ${maxMb} مگابایت باشه.`); return; }
+    await uploadAndSendChatMedia(file, isVideo ? 'video' : 'image');
+  }
+  function bumpMediaStat(type, sizeBytes){
+    if (!firebaseReady) return;
+    fbDb.ref('mediaStats/' + type).transaction((cur) => {
+      cur = cur || { count: 0, totalBytes: 0 };
+      cur.count = (cur.count || 0) + 1;
+      cur.totalBytes = (cur.totalBytes || 0) + (sizeBytes || 0);
+      return cur;
+    }).catch(() => {});
+  }
+  async function uploadAndSendChatMedia(fileOrBlob, type){
+    const username = state.openChatUsername;
+    const f = userFriendByUsername(username);
+    const uid = myUid();
+    if (!username || !f || !f.uid || !uid || !firebaseReady){
+      alert('ارسال فایل الان ممکن نیست.');
+      return;
+    }
+    const chatId = chatIdFor(uid, f.uid);
+    state.chatUploading = true; render();
+    try {
+      const url = await uploadToCloudinary(fileOrBlob, type);
+      const size = fileOrBlob.size || 0;
+      await fbDb.ref('chats/' + chatId).push({ sender: uid, type, url, size, timestamp: Date.now() });
+      bumpMediaStat(type, size);
+    } catch(e){
+      console.error('uploadAndSendChatMedia error', e);
+      alert('ارسال فایل ناموفق بود.');
+    }
+    state.chatUploading = false; render();
+  }
+
+  // --- ضبط پیام صوتی با MediaRecorder ---
+  let voiceRecorder = null;
+  let voiceChunks = [];
+  async function toggleVoiceRecording(){
+    if (state.chatRecording){ stopVoiceRecording(); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert('مرورگرت از ضبط صدا پشتیبانی نمی‌کنه.'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      voiceChunks = [];
+      const preferredType = (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm')) ? 'audio/webm' : '';
+      voiceRecorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
+      voiceRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) voiceChunks.push(e.data); };
+      voiceRecorder.onstop = async () => {
+        stream.getTracks().forEach(tr => tr.stop());
+        const blob = new Blob(voiceChunks, { type: voiceRecorder.mimeType || 'audio/webm' });
+        voiceChunks = [];
+        if (blob.size > 0) await uploadAndSendChatMedia(blob, 'audio');
+      };
+      voiceRecorder.start();
+      state.chatRecording = true;
+      render();
+    } catch(e){
+      console.error('toggleVoiceRecording error', e);
+      alert('دسترسی به میکروفون ممکن نشد.');
+    }
+  }
+  function stopVoiceRecording(){
+    if (voiceRecorder && voiceRecorder.state !== 'inactive') voiceRecorder.stop();
+    state.chatRecording = false;
+    render();
+  }
+
   function attachChatListener(username){
     detachChatListener();
     const f = userFriendByUsername(username);
@@ -3259,7 +3605,14 @@
     activeChatRef.on('child_added', (snap) => {
       const m = snap.val();
       if (!state.chats[username]) state.chats[username] = [];
-      state.chats[username].push({ sender: m.sender === uid ? 'me' : 'friend', text: m.text, ts: m.timestamp });
+      state.chats[username].push({
+        sender: m.sender === uid ? 'me' : 'friend',
+        text: m.text,
+        type: m.type || 'text',
+        url: m.url || null,
+        size: m.size || null,
+        ts: m.timestamp
+      });
       render();
       const msgsEl = document.getElementById('userChatMessages');
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -3650,6 +4003,7 @@
     message: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>',
     users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     support: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>',
+    video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -3660,9 +4014,9 @@
         <div class="app-header-row">
           <div class="header-menu-wrap">
             <button class="kebab-btn" onclick="toggleHeaderMenu()" aria-label="${t('menuMore')}">${icon('kebab',18)}</button>
-            <button class="bell-btn" onclick="openRequestsModal()" aria-label="درخواست‌های دوستی">
+            <button class="bell-btn" onclick="openRequestsModal()" aria-label="اعلان‌ها">
               ${icon('bell',18)}
-              ${state.friendRequests.length > 0 ? `<span class="bell-dot"></span>` : ''}
+              ${(state.friendRequests.length > 0 || unreadBroadcastCount() > 0) ? `<span class="bell-dot"></span>` : ''}
             </button>
             <button class="kebab-btn target-lang-btn" onclick="openTargetLangPicker()" aria-label="${t('targetLangBadgeAria')}" title="${targetLangLabel()}">${targetLangMeta(currentTargetLangCode()).flag}</button>
             ${state.showHeaderMenu ? `
@@ -3699,6 +4053,7 @@
         ${renderFriendProfileModal()}
         ${renderRequestsModal()}
         ${renderUserFriendProfileModal()}
+        ${renderBroadcastDetailModal()}
       </div>
       ${!state.aiOpen ? renderAiFab() : ''}
       ${state.aiOpen ? renderAiPage() : ''}
@@ -4404,7 +4759,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function renderRequestsModal(){
     if (!state.showRequestsModal) return '';
     const requests = state.friendRequests;
-    const body = requests.length === 0
+    const friendBody = requests.length === 0
       ? `<div class="empty-state">${icon('bell',30)}<div>درخواست جدیدی ندارید.</div></div>`
       : requests.map(user => `
           <div class="request-row">
@@ -4415,17 +4770,51 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
             </div>
           </div>
         `).join('');
+    const broadcasts = dueBroadcastList();
+    const readIds = getReadBroadcastIds();
+    const broadcastBody = broadcasts.length === 0
+      ? `<div class="empty-state">${icon('message',30)}<div>هنوز پیامی از تیم برنامه نداری.</div></div>`
+      : broadcasts.map((b) => {
+          const isNew = !readIds.has(b.id);
+          const preview = (b.message || '').length > 90 ? b.message.slice(0, 90) + '…' : (b.message || '');
+          return `
+            <div style="position:relative;background:var(--panel2);border:1px solid var(--border2);border-radius:12px;padding:10px 12px 10px ${isNew ? '20px' : '12px'};cursor:pointer" onclick="openBroadcastDetail('${esc(b.id)}')">
+              ${isNew ? `<span style="position:absolute;top:14px;inset-inline-start:10px;width:8px;height:8px;border-radius:50%;background:var(--wine)"></span>` : ''}
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+                <span class="hint-text" style="font-size:11px">${new Date(b.sendAt || 0).toLocaleDateString('fa-IR')}</span>
+                ${isNew ? `<span style="font-size:10.5px;color:var(--wine);font-weight:700">جدید</span>` : ''}
+              </div>
+              <div style="margin-top:6px;font-size:13px;line-height:1.7;${isNew ? 'font-weight:600' : ''}">${esc(preview)}</div>
+            </div>
+          `;
+        }).join('');
     return `
       <div class="modal-backdrop" onclick="closeRequestsModal()">
         <div class="modal-card" onclick="event.stopPropagation()">
           <div class="deck-header" style="margin-bottom:10px">
-            <span class="deck-title">درخواست‌های دوستی</span>
+            <span class="deck-title">اعلان‌ها</span>
             <button class="modal-close-btn" onclick="closeRequestsModal()">${icon('close',15)}</button>
           </div>
-          <div class="request-modal-body">${body}</div>
+          <div style="font-weight:700;font-size:13px;margin-bottom:8px">درخواست‌های دوستی</div>
+          <div class="request-modal-body">${friendBody}</div>
+          <div style="font-weight:700;font-size:13px;margin:18px 0 8px;padding-top:14px;border-top:1px dashed var(--border2)">${icon('message',14)} پیام‌های تیم برنامه</div>
+          <div style="display:flex;flex-direction:column;gap:8px;max-height:40vh;overflow-y:auto">${broadcastBody}</div>
         </div>
       </div>
     `;
+  }
+  function renderChatMessageBubble(m){
+    const cls = m.sender === 'me' ? 'ai-msg-user' : 'ai-msg-model';
+    if (m.type === 'image') {
+      return `<div class="ai-msg ${cls} chat-media-msg"><img src="${esc(m.url)}" class="chat-media-img" onclick="window.open('${esc(m.url)}','_blank')" alt="عکس ارسالی"></div>`;
+    }
+    if (m.type === 'video') {
+      return `<div class="ai-msg ${cls} chat-media-msg"><video src="${esc(m.url)}" class="chat-media-video" controls playsinline></video></div>`;
+    }
+    if (m.type === 'audio') {
+      return `<div class="ai-msg ${cls} chat-media-msg chat-audio-msg">${icon('mic',14)} <audio src="${esc(m.url)}" controls></audio></div>`;
+    }
+    return `<div class="ai-msg ${cls}">${esc(m.text)}</div>`;
   }
   function renderUserChatPage(){
     const username = state.openChatUsername;
@@ -4441,12 +4830,16 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
         <div class="ai-messages" id="userChatMessages">
           ${messages.length === 0 ? `<div class="ai-empty">${icon('message',26)}<div>هنوز پیامی رد و بدل نشده. اولین پیام رو بفرست!</div></div>` : ''}
-          ${messages.map(m => `<div class="ai-msg ${m.sender==='me' ? 'ai-msg-user' : 'ai-msg-model'}">${esc(m.text)}</div>`).join('')}
+          ${messages.map(m => renderChatMessageBubble(m)).join('')}
         </div>
+        ${state.chatUploading ? `<div class="chat-upload-hint">${icon('cloud',12)} در حال ارسال فایل...</div>` : ''}
         <div class="ai-input-row">
+          <button class="chat-icon-btn" onclick="triggerChatMediaPicker()" aria-label="ارسال عکس یا ویدیو" ${state.chatUploading ? 'disabled' : ''}>${icon('image',18)}</button>
+          <button class="chat-icon-btn ${state.chatRecording ? 'recording' : ''}" onclick="toggleVoiceRecording()" aria-label="${state.chatRecording ? 'پایان ضبط و ارسال' : 'ضبط پیام صوتی'}" ${state.chatUploading ? 'disabled' : ''}>${icon('mic',18)}</button>
           <textarea id="userChatInput" rows="1" placeholder="پیام خود را بنویسید..." onkeydown="handleUserChatInputKeydown(event)"></textarea>
           <button class="ai-send-btn" onclick="sendUserChatMessage()" aria-label="${t('aiSend')}">${icon('send',18)}</button>
         </div>
+        <input type="file" id="chatMediaInput" accept="image/*,video/*" style="display:none" onchange="handleChatMediaSelected(event)">
       </div>
     `;
   }
@@ -4743,7 +5136,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
           <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 16px" onclick="addCategoryFromSettings()">${t('settingsAddBtn')}</button>
         </div>
       </div>
-      ${renderOpenrouterPanel()}
+      <div class="panel">
+        <div class="stats-title" style="margin-bottom:10px">${icon('ai',16)} دسترسی هوش مصنوعی</div>
+        ${hasAdminGrantedAiAccess()
+          ? `<div class="hint-text" style="color:var(--sage)">${icon('checkCircle',14)} مدیر دسترسی هوش مصنوعی رو برات فعال کرده؛ نیازی به هیچ کلیدی نیست.</div>`
+          : state.canUseAi
+            ? `<div class="hint-text">دسترسی هوش مصنوعی برات فعاله ولی کلید مرکزی هنوز از سرور نیومده؛ چند لحظه صبر کن یا دوباره امتحان کن.</div>`
+            : `<div class="hint-text">هنوز مدیر دسترسی هوش مصنوعی رو برات فعال نکرده. از مدیر بخوای فعالش کنه.</div>`}
+      </div>
       <div class="panel">
         <div class="stats-title" style="margin-bottom:14px;color:var(--wine)">${t('settingsWipeTitle')}</div>
         <div class="hint-text" style="margin-bottom:12px">${t('settingsWipeHint')}</div>
@@ -4908,65 +5308,9 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
-  // --- دستیار هوش مصنوعی (OpenRouter API) ---
-  function loadOpenrouterConfig(){
-    try { state.openrouterKey = localStorage.getItem(OPENROUTER_API_KEY_STORAGE) || ''; } catch(e){ state.openrouterKey = ''; }
-    try { state.openrouterModel = localStorage.getItem(OPENROUTER_MODEL_STORAGE) || DEFAULT_OPENROUTER_MODEL; } catch(e){ state.openrouterModel = DEFAULT_OPENROUTER_MODEL; }
-  }
-  function hasOpenrouterKey(){ return !!(state.openrouterKey && state.openrouterKey.trim()); }
-  function syncOpenrouterKeyInput(){ const el = document.getElementById('openrouterKeyInput'); if (el) state.openrouterKey = el.value; }
-  function saveOpenrouterKey(){
-    syncOpenrouterKeyInput();
-    const key = state.openrouterKey.trim();
-    try {
-      if (key) localStorage.setItem(OPENROUTER_API_KEY_STORAGE, key);
-      else localStorage.removeItem(OPENROUTER_API_KEY_STORAGE);
-    } catch(e){}
-    render();
-    alert(key ? t('orKeySavedToast') : t('orKeyClearedToast'));
-  }
-  function removeOpenrouterKey(){
-    if (!confirm(t('confirmClearOpenrouterKey'))) return;
-    state.openrouterKey = '';
-    try { localStorage.removeItem(OPENROUTER_API_KEY_STORAGE); } catch(e){}
-    render();
-  }
-  function toggleOpenrouterKeyVisibility(){ state.showOpenrouterKey = !state.showOpenrouterKey; render(); }
-  function setOpenrouterModel(v){
-    state.openrouterModel = v;
-    try { localStorage.setItem(OPENROUTER_MODEL_STORAGE, v); } catch(e){}
-    render();
-  }
-  function syncOpenrouterModelInput(){ const el = document.getElementById('openrouterModelInput'); if (el) setOpenrouterModel(el.value); }
-
-  // لیست مدل‌های رایگان رو مستقیم از OpenRouter می‌گیره (بدون نیاز به کلید، این endpoint عمومیه)
-  // و فقط اونایی که قیمت ورودی/خروجیشون صفره (یعنی واقعاً رایگانن) رو نگه می‌داره.
-  async function fetchFreeOpenrouterModels(force){
-    if (state.openrouterModelsStatus === 'loading') return;
-    if (!force && state.openrouterFreeModels.length) return;
-    state.openrouterModelsStatus = 'loading';
-    state.openrouterModelsError = null;
-    render();
-    try {
-      const res = await fetch(OPENROUTER_MODELS_ENDPOINT);
-      if (!res.ok) throw new Error('bad-response');
-      const data = await res.json();
-      const list = (data && data.data) ? data.data : [];
-      const free = list.filter(m => {
-        const p = m.pricing || {};
-        return parseFloat(p.prompt || '0') === 0 && parseFloat(p.completion || '0') === 0;
-      }).map(m => ({ id: m.id, name: m.name || m.id })).sort((a, b) => a.name.localeCompare(b.name));
-      state.openrouterFreeModels = free;
-      state.openrouterModelsStatus = 'ready';
-      if (free.length && !free.some(m => m.id === state.openrouterModel)){
-        setOpenrouterModel(free[0].id);
-      }
-    } catch(e){
-      state.openrouterModelsStatus = 'error';
-      state.openrouterModelsError = t('orModelsLoadFailed');
-    }
-    render();
-  }
+  // --- دسترسی هوش مصنوعی: فقط از طریق پنل مدیریت فعال می‌شه (کلید شخصی دیگه گرفته نمی‌شه) ---
+  function hasAdminGrantedAiAccess(){ return !!(state.canUseAi && state.aiGrantedKey && state.aiGrantedKey.trim()); }
+  function hasActiveAiKey(){ return hasAdminGrantedAiAccess(); }
 
   // --- کش پاسخ‌های هوش مصنوعی در IndexedDB ---
   // این کش باعث می‌شه سؤالی که قبلاً یک‌بار پاسخ گرفته، دفعه‌های بعد بدون نیاز به اجرای دوباره مدل در دسترس باشه.
@@ -5018,31 +5362,27 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     return null;
   }
 
-  // اجرای یک پرامپت روی OpenRouter (https://openrouter.ai/api/v1/chat/completions) و برگردوندن متن پاسخ
-  async function runOpenrouterPrompt(systemPrompt, userPrompt, imageDataUrl){
-    const key = (state.openrouterKey || '').trim();
+  // اجرای یک پرامپت روی Gemini API (google gemini-3-flash-preview) و برگردوندن متن پاسخ.
+  // کلید همیشه از دسترسی اعطاشده‌ی مدیر میاد (state.aiGrantedKey)؛ کاربر دیگه کلید شخصی وارد نمی‌کنه.
+  async function runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, apiKeyOverride){
+    const key = (apiKeyOverride || state.aiGrantedKey || '').trim();
     if (!key) throw new Error(t('aiKeyNeeded'));
-    const model = state.openrouterModel || DEFAULT_OPENROUTER_MODEL;
-    const userContent = imageDataUrl
-      ? [ { type: 'text', text: userPrompt }, { type: 'image_url', image_url: { url: imageDataUrl } } ]
-      : userPrompt;
+    const parts = [{ text: userPrompt }];
+    if (imageDataUrl){
+      const m = /^data:([^;]+);base64,(.+)$/.exec(imageDataUrl);
+      if (m) parts.push({ inline_data: { mime_type: m[1], data: m[2] } });
+    }
     let res;
     try {
-      res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      res = await fetch(GEMINI_ENDPOINT, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${key}`,
+          'x-goog-api-key': key,
           'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.href,
-          'X-Title': 'Leitner Box',
         },
         body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userContent },
-          ],
-          temperature: 0.6,
+          system_instruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts }],
         }),
       });
     } catch(e){
@@ -5050,10 +5390,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     }
     if (!res.ok){
       let msg = tf('orErrorCode', {code: res.status});
-      if (res.status === 401) msg = t('orInvalidKey');
-      else if (res.status === 402) msg = t('orInsufficientCredit');
+      if (res.status === 401 || res.status === 403) msg = t('orInvalidKey');
       else if (res.status === 429) msg = t('orTooManyRequests');
-      else if (res.status === 400 && imageDataUrl) msg = t('orNoImageSupport');
       try {
         const errBody = await res.json();
         if (errBody && errBody.error && errBody.error.message) msg = errBody.error.message;
@@ -5061,75 +5399,21 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       throw new Error(msg);
     }
     const data = await res.json();
-    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    const cand = data && data.candidates && data.candidates[0];
+    const content = cand && cand.content && cand.content.parts
+      ? cand.content.parts.map(p => p.text || '').join('').trim()
+      : '';
     if (!content) throw new Error(t('orNoModelReply'));
     return content;
   }
 
-  function toggleOrPanel(){ state.showOrPanel = !state.showOrPanel; render(); }
-
-  function renderOpenrouterPanel(){
-    const configured = hasOpenrouterKey();
-    const expanded = state.showOrPanel;
-
-    // تا وقتی کاربر این پنل رو باز نکرده، فقط یه ردیف کوچیک نشون بده (به‌جای پنل کامل و بزرگ)
-    if (!expanded){
-      return `
-        <div class="panel" style="cursor:pointer;padding:14px 16px" onclick="toggleOrPanel()">
-          <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
-            <div style="display:flex;align-items:center;gap:10px;min-width:0">
-              ${icon('ai',16)}
-              <div style="min-width:0">
-                <div class="stats-title" style="margin-bottom:0;font-size:14px">${t('orTitle')}</div>
-                ${configured ? `<div class="hint-text" style="margin:2px 0 0">${icon('checkCircle',12)} ${t('orKeySaved')}</div>` : ''}
-              </div>
-            </div>
-            <span style="flex-shrink:0;opacity:0.7">${icon('chevronLeft',16)}</span>
-          </div>
-        </div>
-      `;
-    }
-
-    const modelsLoading = state.openrouterModelsStatus === 'loading';
-    const modelsList = state.openrouterFreeModels;
-    const keyLink = `<a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a>`;
-    return `
-      <div class="panel">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px;cursor:pointer" onclick="toggleOrPanel()">
-          <div class="stats-title" style="margin-bottom:0">${icon('ai',16)} ${t('orTitle')}</div>
-          <span style="flex-shrink:0;opacity:0.7">${icon('chevronRight',16)}</span>
-        </div>
-        <div class="hint-text" style="margin-bottom:12px">
-          ${tf('orHint', {link: keyLink})}
-        </div>
-        <div style="display:flex;gap:8px;margin-bottom:10px">
-          <input id="openrouterKeyInput" class="text-input" style="flex:1" type="${state.showOpenrouterKey ? 'text' : 'password'}"
-            placeholder="sk-or-v1-..." value="${esc(state.openrouterKey)}" oninput="syncOpenrouterKeyInput()">
-          <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px" onclick="toggleOpenrouterKeyVisibility()">${icon(state.showOpenrouterKey ? 'eyeOff' : 'eye', 16)}</button>
-        </div>
-        <div class="hint-text" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between">
-          <span>${t('orFreeModelLabel')}</span>
-          <button class="link-btn" style="margin:0" onclick="fetchFreeOpenrouterModels(true)" ${modelsLoading?'disabled':''}>${modelsLoading ? t('orRefreshing') : t('orRefreshList')}</button>
-        </div>
-        ${state.openrouterModelsError ? `<div class="hint-text" style="color:var(--wine);margin-bottom:8px">${esc(state.openrouterModelsError)}</div>` : ''}
-        ${modelsList.length ? `
-          <select id="openrouterModelInput" class="text-input" style="margin-bottom:12px" onchange="syncOpenrouterModelInput()">
-            ${modelsList.map(m => `<option value="${esc(m.id)}" ${state.openrouterModel === m.id ? 'selected' : ''}>${esc(m.name)}</option>`).join('')}
-          </select>
-        ` : `
-          <input id="openrouterModelInput" class="text-input" style="margin-bottom:12px" value="${esc(state.openrouterModel)}" oninput="syncOpenrouterModelInput()" placeholder="${esc(tf('orModelPlaceholder', {model: OPENROUTER_FREE_FALLBACK}))}">
-        `}
-        <div class="hint-text" style="margin-bottom:12px">${t('orRateLimitHint')}</div>
-        <div style="display:flex;gap:8px">
-          <button class="btn-primary" style="flex:1" onclick="saveOpenrouterKey()">${t('orSaveKey')}</button>
-          ${configured ? `<button class="btn-secondary" style="width:auto;padding:10px 16px;border-color:var(--wine);color:var(--wine);margin-top:0" onclick="removeOpenrouterKey()">${t('orRemoveKey')}</button>` : ''}
-        </div>
-        ${configured ? `<div class="hint-text" style="margin-top:10px;color:var(--sage)">${icon('checkCircle',14)} ${t('orKeySaved')}</div>` : ''}
-      </div>
-    `;
+  // نقطه‌ی ورود مشترک: همیشه از Gemini با کلید اعطاشده‌ی مدیر استفاده می‌کنه. همه‌ی بخش‌های
+  // اپ (چت، مکالمه‌ی صوتی، مثال‌سازی، توضیح جمله) باید فقط از این تابع استفاده کنن.
+  async function runAiPrompt(systemPrompt, userPrompt, imageDataUrl){
+    if (!hasAdminGrantedAiAccess()) throw new Error(t('aiKeyNeeded'));
+    return runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, state.aiGrantedKey);
   }
 
-  // --- دستیار هوش مصنوعی (از طریق OpenRouter API) ---
   // --- زبان تدریس (برای ترجمه/گرامر/تمرین/پیشنهاد جمله) ---
   const LANGUAGE_CODES = ['de','en','es','it','fr'];
   const LANGUAGE_META = {
@@ -5172,11 +5456,34 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function aiLangInstruction(){
     return `Always respond in ${uiLangNativeName()} (the app's current interface language) unless the user explicitly asks for a different language for the whole answer or a specific part of it.`;
   }
+  // شکل دقیق JSON کارت «معنی کلمه» که هوش مصنوعی باید برگردونه (شبیه یک دیکشنری حرفه‌ای)
+  function wordCardJsonInstruction(langLabel){
+    return `Respond with ONLY a single pure JSON object, no explanation, no markdown, no code fences, exactly in this shape:
+{"type":"word","word":"...","article":"der/die/das or null (only for German nouns; null otherwise)","level":"A1|A2|B1|B2|C1|C2","category":"...","frequencyLabel":"...","frequencyScore":0-100,"contextTarget":"...","contextTranslated":"...","shortMeaning":"...","examples":[{"sentence":"...","translation":"..."},{"sentence":"...","translation":"..."}]}
+Field rules:
+- "word": the word or expression exactly as written (in ${langLabel || 'the target language'}), corrected if slightly misspelled.
+- "article": for German nouns only, the correct article (der/die/das); null for every other case (verbs, adjectives, other languages, expressions).
+- "level": your best estimate of the CEFR level (A1 easiest to C2 hardest) at which a learner would typically encounter this word.
+- "category": a short 2-4 word label for the register/domain, e.g. "زبان محاوره‌ای و اصطلاحات", "واژگان رسمی و اداری", "اصطلاح روزمره", written in ${uiLangNativeName()}.
+- "frequencyLabel": a short label in ${uiLangNativeName()} describing how common the word is (e.g. "کم‌کاربرد", "نسبتاً پرکاربرد", "بسیار پرکاربرد").
+- "frequencyScore": a number 0-100 matching that label, for a progress bar.
+- "contextTarget": 1-2 sentences, written in the SAME language as the word itself, explaining in which situations/contexts it's used and any usage notes (formality, region, etc).
+- "contextTranslated": the fluent ${uiLangNativeName()} translation of that same explanation.
+- "shortMeaning": a short, direct ${uiLangNativeName()} translation of the word/expression itself (for use as a flashcard's back side), NOT the long explanation.
+- "examples": exactly 2 natural example sentences in the word's own language, each with its fluent ${uiLangNativeName()} translation.
+Never wrap the JSON in markdown code fences, never add commentary before or after it.`;
+  }
   function AI_MODES_FN(){ return {
     chat: {
       label: t('aiModeChat'),
       placeholder: t('aiModeChatPlaceholder'),
-      system: () => `You are a friendly, helpful AI assistant inside the "Leitner Box" language-learning app. Help with any question or request like a normal AI chatbot would, not just language topics. ${aiLangInstruction()} If the user says they're studying or practicing a specific language, or explicitly asks for something to be written in another language (e.g. "count 1 to 10 in German/English"), write exactly that part in the requested language and continue the rest of your explanation in the interface language. Keep answers short and useful.`
+      system: () => `You are a friendly, helpful AI assistant inside the "Leitner Box" language-learning app. Help with any question or request like a normal AI chatbot would, not just language topics. ${aiLangInstruction()} If the user says they're studying or practicing a specific language, or explicitly asks for something to be written in another language (e.g. "count 1 to 10 in German/English"), write exactly that part in the requested language and continue the rest of your explanation in the interface language. Keep answers short and useful.
+Special case: if — and only if — the user is clearly asking for the meaning/explanation of a single word or short fixed expression (e.g. "X یعنی چی", "معنی X چیه", "what does X mean", or a bare word/short phrase with no other question attached), do NOT answer in plain text; instead ${wordCardJsonInstruction()} For every other kind of message, answer normally in plain conversational text (never JSON).`
+    },
+    dictionary: {
+      label: t('aiModeDictionary'),
+      placeholder: () => tf('aiModeDictionaryPlaceholder', {lang: teachLangLabel()}),
+      system: () => `You are a professional dictionary and lexicographer for ${teachLangLabel()}. The user will send you a single word or short expression in ${teachLangLabel()} (or in ${uiLangNativeName()}, asking for its ${teachLangLabel()} equivalent). ${wordCardJsonInstruction(teachLangLabel())}`
     },
     translate: {
       label: t('aiModeTranslate'),
@@ -5186,7 +5493,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     grammar: {
       label: t('aiModeGrammar'),
       placeholder: () => tf('aiModeGrammarPlaceholder', {lang: teachLangLabel()}),
-      system: () => `You are a ${teachLangLabel()} grammar teacher explaining things to a learner. When the user sends a sentence or grammar point, break down the structure, explain the role of each part, and give one or two similar examples. Write simply and clearly. ${aiLangInstruction()}`
+      system: () => `You are a friendly, highly capable grammar teacher who can teach the grammar of ANY language the user asks about, not only ${teachLangLabel()}. By default, assume the user wants to learn ${teachLangLabel()} grammar and teach that. But if the user's message names or clearly implies a different language (e.g. they write in that language, or explicitly ask "explain English/French/Arabic/... grammar"), immediately switch and teach that language's grammar instead, using it as the example language. When the user sends a sentence or grammar point, break down the structure, explain the role of each part, and give one or two similar examples in that language. Write simply and clearly. ${aiLangInstruction()}`
     },
     practice: {
       label: t('aiModePractice'),
@@ -5421,8 +5728,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
 
     let replyText = null;
 
-    if (hasOpenrouterKey()){
-      try { replyText = await runOpenrouterPrompt(resolveModeField(modeCfg.system), promptText, imageData); }
+    if (hasActiveAiKey()){
+      try { replyText = await runAiPrompt(resolveModeField(modeCfg.system), promptText, imageData); }
       catch(e){ state.aiError = (e && e.message) || t('aiOpenrouterConnFailed'); }
     } else {
       state.aiError = t('aiKeyNeededFab');
@@ -5522,7 +5829,15 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   }
 
   // --- حالت مکالمه‌ی صوتی (بدون تایپ؛ فقط صحبت کن و جواب بشنو) ---
+  // این بخش طوری بازنویسی شده که مثل یه تماس صوتی واقعی (شبیه ویس‌کال ChatGPT) رفتار کنه:
+  // میکروفون بعد از یه مکث کوتاه (نه بلافاصله بعد از اولین تکه‌ی نهایی) جمله رو می‌فرسته،
+  // و اگه به هر دلیل داخلیِ مرورگر تشخیص گفتار بی‌دلیل قطع بشه (بدون این‌که کاربر چیزی گفته باشه)،
+  // خودکار دوباره شروع می‌شه و مکالمه «قطع» نمی‌شه.
   let voiceRecognition = null;
+  let voiceSilenceTimer = null;
+  let voiceStopReason = null; // 'finalize' (آماده‌ی ارسال) | 'manual' (کاربر خودش قطع کرد) | null (پایان غیرمنتظره)
+  const VOICE_SILENCE_MS = 1100; // مکث لازم بعد از حرف زدن کاربر تا پیام ارسال بشه
+  function clearVoiceSilenceTimer(){ if (voiceSilenceTimer){ clearTimeout(voiceSilenceTimer); voiceSilenceTimer = null; } }
   function voiceLangBcp47(){
     const info = TRANSLATE_LANGUAGES_FN()[state.aiVoiceLang];
     return (info && info.bcp47) || 'fa-IR';
@@ -5540,7 +5855,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     voiceRecognition.lang = voiceLangBcp47();
     voiceRecognition.interimResults = true;
     voiceRecognition.maxAlternatives = 1;
-    voiceRecognition.continuous = false;
+    voiceRecognition.continuous = true; // گوش دادن پیوسته، مثل یه تماس واقعی
     return voiceRecognition;
   }
   async function startVoiceListening(){
@@ -5552,9 +5867,12 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       await requestMicPermission();
       if (state.micPermState !== 'granted'){ alert(t('alertMicNeededVoice')); return; }
     }
+    state.aiVoiceCallActive = true;
     state.aiVoiceStatus = 'listening';
     state.aiVoiceLiveText = '';
     state.aiError = null;
+    voiceStopReason = null;
+    clearVoiceSilenceTimer();
     render();
     rec.onresult = (e) => {
       let finalText = '', interim = '';
@@ -5563,25 +5881,60 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         if (r.isFinal) finalText += r[0].transcript;
         else interim += r[0].transcript;
       }
-      state.aiVoiceLiveText = (finalText + ' ' + interim).trim();
+      const combined = (finalText + ' ' + interim).trim();
+      if (!combined) return;
+      state.aiVoiceLiveText = combined;
       render();
-      if (finalText.trim()) { try { rec.stop(); } catch(err){} }
+      // هر بار که چیز جدیدی شنیده می‌شه تایمر سکوت ریست می‌شه؛ یعنی تا وقتی کاربر داره حرف می‌زنه (حتی با مکث‌های کوتاه) قطع نمی‌شه
+      clearVoiceSilenceTimer();
+      voiceSilenceTimer = setTimeout(() => {
+        voiceStopReason = 'finalize';
+        try { rec.stop(); } catch(err){}
+      }, VOICE_SILENCE_MS);
     };
-    rec.onerror = () => { if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; render(); } };
+    rec.onerror = (e) => {
+      clearVoiceSilenceTimer();
+      const errCode = e && e.error;
+      if (errCode === 'not-allowed' || errCode === 'audio-capture'){
+        state.aiVoiceCallActive = false;
+        state.aiVoiceStatus = 'idle';
+        state.aiVoiceLiveText = '';
+        render();
+        return;
+      }
+      // خطاهای موقتی مثل no-speech نباید تماس رو تموم کنن؛ onend به‌زودی خودش رو دوباره راه‌اندازی می‌کنه
+    };
     rec.onend = () => {
+      clearVoiceSilenceTimer();
       if (state.aiVoiceStatus !== 'listening') return;
       const finalText = (state.aiVoiceLiveText || '').trim();
+      const reason = voiceStopReason;
+      voiceStopReason = null;
+      if (reason === 'finalize' && finalText){
+        state.aiVoiceStatus = 'idle';
+        state.aiVoiceLiveText = '';
+        sendVoiceMessage(finalText);
+        return;
+      }
+      // پایان غیرمنتظره (مثل محدودیت داخلی مرورگر برای تشخیص گفتار)؛ اگه تماس هنوز فعاله، بی‌صدا دوباره شروع می‌کنیم تا کاربر اصلاً متوجه قطعی نشه
+      if (state.aiVoiceCallActive){
+        state.aiVoiceLiveText = '';
+        try { rec.start(); return; } catch(err){}
+      }
       state.aiVoiceStatus = 'idle';
       state.aiVoiceLiveText = '';
-      if (finalText) sendVoiceMessage(finalText); else render();
+      render();
     };
     try { rec.start(); } catch(e){ state.aiVoiceStatus = 'idle'; render(); }
   }
   function stopVoiceListening(){
-    if (voiceRecognition){
-      try { voiceRecognition.onresult = null; voiceRecognition.onerror = null; voiceRecognition.onend = null; voiceRecognition.abort(); } catch(e){}
-    }
+    clearVoiceSilenceTimer();
+    voiceStopReason = 'manual';
+    state.aiVoiceCallActive = false;
     if (state.aiVoiceStatus === 'listening'){ state.aiVoiceStatus = 'idle'; state.aiVoiceLiveText = ''; }
+    if (voiceRecognition){
+      try { voiceRecognition.abort(); } catch(e){}
+    }
     render();
   }
   function toggleVoiceListening(){
@@ -5601,8 +5954,8 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     render();
     const modeCfg = AI_MODES_FN().voice;
     let replyText = null;
-    if (hasOpenrouterKey()){
-      try { replyText = await runOpenrouterPrompt(resolveModeField(modeCfg.system), text, null); }
+    if (hasActiveAiKey()){
+      try { replyText = await runAiPrompt(resolveModeField(modeCfg.system), text, null); }
       catch(e){ state.aiError = (e && e.message) || t('aiOpenrouterConnFailed'); }
     } else {
       state.aiError = t('aiKeyNeededFab');
@@ -5633,13 +5986,14 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         if (state.aiVoiceStatus !== 'speaking') return;
         state.aiVoiceStatus = 'idle';
         render();
-        if (state.aiVoiceAutoContinue) startVoiceListening();
+        if (state.aiVoiceAutoContinue && state.aiVoiceCallActive) startVoiceListening();
       };
       u.onerror = () => { state.aiVoiceStatus = 'idle'; render(); };
       window.speechSynthesis.speak(u);
     } catch(e){ state.aiVoiceStatus = 'idle'; render(); }
   }
   function endVoiceCall(){
+    state.aiVoiceCallActive = false;
     stopVoiceListening();
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
     state.aiVoiceStatus = 'idle';
@@ -5704,10 +6058,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.aiSentenceResult = null;
     render();
     try {
-      if (!hasOpenrouterKey()) throw new Error(t('aiKeyNeeded'));
+      if (!hasActiveAiKey()) throw new Error(t('aiKeyNeeded'));
       const system = 'You must respond with ONLY a single pure JSON object, no explanation or Markdown, exactly in this shape: {"example": "...", "meaning": "..."}';
       const prompt = `Word: "${card.de}"\nMeaning (in ${uiLangNativeName()}): "${card.fa}"\nWrite one natural, fluent, practical example sentence using this word, in the same language as the word itself. The sentence should be 10-15 words, not too short or too long, and suitable for a language learner. Then write the full, fluent meaning of that same sentence in ${uiLangNativeName()}.`;
-      const replyText = await runOpenrouterPrompt(system, prompt);
+      const replyText = await runAiPrompt(system, prompt);
       if (!replyText) throw new Error(t('aiNoReply'));
       const parsed = extractJson(replyText);
       if (!parsed || !parsed.example) throw new Error(t('aiUnreadableReply'));
@@ -5774,10 +6128,10 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     state.aiExplainResult = null;
     render();
     try {
-      if (!hasOpenrouterKey()) throw new Error(t('aiKeyNeeded'));
+      if (!hasActiveAiKey()) throw new Error(t('aiKeyNeeded'));
       const system = 'You must respond with ONLY a single pure JSON object, no explanation or Markdown, exactly in this shape: {"meaning": "...", "grammar": "...", "vocab": [{"word": "...", "meaning": "..."}], "similar": {"sentence": "...", "meaning": "..."} or null}';
       const prompt = `Sentence: "${card.de}"\nMeaning (in ${uiLangNativeName()}): "${card.fa}"\nExplain this sentence, in ${uiLangNativeName()}, for someone learning the language this sentence is written in:\n1) Explain the full meaning and sense of the sentence fluently in ${uiLangNativeName()} (not just a word-for-word translation — unpack the meaning too).\n2) Write the sentence's key grammar points (structure, verb tense, mood, and anything the learner should know) briefly and practically, in ${uiLangNativeName()}.\n3) List the sentence's most important words or phrases (max 5) with their meaning in ${uiLangNativeName()}.\n4) Only if it would genuinely help, create one more similar sentence (with close structure or vocabulary) in the same language as the original sentence, and give its meaning in ${uiLangNativeName()} too; if this isn't needed, set it to null.`;
-      const replyText = await runOpenrouterPrompt(system, prompt);
+      const replyText = await runAiPrompt(system, prompt);
       if (!replyText) throw new Error(t('aiNoReply'));
       const parsed = extractJson(replyText);
       if (!parsed || !parsed.meaning) throw new Error(t('aiUnreadableReply'));
@@ -5819,7 +6173,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (state.aiMode === 'voice') return renderAiVoicePage();
     const modeCfg = AI_MODES_FN()[state.aiMode] || AI_MODES_FN().chat;
     const ctx = state.aiMode === 'teacher' ? state.aiTeacherCard : null;
-    const needsLang = ['translate','grammar','practice','suggest','teacher'].includes(state.aiMode);
+    const needsLang = ['translate','grammar','practice','suggest','teacher','dictionary'].includes(state.aiMode);
     return `
       <div class="ai-page">
         <div class="ai-page-header">
@@ -5863,12 +6217,13 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         </div>
       </div>
       ${renderAiHistoryModal()}
+      ${renderAiWordCardModal()}
     `;
   }
 
   function renderAiVoicePage(){
     const status = state.aiVoiceStatus;
-    const statusLabel = status === 'listening' ? t('aiVoiceListening') : status === 'thinking' ? t('aiVoiceThinking') : status === 'speaking' ? t('aiVoiceSpeaking') : (state.aiVoiceLastUser ? t('aiVoiceTapToTalk') : t('aiVoiceIdleHint'));
+    const statusLabel = status === 'listening' ? t('aiVoiceListening') : status === 'thinking' ? t('aiVoiceThinking') : status === 'speaking' ? t('aiVoiceSpeaking') : (state.aiVoiceCallActive ? t('aiVoiceCallActiveHint') : (state.aiVoiceLastUser ? t('aiVoiceTapToTalk') : t('aiVoiceIdleHint')));
     const micIcon = status === 'thinking' ? 'ai' : status === 'speaking' ? 'volume' : 'mic';
     const shownUser = state.aiVoiceLiveText || state.aiVoiceLastUser;
     return `
@@ -5913,14 +6268,121 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
+  // اگه متن پیام مدل یه JSON کارت «معنی کلمه» باشه، پارسش می‌کنیم؛ وگرنه null برمی‌گردونه (پیام معمولی)
+  function parseAiWordCard(text){
+    if (!text) return null;
+    const trimmed = text.trim();
+    if (trimmed[0] !== '{' || trimmed[trimmed.length-1] !== '}') return null;
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && parsed.type === 'word' && parsed.word) return parsed;
+    } catch(e){}
+    return null;
+  }
+  function renderAiWordCard(card, i){
+    const freq = Math.max(0, Math.min(100, Number(card.frequencyScore) || 50));
+    const examples = Array.isArray(card.examples) ? card.examples.slice(0, 3) : [];
+    return `
+      <div class="ai-wordcard">
+        <div class="ai-wordcard-head">
+          <span class="ai-wordcard-word">${esc(card.article ? card.article + ' ' + card.word : card.word)}</span>
+          ${card.level ? `<span class="ai-wordcard-level-badge"><span class="ai-wordcard-level-dot"></span>${esc(card.level)}</span>` : ''}
+        </div>
+        <div class="ai-wordcard-table">
+          ${card.category ? `<div class="ai-wordcard-row"><span class="ai-wordcard-row-label">${t('aiWordCardCategoryLabel')}</span><span class="ai-wordcard-row-value">${esc(card.category)}</span></div>` : ''}
+          ${card.frequencyLabel ? `<div class="ai-wordcard-row"><span class="ai-wordcard-row-label">${t('aiWordCardFrequencyLabel')}</span><div class="ai-wordcard-freq-bar"><div class="ai-wordcard-freq-fill" style="width:${freq}%"></div></div><span class="ai-wordcard-row-value">${esc(card.frequencyLabel)}</span></div>` : ''}
+        </div>
+        ${card.contextTarget || card.contextTranslated ? `
+          <div class="ai-wordcard-section-title">${t('aiWordCardContextTitle')}</div>
+          ${card.contextTarget ? `<div class="ai-wordcard-context-target">${esc(card.contextTarget)}</div>` : ''}
+          ${card.contextTranslated ? `<div class="ai-wordcard-context-fa">${esc(card.contextTranslated)}</div>` : ''}
+        ` : ''}
+        ${examples.length ? `
+          <div class="ai-wordcard-section-title">${t('aiWordCardExamplesTitle')}</div>
+          ${examples.map(ex => `
+            <div class="ai-wordcard-example">
+              <div class="ai-wordcard-example-sentence">${esc(ex.sentence || '')}</div>
+              ${ex.translation ? `<div class="ai-wordcard-example-translation">${esc(ex.translation)}</div>` : ''}
+            </div>
+          `).join('')}
+        ` : ''}
+        <button class="ai-wordcard-add-btn" onclick="openAiWordCardAddModal(${i})">${t('aiWordCardAddBtn')}</button>
+      </div>
+    `;
+  }
   function renderAiMessage(m, i){
     const cls = m.role === 'user' ? 'ai-msg-user' : 'ai-msg-model';
+    if (m.role === 'model'){
+      const wordCard = parseAiWordCard(m.text);
+      if (wordCard) return renderAiWordCard(wordCard, i);
+    }
     return `
       <div class="ai-msg ${cls}">
         ${m.image ? `<img class="ai-msg-img" src="${m.image}" alt="">` : ''}
         <div>${esc(m.text)}</div>
         ${m.cached ? `<div class="hint-text" style="margin:4px 0 0;font-size:11px">${icon('history',11)} ${t('aiCachedNote')}</div>` : ''}
         ${m.role === 'model' ? `<div class="ai-msg-copy"><button onclick="copyAiMessage(${i})">${icon('copy', 12)} ${t('aiCopy')}</button></div>` : ''}
+      </div>
+    `;
+  }
+  // --- افزودن کارت «معنی کلمه» به جعبه لایتنر با انتخاب دسته‌بندی ---
+  function openAiWordCardAddModal(i){
+    const m = state.aiMessages[i];
+    const card = m ? parseAiWordCard(m.text) : null;
+    if (!card) return;
+    state.aiWordCardPending = card;
+    state.aiWordCardCategoryId = 'none';
+    state.showAiWordCardModal = true;
+    render();
+  }
+  function closeAiWordCardModal(){ state.showAiWordCardModal = false; state.aiWordCardPending = null; render(); }
+  function setAiWordCardCategory(v){ state.aiWordCardCategoryId = v; }
+  function addCategoryFromWordCardModal(){
+    const input = document.getElementById('aiWordCardNewCategoryInput');
+    const name = input ? input.value.trim() : '';
+    if (!name) return;
+    const cat = { id: `cat-${Date.now()}-${Math.random().toString(36).slice(2,7)}`, name, createdAt: new Date().toISOString() };
+    state.categories = [...state.categories, cat];
+    persistCategories();
+    state.aiWordCardCategoryId = cat.id;
+    render();
+  }
+  function confirmAddAiWordCard(){
+    const cardSel = document.getElementById('aiWordCardCategorySelect');
+    if (cardSel) state.aiWordCardCategoryId = cardSel.value;
+    const card = state.aiWordCardPending;
+    if (!card) return;
+    const de = (card.article ? card.article + ' ' + card.word : card.word || '').trim();
+    const fa = (card.shortMeaning || card.contextTranslated || '').trim();
+    if (!de || !fa) { closeAiWordCardModal(); return; }
+    const categoryId = (state.aiWordCardCategoryId && state.aiWordCardCategoryId !== 'none') ? state.aiWordCardCategoryId : null;
+    const now = new Date().toISOString();
+    const today = todayStr();
+    const newCard = { id: `${Date.now()}-${Math.random().toString(36).slice(2,7)}`, de, fa, box: 1, nextReview: today, createdAt: now, type: 'word', categoryId };
+    state.cards = [...state.cards, newCard];
+    persistCards();
+    state.showAiWordCardModal = false;
+    state.aiWordCardPending = null;
+    alert(t('aiWordCardAdded'));
+    render();
+  }
+  function renderAiWordCardModal(){
+    if (!state.showAiWordCardModal || !state.aiWordCardPending) return '';
+    return `
+      <div class="modal-backdrop" onclick="closeAiWordCardModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:10px">
+            <span class="deck-title">${t('aiWordCardModalTitle')}</span>
+            <button class="modal-close-btn" onclick="closeAiWordCardModal()">${icon('close',15)}</button>
+          </div>
+          <div class="hint-text" style="margin-bottom:10px">${t('aiWordCardChooseCategory')}</div>
+          <select id="aiWordCardCategorySelect" class="select-input" onchange="setAiWordCardCategory(this.value)">${renderCategoryOptions(state.aiWordCardCategoryId, false)}</select>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input id="aiWordCardNewCategoryInput" class="text-input" style="flex:1" placeholder="${t('addNewCategoryPlaceholder')}">
+            <button class="btn-secondary" style="margin-top:0;width:auto;padding:10px 14px" onclick="addCategoryFromWordCardModal()">${t('addNewCategorySave')}</button>
+          </div>
+          <button class="btn-primary" style="margin-top:14px" onclick="confirmAddAiWordCard()">${t('aiWordCardConfirmAdd')}</button>
+        </div>
       </div>
     `;
   }
@@ -5961,7 +6423,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function goStats(){ stopListening(); state.view='stats'; state.showHeaderMenu = false; render(); }
   function goProfile(){ stopListening(); state.view='profile'; state.showHeaderMenu = false; render(); }
   function goManage(){ stopListening(); state.view='manage'; state.confirmDeleteId=null; state.editingId=null; render(); }
-  function goSettings(){ stopListening(); state.view='settings'; render(); fetchFreeOpenrouterModels(false); }
+  function goSettings(){ stopListening(); state.view='settings'; render(); }
   function syncInputText(){ const ta = document.getElementById('addTextarea'); if (ta) state.inputText = ta.value; }
   function setAddType(t){ syncInputText(); state.addType = t; state.addSearchQuery = ''; render(); }
   function setAddCategory(v){ state.addCategoryId = v; }
@@ -6017,6 +6479,20 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function isIos(){ return /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); }
   function isStandalone(){ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true; }
 
+  // یادآور روزانه و چک پیام‌های مدیر در پس‌زمینه، هر دو از همین Periodic Background Sync استفاده
+  // می‌کنن (فقط Android/Chrome با PWA نصب‌شده؛ زمان‌بندیش کاملاً دست خودِ مرورگره، تضمینی نیست).
+  async function registerBackgroundSyncTags(){
+    try {
+      if (!('serviceWorker' in navigator)) return;
+      const reg = await navigator.serviceWorker.ready;
+      if (!('periodicSync' in reg) || !navigator.permissions || !navigator.permissions.query) return;
+      const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
+      if (status.state !== 'granted') return;
+      try { await reg.periodicSync.register('leitner-daily-reminder', { minInterval: 24*60*60*1000 }); } catch(e){}
+      try { await reg.periodicSync.register('leitner-broadcast-check', { minInterval: 2*60*60*1000 }); } catch(e){}
+    } catch(e) { /* not supported on this browser, that's fine */ }
+  }
+
   async function toggleReminders(){
     if (state.remindersEnabled) {
       state.remindersEnabled = false;
@@ -6036,19 +6512,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     localStorage.setItem(REMIND_KEY, '1');
     if (!state.reminderTime) state.reminderTime = '09:00';
     try { localStorage.setItem(REMINDER_TIME_KEY, state.reminderTime); } catch(e){}
-    try {
-      if ('serviceWorker' in navigator) {
-        const reg = await navigator.serviceWorker.ready;
-        if ('periodicSync' in reg) {
-          try {
-            const status = await navigator.permissions.query({ name: 'periodic-background-sync' });
-            if (status.state === 'granted') {
-              await reg.periodicSync.register('leitner-daily-reminder', { minInterval: 24*60*60*1000 });
-            }
-          } catch(e) { /* not supported on this browser, that's fine */ }
-        }
-      }
-    } catch(e){ console.error(e); }
+    await registerBackgroundSyncTags();
     startReminderWatcher();
     render();
   }
@@ -6452,7 +6916,6 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   loadAiTeachLang();
   loadDailyGoals();
   loadDailyProgress();
-  loadOpenrouterConfig();
   loadFriendData();
   render();
   ensureCurriculumBootstrapped();
