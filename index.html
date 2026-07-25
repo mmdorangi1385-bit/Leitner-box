@@ -573,6 +573,33 @@
 .chat-header-clickable:active { opacity: 0.7; }
 .chat-header-hint { font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 10.5px; font-weight: 400; color: var(--brass); }
 
+/* --- دوئل زبانی --- */
+.duel-header-btn { font-size: 16px; display: flex; align-items: center; gap: 4px; width: auto; padding: 0 10px; }
+.duel-header-btn-label { font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 12px; font-weight: 600; }
+.duel-lang-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.duel-lang-btn { border: 1px solid var(--border2); background: var(--panel2); color: var(--text); border-radius: 12px; padding: 8px 12px; font-family: 'Vazirmatn', Tahoma, sans-serif; font-size: 13px; cursor: pointer; }
+.duel-lang-btn.active { border-color: var(--brass); background: var(--brass); color: #1a1a1a; font-weight: 700; }
+.duel-msg { display: flex; flex-direction: column; gap: 8px; min-width: 220px; }
+.duel-msg-actions { display: flex; gap: 8px; }
+.duel-msg-btn { flex: 1; font-size: 12.5px; padding: 8px 10px; }
+.duel-page { display: flex; flex-direction: column; gap: 14px; padding: 14px; }
+.duel-timer { font-family: 'Fraunces', Georgia, serif; font-weight: 700; font-size: 16px; color: var(--brass); background: var(--panel2); border-radius: 10px; padding: 4px 10px; }
+.duel-question-box { background: var(--panel2); border: 1px solid var(--border2); border-radius: 16px; padding: 18px; text-align: center; }
+.duel-question-text { font-size: 17px; font-weight: 700; line-height: 1.7; }
+.duel-options { display: flex; flex-direction: column; gap: 10px; }
+.duel-option { display: flex; align-items: center; gap: 10px; text-align: start; border: 1.5px solid var(--border2); background: var(--panel); color: var(--text); border-radius: 14px; padding: 14px 16px; font-size: 14.5px; cursor: pointer; transition: background 0.15s ease, border-color 0.15s ease; }
+.duel-option:disabled { cursor: default; }
+.duel-option.correct { background: var(--sage-strong, #4a9d6f); border-color: var(--sage-strong, #4a9d6f); color: #fff; }
+.duel-option.wrong { background: var(--wine); border-color: var(--wine); color: #fff; }
+.duel-option-letter { display: inline-flex; align-items: center; justify-content: center; width: 26px; height: 26px; border-radius: 50%; background: var(--panel2); font-weight: 700; font-size: 12px; flex-shrink: 0; }
+.duel-option.correct .duel-option-letter, .duel-option.wrong .duel-option-letter { background: rgba(255,255,255,0.25); color: #fff; }
+.duel-next-btn { width: 100%; }
+.duel-result-box { background: var(--panel2); border: 1px solid var(--border2); border-radius: 16px; padding: 20px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
+.duel-score-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
+.duel-result-line { font-size: 17px; font-weight: 700; margin-top: 6px; }
+.group-avatar-wrap { display: flex; align-items: center; justify-content: center; background: var(--panel2); border-radius: 50%; color: var(--brass); }
+.group-msg-sender { font-size: 10.5px; font-weight: 700; color: var(--brass); margin-bottom: 2px; }
+
 /* --- Firebase auth overlay --- */
 #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
 #auth-overlay.hide { display: none; }
@@ -2397,6 +2424,9 @@
     showLevelRoadmapModal: false, curriculumWords: {}, curriculumLoadStatus: {}, curriculumUnlocked: {}, curriculumStageProgress: {},
     friendRequests: [], friendRequestMeta: {}, userFriends: [], chats: {}, showRequestsModal: false, openChatUsername: null,
     chatUploading: false, chatRecording: false,
+    duelsInfo: {}, showDuelModal: false, duelLang: null, duelMode: 'words', duelSending: false, duelAccepting: null, activeDuel: null,
+    myGroups: [], showCreateGroupModal: false, groupSelectedFriendUids: [], groupCreating: false,
+    openGroupId: null, groupChats: {}, groupUploading: false,
     blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null, friendSearchLoading: false,
     leaderboardTab: 'league', leaderboardEntries: null, leaderboardLoading: false,
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
@@ -3291,6 +3321,18 @@
   let socialListenersAttached = false;
   let friendRequestsRef = null, pendingAddsRef = null, myFriendUidsRef = null;
   let activeChatRef = null;
+  // --- گروه‌ها: صندوقِ دعوت (mailbox) + شنونده‌ی زنده‌ی «گروه‌های من» + شنونده‌های زنده‌ی
+  // هر گروه (اسم/اعضا) و شنونده‌ی چتِ گروهیِ بازِ فعلی
+  let groupInviteBoxRef = null;
+  let userGroupsRef = null;
+  let groupDocRefs = {}; // groupId -> firebase ref (اسم/اعضا/متادیتای گروه)
+  let activeGroupChatRef = null; // چتِ گروهیِ بازِ فعلی
+  // --- دوئل زبانی: شنونده‌های زنده‌ی گره duels/{duelId} برای هر پیام دوئلِ توی چتِ بازِ فعلی،
+  // یه تایمر ثانیه‌شمار برای بازی درحال‌انجام، و یادداشتِ دوئل‌هایی که این تب همین حالا
+  // خودکار بازشون کرده (که با هر تیک وضعیت به active دوباره باز نشن)
+  let duelInfoRefs = {}; // duelId -> firebase ref
+  let duelTimerInterval = null;
+  let duelAutoOpened = {};
   const friendProfileCache = {}; // uid -> {name, avatar, userId, xp} (کش موقت، برای کم‌کردن تعداد درخواست‌ها)
 
   function myUid(){ return state.authUser ? state.authUser.uid : null; }
@@ -3447,6 +3489,8 @@
   }
 
   function openUserChat(username){
+    detachGroupChatListener();
+    state.openGroupId = null;
     state.openChatUsername = username;
     state.openUserFriendProfile = null;
     render();
@@ -3624,8 +3668,12 @@
         type: m.type || 'text',
         url: m.url || null,
         size: m.size || null,
+        duelId: m.duelId || null,
+        duelLang: m.duelLang || null,
+        duelMode: m.duelMode || null,
         ts: m.timestamp
       });
+      if (m.type === 'duel' && m.duelId) attachDuelInfoListener(m.duelId);
       render();
       const msgsEl = document.getElementById('userChatMessages');
       if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
@@ -3653,6 +3701,536 @@
   }
   function detachChatListener(){
     if (activeChatRef) { activeChatRef.off(); activeChatRef = null; }
+    Object.keys(duelInfoRefs).forEach((id) => { duelInfoRefs[id].off(); });
+    duelInfoRefs = {};
+  }
+
+  // ===================================================================
+  // --- دوئل زبانی (Language Duel) ---
+  // یه درخواستِ دوئل بین دو دوست: هر دو روی ۱۰ سؤال (کلمه/جمله) با سطحِ برابرِ
+  // سطحِ پایین‌ترِ دو نفر رقابت می‌کنن. سؤال‌ها یک‌بار توسط طرفی که دوئل رو قبول
+  // می‌کنه از هوش مصنوعی ساخته و روی duels/{duelId} نوشته می‌شه تا هر دو طرف
+  // دقیقاً همون سؤال‌ها رو ببینن. هر کاربر مستقل (روی گوشیِ خودش) به سؤال‌ها
+  // جواب می‌ده و نتیجه‌ش (امتیاز از ۱۰) توی duels/{duelId}/results/{uid} ثبت
+  // می‌شه؛ وقتی نتیجه‌ی هر دو طرف موجود شد، صفحه‌ی نتیجه مقایسه رو نشون می‌ده.
+  // ===================================================================
+  const DUEL_LEVEL_RANK = { 'مبتدی': 0, 'A1': 1, 'A2': 2, 'B1': 3, 'B2+': 4 };
+  const DUEL_LEVEL_CODE = { 'مبتدی': 'A0', 'A1': 'A1', 'A2': 'A2', 'B1': 'B1', 'B2+': 'B2' };
+  const DUEL_LEVEL_ORDER = ['A0', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+  const DUEL_TOTAL_SECONDS = 60;
+  const DUEL_FEEDBACK_MS = 1500;
+
+  // سطحِ زبانیِ کاربر برای یک زبانِ دلخواه (نه لزوماً زبانِ فعلیِ برنامه) — بر پایه‌ی
+  // همون آمار محلیِ ذخیره‌شده روی گوشی برای اون زبان (statsKeyFor)
+  function langLevelLabelForLang(lang){
+    let stats = null;
+    if (lang === currentTargetLangCode()) { stats = state.stats; }
+    else { try { stats = JSON.parse(localStorage.getItem(statsKeyFor(lang)) || 'null'); } catch(e){ stats = null; } }
+    const correct = stats ? ((stats.word && stats.word.correct) || 0) + ((stats.sentence && stats.sentence.correct) || 0) + ((stats.pronun && stats.pronun.correct) || 0) : 0;
+    return langLevelLabel(correct);
+  }
+  function duelLevelCodeForLang(lang){ return DUEL_LEVEL_CODE[langLevelLabelForLang(lang)] || 'A0'; }
+  function duelTargetLevelCode(codeA, codeB){
+    const ia = DUEL_LEVEL_ORDER.indexOf(codeA), ib = DUEL_LEVEL_ORDER.indexOf(codeB);
+    const idx = Math.min(ia < 0 ? 0 : ia, ib < 0 ? 0 : ib);
+    return DUEL_LEVEL_ORDER[idx];
+  }
+
+  function openDuelModal(){
+    const username = state.openChatUsername;
+    if (!username) return;
+    if (!hasAdminGrantedAiAccess()){ alert('برای دوئل زبانی باید دسترسی هوش مصنوعی فعال باشه؛ از پشتیبانی بخواید براتون فعالش کنه.'); return; }
+    state.duelLang = currentTargetLangCode();
+    state.duelMode = 'words';
+    state.showDuelModal = true;
+    render();
+  }
+  function closeDuelModal(){ state.showDuelModal = false; render(); }
+  function setDuelLang(code){ state.duelLang = code; render(); }
+  function setDuelMode(mode){ state.duelMode = mode; render(); }
+
+  function renderDuelModal(){
+    if (!state.showDuelModal) return '';
+    const username = state.openChatUsername;
+    const lang = state.duelLang || currentTargetLangCode();
+    return `
+      <div class="modal-backdrop" onclick="closeDuelModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:2px">
+            <span class="deck-title">🔥 دوئل زبانی با ${esc(username || '')}</span>
+            <button class="modal-close-btn" onclick="closeDuelModal()">${icon('close', 15)}</button>
+          </div>
+          <label class="hint-text" style="display:block;margin-top:10px;margin-bottom:4px">زبان دوئل</label>
+          <div class="duel-lang-options">
+            ${LANGUAGE_CODES.map(code => `<button class="duel-lang-btn ${lang === code ? 'active' : ''}" onclick="setDuelLang('${code}')">${targetLangMeta(code).flag} ${targetLangLabel(code)}</button>`).join('')}
+          </div>
+          <label class="hint-text" style="display:block;margin-top:14px;margin-bottom:4px">حالت دوئل</label>
+          <div class="type-toggle">
+            <button class="type-btn ${state.duelMode === 'words' ? 'active-word' : ''}" onclick="setDuelMode('words')">۱۰ کلمه</button>
+            <button class="type-btn ${state.duelMode === 'sentences' ? 'active-sentence' : ''}" onclick="setDuelMode('sentences')">۱۰ جمله</button>
+          </div>
+          <button class="btn-primary" style="margin-top:16px;width:100%" ${state.duelSending ? 'disabled' : ''} onclick="sendDuelRequest()">${state.duelSending ? 'در حال ارسال...' : 'ارسال درخواست دوئل'}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  async function sendDuelRequest(){
+    const username = state.openChatUsername;
+    const f = userFriendByUsername(username);
+    const uid = myUid();
+    if (!username || !f || !f.uid || !uid || !firebaseReady) { alert('الان امکان ارسال دوئل نیست.'); return; }
+    state.duelSending = true; render();
+    try {
+      const lang = state.duelLang || currentTargetLangCode();
+      const mode = state.duelMode || 'words';
+      const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
+      const myLevel = duelLevelCodeForLang(lang);
+      const duelRef = fbDb.ref('duels').push();
+      await duelRef.set({
+        fromUid: uid, toUid: f.uid, fromUsername: myUsername, toUsername: username,
+        lang, mode, status: 'pending', createdAt: Date.now(),
+        levels: { [uid]: myLevel },
+      });
+      await fbDb.ref('chats/' + chatIdFor(uid, f.uid)).push({
+        sender: uid, type: 'duel', duelId: duelRef.key, duelLang: lang, duelMode: mode, timestamp: Date.now(),
+      });
+      state.showDuelModal = false;
+    } catch(e){
+      console.error('sendDuelRequest error', e);
+      alert('ارسال درخواست دوئل ناموفق بود.');
+    }
+    state.duelSending = false;
+    render();
+  }
+
+  // شنونده‌ی زنده‌ی گره duels/{duelId} — چون هر دو طرفِ چت روش دسترسی خوندن دارن،
+  // با هر تغییری (قبول/رد/سؤال‌های آماده‌شده/نتیجه‌ی هرکدوم) هر دو بلافاصله باخبر می‌شن.
+  function attachDuelInfoListener(duelId){
+    if (duelInfoRefs[duelId]) return;
+    const ref = fbDb.ref('duels/' + duelId);
+    duelInfoRefs[duelId] = ref;
+    ref.on('value', (snap) => { handleDuelInfoUpdate(duelId, snap.val()); });
+  }
+  function handleDuelInfoUpdate(duelId, info){
+    if (!info) return;
+    state.duelsInfo[duelId] = info;
+    const uid = myUid();
+    // وقتی دوئل فعال شد و سؤال‌ها آماده‌ن، اگه من یکی از دو طرفم و همین حالا توی
+    // بازیِ دیگه‌ای نیستم و این تب هنوز خودش این دوئل رو باز نکرده، خودکار بازش کن
+    if (info.status === 'active' && info.questions && (info.fromUid === uid || info.toUid === uid) && !state.activeDuel && !duelAutoOpened[duelId]){
+      duelAutoOpened[duelId] = true;
+      openDuelGame(duelId);
+    }
+    render();
+  }
+
+  async function declineDuel(duelId){
+    try { await fbDb.ref('duels/' + duelId).update({ status: 'declined' }); }
+    catch(e){ console.error('declineDuel error', e); }
+  }
+
+  async function acceptDuel(duelId){
+    if (!hasAdminGrantedAiAccess()){ alert('برای دوئل زبانی باید دسترسی هوش مصنوعی فعال باشه؛ از پشتیبانی بخواید براتون فعالش کنه.'); return; }
+    const uid = myUid();
+    if (!uid) return;
+    state.duelAccepting = duelId; render();
+    try {
+      const snap = await fbDb.ref('duels/' + duelId).once('value');
+      const info = snap.val();
+      if (!info || info.status !== 'pending') { state.duelAccepting = null; render(); return; }
+      const otherUid = info.fromUid === uid ? info.toUid : info.fromUid;
+      const myLevel = duelLevelCodeForLang(info.lang);
+      const otherLevel = (info.levels && info.levels[otherUid]) || 'A0';
+      const targetLevel = duelTargetLevelCode(myLevel, otherLevel);
+      const questions = await generateDuelQuestions(info.lang, info.mode, targetLevel);
+      const levels = Object.assign({}, info.levels || {}, { [uid]: myLevel });
+      await fbDb.ref('duels/' + duelId).update({ status: 'active', levels, targetLevel, questions, startedAt: Date.now() });
+      duelAutoOpened[duelId] = true;
+      openDuelGame(duelId);
+    } catch(e){
+      console.error('acceptDuel error', e);
+      alert('راه‌اندازی دوئل ناموفق بود: ' + (e.message || ''));
+    }
+    state.duelAccepting = null;
+    render();
+  }
+
+  // --- تولید ۱۰ سؤال دوئل با هوش مصنوعی ---
+  function duelModeLabel(mode){ return mode === 'sentences' ? 'جمله' : 'کلمه'; }
+  async function generateDuelQuestions(lang, mode, targetLevel){
+    const langName = targetLangLabel(lang);
+    const systemPrompt = `You are the AI Matchmaker and Question Generator for a language learning duel game.
+
+### INPUT PARAMETERS:
+- Target_Language: ${langName}
+- Target_Level (CEFR): ${targetLevel}
+- Mode: ${mode === 'sentences' ? 'sentences' : 'words'}
+
+### TASK:
+Generate exactly 10 multiple-choice questions matching the Target_Level, Target_Language, and Mode.
+
+### RULES FOR QUESTION GENERATION:
+1. Question Text (\`question_text\`): MUST be written in PERSIAN asking for the translation, meaning, or equivalent (e.g. "معنی کلمه زیر به ${langName} چیست؟" or "ترجمه درست عبارت زیر چیست؟").
+2. Options (\`options\`): MUST contain exactly 4 choices strictly in ${langName}.
+3. Correct Option: Exactly 1 option must be correct (\`correct_option_index\` between 0 and 3). The other 3 must be realistic distractors.
+4. Mode Logic:
+   - Mode "words": Focus on vocabulary suitable for Target_Level.
+   - Mode "sentences": Focus on sentence structure, grammar, or full translations suitable for Target_Level.
+
+### OUTPUT FORMAT (JSON ONLY):
+Return strictly a valid JSON object without markdown wrappers or conversational text:
+{
+  "target_language": "${langName}",
+  "target_level": "${targetLevel}",
+  "mode": "${mode}",
+  "questions": [
+    { "id": 1, "question_text": "...", "options": ["...", "...", "...", "..."], "correct_option_index": 0 }
+  ]
+}`;
+    const userPrompt = `لطفاً دقیقاً ۱۰ سؤال بساز طبق پارامترهای بالا و فقط JSON خروجی بده.`;
+    const raw = await runAiPrompt(systemPrompt, userPrompt);
+    const data = extractJson(raw);
+    const list = data && Array.isArray(data.questions) ? data.questions : null;
+    if (!list || list.length < 4) throw new Error('پاسخ هوش مصنوعی نامعتبر بود.');
+    return list.slice(0, 10).map((q, i) => ({
+      id: q.id || (i + 1),
+      question_text: String(q.question_text || '').trim(),
+      options: Array.isArray(q.options) ? q.options.slice(0, 4).map(o => String(o)) : [],
+      correct_option_index: Number.isInteger(q.correct_option_index) ? q.correct_option_index : 0,
+    })).filter(q => q.question_text && q.options.length === 4);
+  }
+
+  // --- صفحه‌ی بازیِ دوئل ---
+  function openDuelGame(duelId){
+    const info = state.duelsInfo[duelId];
+    if (!info || !info.questions || !info.questions.length) return;
+    const uid = myUid();
+    const opponentUid = info.fromUid === uid ? info.toUid : info.fromUid;
+    const opponentUsername = info.fromUid === uid ? info.toUsername : info.fromUsername;
+    state.activeDuel = {
+      id: duelId, lang: info.lang, mode: info.mode, targetLevel: info.targetLevel,
+      questions: info.questions, opponentUid, opponentUsername,
+      index: 0, selected: null, locked: false, showNext: false,
+      answers: [], score: 0, finished: false, remainingSeconds: DUEL_TOTAL_SECONDS,
+    };
+    render();
+    if (duelTimerInterval) clearInterval(duelTimerInterval);
+    duelTimerInterval = setInterval(() => {
+      if (!state.activeDuel || state.activeDuel.id !== duelId){ clearInterval(duelTimerInterval); duelTimerInterval = null; return; }
+      state.activeDuel.remainingSeconds -= 1;
+      if (state.activeDuel.remainingSeconds <= 0){
+        state.activeDuel.remainingSeconds = 0;
+        finishDuelGame();
+        return;
+      }
+      render();
+    }, 1000);
+  }
+
+  function selectDuelOption(optIndex){
+    const d = state.activeDuel;
+    if (!d || d.locked || d.finished) return;
+    const q = d.questions[d.index];
+    const correct = optIndex === q.correct_option_index;
+    d.selected = optIndex;
+    d.locked = true;
+    d.answers.push({ id: q.id, selectedIndex: optIndex, correct });
+    if (correct) d.score += 1;
+    render();
+    setTimeout(() => {
+      if (!state.activeDuel || state.activeDuel.id !== d.id) return;
+      state.activeDuel.showNext = true;
+      render();
+    }, DUEL_FEEDBACK_MS);
+  }
+
+  function nextDuelQuestion(){
+    const d = state.activeDuel;
+    if (!d || !d.showNext) return;
+    if (d.index + 1 >= d.questions.length){ finishDuelGame(); return; }
+    d.index += 1;
+    d.selected = null;
+    d.locked = false;
+    d.showNext = false;
+    render();
+  }
+
+  async function finishDuelGame(){
+    const d = state.activeDuel;
+    if (!d || d.finished) return;
+    d.finished = true;
+    if (duelTimerInterval){ clearInterval(duelTimerInterval); duelTimerInterval = null; }
+    render();
+    const uid = myUid();
+    if (uid){
+      try { await fbDb.ref('duels/' + d.id + '/results/' + uid).set({ score: d.score, total: d.questions.length, finishedAt: Date.now() }); }
+      catch(e){ console.error('finishDuelGame result write error', e); }
+    }
+  }
+
+  function closeDuelGame(){
+    if (duelTimerInterval){ clearInterval(duelTimerInterval); duelTimerInterval = null; }
+    state.activeDuel = null;
+    render();
+  }
+
+  function renderDuelGame(){
+    const d = state.activeDuel;
+    if (!d) return '';
+    const info = state.duelsInfo[d.id] || {};
+    if (!d.finished){
+      const q = d.questions[d.index];
+      const letters = ['A', 'B', 'C', 'D'];
+      return `
+        <div class="ai-page duel-page">
+          <div class="ai-page-header">
+            <button class="ai-back-btn" onclick="closeDuelGame()" aria-label="بستن">${icon('close', 18)}</button>
+            <div class="ai-page-title"><span>🔥 دوئل زبانی</span><span class="chat-header-hint">سؤال ${faNum(d.index + 1)} از ${faNum(d.questions.length)}</span></div>
+            <div class="duel-timer">${faNum(d.remainingSeconds)}s</div>
+          </div>
+          <div class="duel-question-box">
+            <div class="duel-question-text">${esc(q.question_text)}</div>
+          </div>
+          <div class="duel-options">
+            ${q.options.map((opt, i) => {
+              let cls = 'duel-option';
+              if (d.selected !== null){
+                if (i === q.correct_option_index) cls += ' correct';
+                else if (i === d.selected) cls += ' wrong';
+              }
+              return `<button class="${cls}" ${d.locked ? 'disabled' : ''} onclick="selectDuelOption(${i})"><span class="duel-option-letter">${letters[i]}</span>${esc(opt)}</button>`;
+            }).join('')}
+          </div>
+          ${d.showNext ? `<button class="btn-primary duel-next-btn" onclick="nextDuelQuestion()">سؤال بعدی</button>` : ''}
+        </div>
+      `;
+    }
+    const myResult = { score: d.score, total: d.questions.length };
+    const oppResult = info.results && info.results[d.opponentUid];
+    let resultLine;
+    if (!oppResult){
+      resultLine = `<div class="hint-text">در انتظار پایان بازیِ ${esc(d.opponentUsername || 'حریف')}...</div>`;
+    } else if (myResult.score === oppResult.score){
+      resultLine = `<div class="duel-result-line">🤝 مساوی شدید!</div>`;
+    } else if (myResult.score > oppResult.score){
+      resultLine = `<div class="duel-result-line">🏆 برنده شدی!</div>`;
+    } else {
+      resultLine = `<div class="duel-result-line">😅 این‌بار ${esc(d.opponentUsername || 'حریف')} برد.</div>`;
+    }
+    return `
+      <div class="ai-page duel-page">
+        <div class="ai-page-header">
+          <button class="ai-back-btn" onclick="closeDuelGame()" aria-label="بستن">${icon('close', 18)}</button>
+          <div class="ai-page-title"><span>🔥 نتیجه‌ی دوئل</span></div>
+        </div>
+        <div class="duel-result-box">
+          <div class="duel-score-row"><span>امتیاز تو</span><b>${faNum(myResult.score)} / ${faNum(myResult.total)}</b></div>
+          <div class="duel-score-row"><span>امتیاز ${esc(d.opponentUsername || 'حریف')}</span><b>${oppResult ? faNum(oppResult.score) + ' / ' + faNum(oppResult.total) : '—'}</b></div>
+          ${resultLine}
+        </div>
+      </div>
+    `;
+  }
+
+  // ===================================================================
+  // --- گروه‌ها (Group Chat) ---
+  // ساختِ گروه فقط برای کاربرهایی که مدیر مجوزِ canCreateGroups رو براشون فعال کرده باشه
+  // (permissions/{uid}/canCreateGroups). خودِ گروه توی groups/{groupId} نگه داشته می‌شه:
+  // {name, ownerUid, ownerUsername, members:{uid:true}, memberInfo:{uid:{username,avatar}}}.
+  // چون سرور اختصاصی نیست، برای این‌که سازنده مجبور نباشه مستقیم توی «فهرست گروه‌های» بقیه
+  // بنویسه (که یه حفره‌ی امنیتیه)، یه صندوق (mailbox) به اسم groupInviteBox/{uid}/{groupId}
+  // می‌ذاره؛ خودِ کاربرِ دعوت‌شده (initSocialListeners بالا) با دیدنِ صندوقش، خودش رو به
+  // userGroups/{uid}/{groupId} اضافه می‌کنه. عضویتِ واقعی توی خودِ سندِ گروه
+  // (groups/{groupId}/members) رو سازنده مستقیم می‌نویسه، چون اون سند مال خودشه.
+  // پیام‌های چتِ گروهی هم توی groupChats/{groupId} پوش می‌شن، دقیقاً شبیه چتِ دونفره.
+  // ===================================================================
+
+  function openCreateGroupModal(){
+    if (!state.canCreateGroups) { alert('مجوز ساخت گروه براتون فعال نشده. از پشتیبانی بخواید فعالش کنه.'); return; }
+    state.groupSelectedFriendUids = [];
+    state.showCreateGroupModal = true;
+    render();
+  }
+  function closeCreateGroupModal(){ state.showCreateGroupModal = false; render(); }
+  function toggleGroupSelectedFriend(uid){
+    const i = state.groupSelectedFriendUids.indexOf(uid);
+    if (i === -1) state.groupSelectedFriendUids.push(uid); else state.groupSelectedFriendUids.splice(i, 1);
+    render();
+  }
+
+  async function createGroup(){
+    const input = document.getElementById('groupNameInput');
+    const name = input ? input.value.trim() : '';
+    const uid = myUid();
+    if (!name) { alert('اسم گروه رو وارد کنید.'); return; }
+    if (!uid || !firebaseReady) { alert('الان امکان ساخت گروه نیست.'); return; }
+    state.groupCreating = true; render();
+    try {
+      const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
+      const members = { [uid]: true };
+      const memberInfo = { [uid]: { username: myUsername, avatar: (state.profile && state.profile.avatar) || 'a1' } };
+      state.groupSelectedFriendUids.forEach((fuid) => {
+        const f = state.userFriends.find(fr => fr.uid === fuid);
+        if (!f) return;
+        members[fuid] = true;
+        memberInfo[fuid] = { username: f.username, avatar: f.avatar || 'a1' };
+      });
+      const groupRef = fbDb.ref('groups').push();
+      await groupRef.set({ name, ownerUid: uid, ownerUsername: myUsername, members, memberInfo, createdAt: Date.now() });
+      await fbDb.ref('userGroups/' + uid + '/' + groupRef.key).set(true);
+      await Promise.all(state.groupSelectedFriendUids.map((fuid) =>
+        fbDb.ref('groupInviteBox/' + fuid + '/' + groupRef.key).set({ groupId: groupRef.key, name, invitedByUsername: myUsername, invitedByUid: uid })
+      ));
+      state.showCreateGroupModal = false;
+      openGroupChat(groupRef.key);
+    } catch(e){
+      console.error('createGroup error', e);
+      alert('ساخت گروه ناموفق بود.');
+    }
+    state.groupCreating = false;
+    render();
+  }
+
+  function renderCreateGroupModal(){
+    if (!state.showCreateGroupModal) return '';
+    const rows = state.userFriends.map(f => `
+      <div class="friend-row" onclick="toggleGroupSelectedFriend('${esc(f.uid)}')">
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38)}</div>
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc(f.name)}</div>
+        <input type="checkbox" ${state.groupSelectedFriendUids.includes(f.uid) ? 'checked' : ''} onclick="event.stopPropagation();toggleGroupSelectedFriend('${esc(f.uid)}')">
+      </div>
+    `).join('');
+    return `
+      <div class="modal-backdrop" onclick="closeCreateGroupModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:2px">
+            <span class="deck-title">${icon('message', 16)} ساخت گروه</span>
+            <button class="modal-close-btn" onclick="closeCreateGroupModal()">${icon('close', 15)}</button>
+          </div>
+          <label class="hint-text" style="display:block;margin-top:10px;margin-bottom:4px">اسم گروه</label>
+          <input id="groupNameInput" class="text-input" style="width:100%" placeholder="مثلاً: هم‌کلاسی‌های آلمانی">
+          <label class="hint-text" style="display:block;margin-top:14px;margin-bottom:4px">اعضا</label>
+          ${rows ? `<div class="friend-list">${rows}</div>` : `<div class="hint-text">هنوز دوستی نداری که اضافه‌ش کنی.</div>`}
+          <button class="btn-primary" style="margin-top:16px;width:100%" ${state.groupCreating ? 'disabled' : ''} onclick="createGroup()">${state.groupCreating ? 'در حال ساخت...' : 'ساخت گروه'}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function groupMemberCount(g){ return Object.keys(g.members || {}).length; }
+  function renderGroupsSection(){
+    const rows = state.myGroups.map(g => `
+      <div class="friend-row" onclick="openGroupChat('${esc(g.id)}')">
+        <div class="friend-avatar-wrap group-avatar-wrap">${icon('message', 20)}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700;font-size:13.5px">${esc(g.name)}</div>
+          <div class="hint-text" style="margin-top:1px">${faNum(groupMemberCount(g))} عضو</div>
+        </div>
+      </div>
+    `).join('');
+    return `
+      <div class="panel" style="margin-top:12px">
+        <div class="deck-header">
+          <span class="deck-title">${icon('message', 16)} گروه‌ها</span>
+          ${state.canCreateGroups ? `<button class="modal-close-btn" style="width:34px;height:34px;border-radius:9px" onclick="openCreateGroupModal()" aria-label="ساخت گروه">${icon('plus', 16)}</button>` : ''}
+        </div>
+        ${rows ? `<div class="friend-list" style="margin-top:10px">${rows}</div>` : `<div class="hint-text" style="text-align:center;margin-top:12px">${state.canCreateGroups ? 'هنوز گروهی نساختی.' : 'عضو هیچ گروهی نیستی.'}</div>`}
+      </div>
+    `;
+  }
+
+  function openGroupChat(groupId){
+    state.openGroupId = groupId;
+    state.openChatUsername = null;
+    render();
+    attachGroupChatListener(groupId);
+  }
+  function closeGroupChat(){
+    detachGroupChatListener();
+    state.openGroupId = null;
+    render();
+  }
+  function attachGroupChatListener(groupId){
+    detachGroupChatListener();
+    if (!firebaseReady) return;
+    state.groupChats[groupId] = [];
+    activeGroupChatRef = fbDb.ref('groupChats/' + groupId).limitToLast(200);
+    activeGroupChatRef.on('child_added', (snap) => {
+      const m = snap.val();
+      if (!state.groupChats[groupId]) state.groupChats[groupId] = [];
+      state.groupChats[groupId].push({
+        id: snap.key, sender: m.sender === myUid() ? 'me' : 'other',
+        senderUsername: m.senderUsername || '', text: m.text,
+        type: m.type || 'text', url: m.url || null, size: m.size || null, ts: m.timestamp,
+      });
+      render();
+      const msgsEl = document.getElementById('groupChatMessages');
+      if (msgsEl) msgsEl.scrollTop = msgsEl.scrollHeight;
+    });
+    activeGroupChatRef.on('child_removed', (snap) => {
+      if (!state.groupChats[groupId]) return;
+      state.groupChats[groupId] = state.groupChats[groupId].filter(m => m.id !== snap.key);
+      render();
+    });
+  }
+  function detachGroupChatListener(){
+    if (activeGroupChatRef) { activeGroupChatRef.off(); activeGroupChatRef = null; }
+  }
+
+  function sendGroupMessage(){
+    const input = document.getElementById('groupChatInput');
+    const text = input ? input.value.trim() : '';
+    const groupId = state.openGroupId;
+    const uid = myUid();
+    if (!text || !groupId || !uid) return;
+    input.value = '';
+    const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
+    fbDb.ref('groupChats/' + groupId).push({ sender: uid, senderUsername: myUsername, text, timestamp: Date.now() })
+      .catch((e) => { console.error(e); alert('ارسال پیام ناموفق بود.'); });
+  }
+  function handleGroupChatInputKeydown(e){
+    if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendGroupMessage(); }
+  }
+  function deleteGroupMessage(groupId, id){
+    if (!confirm('این پیام حذف بشه؟ برای بقیه‌ی اعضا هم دیگه نمایش داده نمی‌شه.')) return;
+    fbDb.ref('groupChats/' + groupId + '/' + id).remove().catch((e) => {
+      console.error('deleteGroupMessage error', e);
+      alert('حذف پیام ناموفق بود.');
+    });
+  }
+
+  function renderGroupMessageBubble(m, groupId){
+    const cls = m.sender === 'me' ? 'ai-msg-user' : 'ai-msg-model';
+    const canDelete = m.sender === 'me' && m.id;
+    const delBtn = canDelete ? `<button class="chat-msg-del-btn" onclick="event.stopPropagation();deleteGroupMessage('${esc(groupId)}','${esc(m.id)}')" aria-label="حذف پیام" title="حذف پیام">${icon('trash', 12)}</button>` : '';
+    const senderLine = m.sender === 'other' ? `<div class="group-msg-sender">${esc(m.senderUsername || '')}</div>` : '';
+    return `<div class="ai-msg ${cls}">${delBtn}${senderLine}${esc(m.text)}</div>`;
+  }
+
+  function renderGroupChatPage(){
+    const groupId = state.openGroupId;
+    const g = state.myGroups.find(x => x.id === groupId);
+    const messages = state.groupChats[groupId] || [];
+    return `
+      <div class="ai-page">
+        <div class="ai-page-header">
+          <button class="ai-back-btn" onclick="closeGroupChat()" aria-label="${t('aiBackBtn')}">${icon('close', 18)}</button>
+          <div class="ai-page-title">
+            <span>${icon('message', 17)} ${esc(g ? g.name : '')}</span>
+            <span class="chat-header-hint">${g ? faNum(groupMemberCount(g)) : ''} عضو</span>
+          </div>
+        </div>
+        <div class="ai-messages" id="groupChatMessages">
+          ${messages.length === 0 ? `<div class="ai-empty">${icon('message', 26)}<div>هنوز پیامی رد و بدل نشده. اولین پیام رو بفرست!</div></div>` : ''}
+          ${messages.map(m => renderGroupMessageBubble(m, groupId)).join('')}
+        </div>
+        <div class="ai-input-row">
+          <textarea id="groupChatInput" rows="1" placeholder="پیام خود را بنویسید..." onkeydown="handleGroupChatInputKeydown(event)"></textarea>
+          <button class="ai-send-btn" onclick="sendGroupMessage()" aria-label="${t('aiSend')}">${icon('send', 18)}</button>
+        </div>
+      </div>
+    `;
   }
 
   // --- شنونده‌های زنده‌ی درخواست دوستی / لیست دوستان (بعد از لاگین صدا زده می‌شه) ---
@@ -3709,11 +4287,53 @@
       persistUserFriends();
       render();
     });
+
+    // --- گروه‌ها ---
+    // صندوق دعوتِ گروهی: هر کسی می‌تونه توی صندوقِ بقیه یه دعوت بذاره (groupInviteBox/{uid}/{groupId})
+    // ولی فقط صاحبش می‌خونه؛ با دیدنش خودم رو به فهرست «گروه‌های من» اضافه می‌کنم و صندوق رو خالی می‌کنم.
+    groupInviteBoxRef = fbDb.ref('groupInviteBox/' + uid);
+    groupInviteBoxRef.on('child_added', async (snap) => {
+      const groupId = snap.key;
+      try {
+        await fbDb.ref('userGroups/' + uid + '/' + groupId).set(true);
+        await fbDb.ref('groupInviteBox/' + uid + '/' + groupId).remove();
+      } catch(e){ console.error(e); }
+    });
+
+    // فهرست زنده‌ی «گروه‌های من» — برای هر گروه یه شنونده‌ی جدا روی خودِ سند گروه می‌بندیم
+    // تا اسم/تعداد اعضا با هر تغییری آپدیت بشه
+    userGroupsRef = fbDb.ref('userGroups/' + uid);
+    userGroupsRef.on('child_added', (snap) => {
+      const groupId = snap.key;
+      if (groupDocRefs[groupId]) return;
+      const ref = fbDb.ref('groups/' + groupId);
+      groupDocRefs[groupId] = ref;
+      ref.on('value', (gsnap) => {
+        const info = gsnap.val();
+        if (!info) return;
+        const idx = state.myGroups.findIndex(g => g.id === groupId);
+        const record = { id: groupId, name: info.name, ownerUid: info.ownerUid, ownerUsername: info.ownerUsername, members: info.members || {}, memberInfo: info.memberInfo || {} };
+        if (idx === -1) state.myGroups.push(record); else state.myGroups[idx] = record;
+        render();
+      });
+    });
+    userGroupsRef.on('child_removed', (snap) => {
+      const groupId = snap.key;
+      if (groupDocRefs[groupId]) { groupDocRefs[groupId].off(); delete groupDocRefs[groupId]; }
+      state.myGroups = state.myGroups.filter(g => g.id !== groupId);
+      render();
+    });
   }
   function detachSocialListeners(){
     if (friendRequestsRef) { friendRequestsRef.off(); friendRequestsRef = null; }
     if (pendingAddsRef) { pendingAddsRef.off(); pendingAddsRef = null; }
     if (myFriendUidsRef) { myFriendUidsRef.off(); myFriendUidsRef = null; }
+    if (groupInviteBoxRef) { groupInviteBoxRef.off(); groupInviteBoxRef = null; }
+    if (userGroupsRef) { userGroupsRef.off(); userGroupsRef = null; }
+    Object.keys(groupDocRefs).forEach((id) => { groupDocRefs[id].off(); });
+    groupDocRefs = {};
+    state.myGroups = [];
+    detachGroupChatListener();
     detachChatListener();
     socialListenersAttached = false;
   }
@@ -4081,6 +4701,10 @@
       ${!state.aiOpen ? renderAiFab() : ''}
       ${state.aiOpen ? renderAiPage() : ''}
       ${state.openChatUsername ? renderUserChatPage() : ''}
+      ${state.openGroupId ? renderGroupChatPage() : ''}
+      ${state.showCreateGroupModal ? renderCreateGroupModal() : ''}
+      ${state.showDuelModal ? renderDuelModal() : ''}
+      ${state.activeDuel ? renderDuelGame() : ''}
     `;
   }
 
@@ -4642,6 +5266,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         ${preview}
         ${myFriendRows ? `<div class="friend-list" style="margin-top:12px">${myFriendRows}</div>` : `<div class="hint-text" style="text-align:center;margin-top:14px">هنوز دوستی اضافه نکردی. نام کاربری‌شون رو بالا وارد کن.</div>`}
       </div>
+      ${renderGroupsSection()}
     `;
   }
   function renderUserFriendProfileModal(){
@@ -4820,7 +5445,35 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     if (m.type === 'audio') {
       return `<div class="ai-msg ${cls} chat-media-msg chat-audio-msg">${delBtn}${icon('mic',14)} <audio src="${esc(m.url)}" controls></audio></div>`;
     }
+    if (m.type === 'duel') {
+      return renderDuelMessageBubble(m, cls, delBtn);
+    }
     return `<div class="ai-msg ${cls}">${delBtn}${esc(m.text)}</div>`;
+  }
+  function renderDuelMessageBubble(m, cls, delBtn){
+    const info = m.duelId ? state.duelsInfo[m.duelId] : null;
+    const lang = (info && info.lang) || m.duelLang;
+    const mode = (info && info.mode) || m.duelMode;
+    const status = info ? info.status : 'pending';
+    const title = `🔥 درخواست دوئل زبانی ${esc(targetLangLabel(lang))} (${mode === 'sentences' ? '۱۰ جمله' : '۱۰ کلمه'})`;
+    let body = '';
+    if (status === 'declined'){
+      body = `<div class="hint-text" style="margin-top:6px">دوئل رد شد</div>`;
+    } else if (status === 'active' || status === 'finished'){
+      const busy = state.duelAccepting === m.duelId;
+      body = `<button class="btn-secondary duel-msg-btn" ${busy?'disabled':''} onclick="openDuelGame('${esc(m.duelId)}')">ورود به دوئل</button>`;
+    } else if (m.sender === 'me'){
+      body = `<div class="hint-text" style="margin-top:6px">در انتظار پاسخ...</div>`;
+    } else {
+      const busy = state.duelAccepting === m.duelId;
+      body = `
+        <div class="duel-msg-actions">
+          <button class="btn-accept duel-msg-btn" ${busy?'disabled':''} onclick="acceptDuel('${esc(m.duelId)}')">${busy ? 'در حال آماده‌سازی...' : 'شروع دوئل'}</button>
+          <button class="btn-secondary duel-msg-btn" ${busy?'disabled':''} onclick="declineDuel('${esc(m.duelId)}')">رد دوئل</button>
+        </div>
+      `;
+    }
+    return `<div class="ai-msg ${cls} duel-msg">${delBtn}<div>${title}</div>${body}</div>`;
   }
   function renderUserChatPage(){
     const username = state.openChatUsername;
@@ -4829,6 +5482,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
       <div class="ai-page">
         <div class="ai-page-header">
           <button class="ai-back-btn" onclick="closeUserChat()" aria-label="${t('aiBackBtn')}">${icon('close',18)}</button>
+          <button class="chat-icon-btn duel-header-btn" onclick="openDuelModal()" aria-label="دوئل زبانی" title="دوئل زبانی">🔥<span class="duel-header-btn-label">دوئل</span></button>
           <div class="ai-page-title chat-header-clickable" onclick="openUserFriendProfile('${esc(username)}')" role="button" tabindex="0">
             <span>${icon('message',17)} ${esc(username)}</span>
             <span class="chat-header-hint">مشاهده پروفایل و آمار</span>
@@ -5455,10 +6109,17 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   // خودِ گوشی/مرورگر؛ فقط اگه این کار به هر دلیلی (بی‌اینترنتی، نبودِ دسترسی و ...) ممکن نشد، به‌عنوان
   // جایگزین از موتور صدای مرورگر استفاده می‌کنه تا حداقل یه صدایی شنیده بشه.
   // onDone (اختیاری): بعد از تمومِ پخش (با هر روش) صدا زده می‌شه.
-  async function playAiSpeech(text, fallbackBcp47, onDone){
+  // فاصله‌ی عمدی بین نمایش متن و شروعِ پخش صدا (میلی‌ثانیه). قبلاً صدا بی‌قاعده و با تأخیر متغیر
+  // (بسته به سرعت اینترنت/API) پخش می‌شد؛ این مکث ثابت و کوتاه باعث می‌شه صدا همیشه یه فاصله‌ی
+  // مشخص و کوتاه بعد از نمایش متن شروع بشه.
+  const AI_SPEECH_DELAY_MS = 700;
+  function playAiSpeech(text, fallbackBcp47, onDone){
     if (!text){ if (onDone) onDone(); return; }
     if (geminiAudioEl){ try { geminiAudioEl.pause(); } catch(e){} geminiAudioEl = null; }
     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    setTimeout(() => { playAiSpeechNow(text, fallbackBcp47, onDone); }, AI_SPEECH_DELAY_MS);
+  }
+  async function playAiSpeechNow(text, fallbackBcp47, onDone){
     if (hasActiveAiKey()){
       const url = await fetchGeminiSpeechUrl(text);
       if (url){
