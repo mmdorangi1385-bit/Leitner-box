@@ -2502,10 +2502,11 @@
     if (/\b(che|sono|con|per|questo|grazie|ciao|molto|perché)\b/i.test(s)) return 'it-IT';
     return 'en-US';
   }
-  // خوندن یک پاسخ چت با صدا؛ زبانِ درست رو خودش تشخیص می‌ده (اگه صراحتاً داده نشده باشه)
+  // خوندن یک پاسخ چت با صدا؛ اول با صدای واقعیِ خودِ هوش مصنوعی (نه صدای گوشی/مرورگر) امتحان می‌کنه،
+  // زبانِ درست رو هم خودش از روی متن تشخیص می‌ده (اگه صراحتاً داده نشده باشه)
   function speakAiReply(text, lang){
     const bcp47 = lang || detectTextBcp47(text);
-    speak(text, bcp47);
+    playAiSpeech(text, bcp47);
   }
   function speakAiMessage(i){
     const m = state.aiMessages[i];
@@ -5378,6 +5379,119 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     return runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, state.aiGrantedKey);
   }
 
+  // --- صدای واقعیِ خودِ هوش مصنوعی (Gemini TTS) ---
+  // نکته‌ی مهم: مدل معمولیِ چت (GEMINI_MODEL) خروجیِ صدا نمی‌ده؛ فقط یه مدلِ مخصوصِ تبدیل متن‌به‌صدا
+  // این قابلیت رو داره، و اون‌هم فقط responseModalities:["AUDIO"] رو قبول می‌کنه (نه هم‌زمان با TEXT).
+  // پس نمی‌شه متن و صدا رو با یه درخواست از مدلِ چتِ معمولی گرفت؛ اول جواب متنی رو از مدل چت می‌گیریم
+  // (که همین الان توی برنامه انجام می‌شه)، بعد همون متن رو جدا می‌فرستیم به این مدلِ TTS تا صداش رو بگیریم.
+  const GEMINI_TTS_MODEL = 'gemini-3.1-flash-tts-preview';
+  const GEMINI_TTS_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TTS_MODEL}:generateContent`;
+  const AI_VOICE_NAME = 'Kore'; // صدای پیش‌فرض هوش مصنوعی (گزینه‌های دیگه: Puck, Aoede, Charon, Fenrir, ...)
+  let geminiAudioEl = null;
+
+  // دیتای صوتیِ برگشتی از مدل TTS، PCM خامه (نه mp3)؛ برای پخش توی <audio> باید اول به یه فایل WAV
+  // واقعی تبدیلش کنیم (هدر WAV رو خودمون دستی می‌سازیم، بدون نیاز به کتابخونه‌ی جانبی).
+  function pcm16ToWavBlob(base64Data, sampleRate, numChannels){
+    const rate = sampleRate || 24000;
+    const channels = numChannels || 1;
+    const bitsPerSample = 16;
+    const binary = atob(base64Data);
+    const len = binary.length;
+    const pcmBytes = new Uint8Array(len);
+    for (let i = 0; i < len; i++) pcmBytes[i] = binary.charCodeAt(i);
+    const blockAlign = channels * (bitsPerSample / 8);
+    const byteRate = rate * blockAlign;
+    const buffer = new ArrayBuffer(44 + pcmBytes.length);
+    const view = new DataView(buffer);
+    const writeStr = (offset, str) => { for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i)); };
+    writeStr(0, 'RIFF');
+    view.setUint32(4, 36 + pcmBytes.length, true);
+    writeStr(8, 'WAVE');
+    writeStr(12, 'fmt ');
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true); // PCM
+    view.setUint16(22, channels, true);
+    view.setUint32(24, rate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeStr(36, 'data');
+    view.setUint32(40, pcmBytes.length, true);
+    new Uint8Array(buffer, 44).set(pcmBytes);
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  // از مدل TTS واقعیِ Gemini یه فایل صوتی می‌گیره و آدرس قابل‌پخششو برمی‌گردونه؛ اگه هر مرحله‌ای
+  // (کلید، اینترنت، پاسخ نامعتبر) شکست بخوره null برمی‌گردونه تا کد صدا زننده بره سراغ جایگزین.
+  async function fetchGeminiSpeechUrl(text){
+    const key = (state.aiGrantedKey || '').trim();
+    if (!key || !text) return null;
+    let res;
+    try {
+      res = await fetch(GEMINI_TTS_ENDPOINT, {
+        method: 'POST',
+        headers: { 'x-goog-api-key': key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: AI_VOICE_NAME } } }
+          }
+        }),
+      });
+    } catch(e){ return null; }
+    if (!res.ok) return null;
+    let data;
+    try { data = await res.json(); } catch(e){ return null; }
+    const part = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0];
+    const inline = part && part.inlineData;
+    if (!inline || !inline.data) return null;
+    const rateMatch = /rate=(\d+)/.exec(inline.mimeType || '');
+    const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000;
+    try { return URL.createObjectURL(pcm16ToWavBlob(inline.data, sampleRate, 1)); }
+    catch(e){ return null; }
+  }
+  // پخش یک جوابِ متنی با صدا: اول تلاش می‌کنه با صدای واقعیِ خودِ هوش مصنوعی (Gemini) بخونه، نه صدای
+  // خودِ گوشی/مرورگر؛ فقط اگه این کار به هر دلیلی (بی‌اینترنتی، نبودِ دسترسی و ...) ممکن نشد، به‌عنوان
+  // جایگزین از موتور صدای مرورگر استفاده می‌کنه تا حداقل یه صدایی شنیده بشه.
+  // onDone (اختیاری): بعد از تمومِ پخش (با هر روش) صدا زده می‌شه.
+  async function playAiSpeech(text, fallbackBcp47, onDone){
+    if (!text){ if (onDone) onDone(); return; }
+    if (geminiAudioEl){ try { geminiAudioEl.pause(); } catch(e){} geminiAudioEl = null; }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (hasActiveAiKey()){
+      const url = await fetchGeminiSpeechUrl(text);
+      if (url){
+        const audio = new Audio(url);
+        geminiAudioEl = audio;
+        const cleanup = () => { URL.revokeObjectURL(url); if (geminiAudioEl === audio) geminiAudioEl = null; };
+        audio.onended = () => { cleanup(); if (onDone) onDone(); };
+        audio.onerror = () => { cleanup(); speakBrowserFallback(text, fallbackBcp47, onDone); };
+        audio.play().catch(() => { cleanup(); speakBrowserFallback(text, fallbackBcp47, onDone); });
+        return;
+      }
+    }
+    speakBrowserFallback(text, fallbackBcp47, onDone);
+  }
+  function stopAiSpeechPlayback(){
+    if (geminiAudioEl){ try { geminiAudioEl.pause(); } catch(e){} geminiAudioEl = null; }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+  }
+  function speakBrowserFallback(text, bcp47, onDone){
+    if (!('speechSynthesis' in window)){ if (onDone) onDone(); return; }
+    try {
+      const u = new SpeechSynthesisUtterance(text);
+      const lang = bcp47 || detectTextBcp47(text);
+      u.lang = lang;
+      const v = getVoiceForLang(lang);
+      if (v) u.voice = v;
+      u.rate = 0.95;
+      u.onend = () => { if (onDone) onDone(); };
+      u.onerror = () => { if (onDone) onDone(); };
+      window.speechSynthesis.speak(u);
+    } catch(e){ if (onDone) onDone(); }
+  }
+
   // --- زبان تدریس (برای ترجمه/گرامر/تمرین/پیشنهاد جمله) ---
   const LANGUAGE_CODES = ['de','en','es','it','fr'];
   const LANGUAGE_META = {
@@ -5616,7 +5730,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     render();
     setTimeout(scrollAiToBottom, 50);
   }
-  function closeAiPage(){ stopAiListening(); stopVoiceListening(); if ('speechSynthesis' in window) window.speechSynthesis.cancel(); state.aiOpen = false; render(); }
+  function closeAiPage(){ stopAiListening(); stopVoiceListening(); stopAiSpeechPlayback(); state.aiOpen = false; render(); }
 
   // دکمه‌ی «👨‍🏫 از معلم بپرس» کنار کارت — یه گفتگوی جدید و مخصوص همین کلمه/جمله باز می‌کنه
   function openAskTeacher(cardId){
@@ -5636,7 +5750,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   }
 
   function setAiMode(mode){
-    if (state.aiMode === 'voice' && mode !== 'voice'){ stopVoiceListening(); if ('speechSynthesis' in window) window.speechSynthesis.cancel(); }
+    if (state.aiMode === 'voice' && mode !== 'voice'){ stopVoiceListening(); stopAiSpeechPlayback(); }
     state.aiMode = mode;
     state.aiError = null;
     if (mode !== 'teacher') state.aiTeacherCard = null;
@@ -5859,7 +5973,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   }
   async function startVoiceListening(){
     if (state.aiVoiceStatus === 'listening') return;
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAiSpeechPlayback();
     const rec = getVoiceRecognition();
     if (!rec){ alert(t('alertNoSpeechRecog')); return; }
     if (state.micPermState !== 'granted'){
@@ -5939,7 +6053,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     if (state.aiVoiceStatus === 'listening') stopVoiceListening();
     else if (state.aiVoiceStatus === 'idle') startVoiceListening();
     else if (state.aiVoiceStatus === 'speaking'){
-      if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      stopAiSpeechPlayback();
       startVoiceListening();
     }
   }
@@ -5970,30 +6084,20 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       render();
     }
   }
+  // پاسخ رو با صدا می‌خونه؛ اول با صدای واقعیِ خودِ هوش مصنوعی (Gemini)، نه صدای گوشی/گوگل. فقط اگه
+  // این کار به هر دلیلی ممکن نشد (بی‌اینترنتی و ...)، به‌عنوان جایگزین از صدای مرورگر استفاده می‌شه.
   function speakVoiceReply(text){
-    if (!('speechSynthesis' in window)){ state.aiVoiceStatus = 'idle'; render(); return; }
-    try {
-      window.speechSynthesis.cancel();
-      const u = new SpeechSynthesisUtterance(text);
-      const bcp = voiceLangBcp47();
-      u.lang = bcp;
-      const v = getVoiceForLang(bcp);
-      if (v) u.voice = v;
-      u.rate = 1;
-      u.onend = () => {
-        if (state.aiVoiceStatus !== 'speaking') return;
-        state.aiVoiceStatus = 'idle';
-        render();
-        if (state.aiVoiceAutoContinue && state.aiVoiceCallActive) startVoiceListening();
-      };
-      u.onerror = () => { state.aiVoiceStatus = 'idle'; render(); };
-      window.speechSynthesis.speak(u);
-    } catch(e){ state.aiVoiceStatus = 'idle'; render(); }
+    playAiSpeech(text, voiceLangBcp47(), () => {
+      if (state.aiVoiceStatus !== 'speaking') return;
+      state.aiVoiceStatus = 'idle';
+      render();
+      if (state.aiVoiceAutoContinue && state.aiVoiceCallActive) startVoiceListening();
+    });
   }
   function endVoiceCall(){
     state.aiVoiceCallActive = false;
     stopVoiceListening();
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    stopAiSpeechPlayback();
     state.aiVoiceStatus = 'idle';
     closeAiPage();
   }
