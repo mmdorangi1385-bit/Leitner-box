@@ -671,6 +671,9 @@
   <div class="maint-msg" id="maintenance-msg">برنامه در حال بروزرسانی هست</div>
 </div>
 
+<!-- Marketplace module root: full-screen overlay rendered by marketplace.js, same pattern as auth-overlay -->
+<div id="market-root"></div>
+
 <!-- Firebase auth overlay: sits on top of the app, never replaces it. Guest/offline use is always possible. -->
 <div id="auth-overlay" class="hide">
   <div class="auth-card">
@@ -1345,7 +1348,14 @@
   const I18N = {
     fa: {
       appTitle: 'جعبه لایتنر',
-      navHome: 'خانه', navAdd: 'افزودن', navTranslate: 'ترجمه', navStudy: 'تمرین', navStats: 'آمار', navManage: 'مدیریت', navSettings: 'تنظیمات',
+      navHome: 'خانه', navAdd: 'افزودن', navTranslate: 'ترجمه', navStudy: 'تمرین', navStats: 'آمار', navManage: 'مدیریت', navSettings: 'تنظیمات', navMarket: 'مارکت',
+      marketTitle: 'مارکت‌پلیس', marketSearchPlaceholder: 'جستجوی محصول...', marketCatAll: 'همه', marketCatThemes: 'تم‌ها', marketCatFrames: 'فریم پروفایل',
+      marketCatSounds: 'صداها', marketCatWords: 'بسته کلمات', marketCatSubs: 'اشتراک', marketFree: 'رایگان', marketOwned: 'مالک شده‌اید',
+      marketBuyCoins: 'خرید با {n} سکه', marketBuyToman: 'خرید با {n} تومان', marketNotEnoughCoins: 'سکه کافی نیست', marketGetCoins: 'دریافت سکه بیشتر',
+      marketWallet: 'کیف پول', marketHistory: 'تاریخچه خرید', marketApply: 'فعال‌سازی', marketApplied: 'فعال شد ✓', marketSubMonthly: 'اشتراک ماهانه',
+      marketSubYearly: 'اشتراک سالانه', marketSubExpiry: 'انقضا: {date}', marketSubManage: 'مدیریت اشتراک', marketAiSuggest: 'پیشنهاد هوشمند برای شما',
+      marketAiAsk: 'از دستیار مارکت بپرس...', marketConfirmPurchase: 'مطمئنی می‌خوای این آیتم رو بخری؟', marketPurchaseSuccess: 'خرید با موفقیت انجام شد 🎉',
+      marketDownload: 'دانلود', marketTabShowcase: 'ویترین', marketTabWallet: 'کیف من', marketTabSub: 'اشتراک',
       menuMore: 'منوی بیشتر', menuStreak: 'تقویم مرور', menuChangeLang: 'تغییر زبان برنامه', menuStats: 'آمار', menuProfile: 'پروفایل',
       targetLangModalTitle: 'چه زبانی می‌خواهید یاد بگیرید؟', targetLangModalDesc: 'با انتخاب زبان، جعبه‌ی کلمات و آمار مخصوص همان زبان برایتان فعال می‌شود.', targetLangBadgeAria: 'تغییر زبان یادگیری',
       menuManage: 'مدیریت', menuChat: 'چت با دوستان', menuSupport: 'پشتیبانی',
@@ -2487,6 +2497,7 @@
     aiExplainLoading: false, aiExplainResult: null, aiExplainError: null, aiExplainCardId: null,
 
   };
+  window.state = state; // expose for marketplace.js (module reads/writes the same object by reference)
 
   function faNum(n){ return String(n).replace(/[0-9]/g, d => FA_DIGITS[d]); }
   function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
@@ -2820,6 +2831,8 @@
   } catch (e) {
     console.error('Firebase init failed, continuing in local/guest mode', e);
   }
+  window.fbDb = fbDb;
+  window.firebaseReady = firebaseReady; // expose for marketplace.js adapter (Adapters.isFirebaseReady/db)
 
   // مسیر استاندارد ذخیره‌سازی در Realtime Database: users/{uid}/data
   function userDataRef(uid){ return fbDb.ref('users/' + uid + '/data'); }
@@ -4709,6 +4722,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
     support: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>',
     video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
+    shoppingBag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -4892,6 +4906,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
         <button class="nav-btn ${state.view==='translate'?'active':''}" onclick="goTranslate()">${icon('translate',15)}${t('navTranslate')}</button>
         <button class="nav-btn ${state.view==='study'?'active':''}" onclick="goStudyTab()">${icon('book',15)}${t('navStudy')}</button>
         <button class="nav-btn ${state.view==='profile'?'active':''}" onclick="goProfile()">${icon('user',15)}${t('navProfile')}</button>
+        <button class="nav-btn" onclick="Marketplace.open()">${icon('shoppingBag',15)}${t('navMarket')}</button>
         <button class="nav-btn ${state.view==='settings'?'active':''}" onclick="goSettings()">${icon('settings',15)}${t('navSettings')}</button>
       </div>
     `;
@@ -7898,5 +7913,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     }, 6200);
   });
 </script>
+
+<link rel="stylesheet" href="./marketplace.css">
+<script src="./marketplace.js"></script>
 </body>
 </html>
