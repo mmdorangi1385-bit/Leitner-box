@@ -54,6 +54,33 @@
     applyThemeColor(color) { if (typeof global.applyThemeColor === 'function') global.applyThemeColor(color); },
     applyThemeMode(mode) { if (typeof global.applyThemeMode === 'function') global.applyThemeMode(mode); },
     persistProfile() { if (typeof global.persistProfile === 'function') global.persistProfile(); },
+    getUserId() {
+      const st = this.getAppState();
+      return (st.profile && st.profile.userId) || '';
+    },
+    // بسته‌ی کلمات خریداری‌شده رو مستقیم توی جعبه لایتنر کاربر (state.cards واقعی اپ) وارد می‌کنه.
+    // کارت‌هایی که از قبل با همون متن و نوع وجود دارن، دوباره اضافه نمی‌شن (جلوگیری از تکراری).
+    // برمی‌گردونه: تعداد کارت‌هایی که واقعاً تازه اضافه شدن.
+    importCards(words) {
+      if (typeof global.persistCards !== 'function' || !Array.isArray(words)) return 0;
+      const st = this.getAppState();
+      const today = typeof global.todayStr === 'function' ? global.todayStr() : new Date().toISOString().slice(0, 10);
+      const nowIso = new Date().toISOString();
+      st.cards = st.cards || [];
+      const existing = new Set(st.cards.map((c) => (c.de || '').trim().toLowerCase() + '|' + (c.type || 'word')));
+      const newCards = [];
+      words.forEach((w) => {
+        if (!w || !w.de || !w.fa) return;
+        const key = String(w.de).trim().toLowerCase() + '|' + (w.type || 'word');
+        if (existing.has(key)) return;
+        existing.add(key);
+        newCards.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, de: String(w.de).trim(), fa: String(w.fa).trim(), box: 1, nextReview: today, createdAt: nowIso, type: w.type === 'sentence' ? 'sentence' : 'word', categoryId: null });
+      });
+      if (!newCards.length) return 0;
+      st.cards = [...st.cards, ...newCards];
+      global.persistCards();
+      return newCards.length;
+    },
     isRTL() {
       const st = this.getAppState();
       return !st.uiLang || st.uiLang === 'fa';
@@ -98,6 +125,12 @@
     marketFavAdd: 'افزودن به علاقه‌مندی‌ها', marketFavRemove: 'حذف از علاقه‌مندی‌ها',
     marketFavTab: 'علاقه‌مندی‌ها', marketNoFavs: 'چیزی به علاقه‌مندی‌ها اضافه نکردی.',
     marketAlreadyOwned: 'قبلاً این آیتم رو خریدی.', marketComingSoon: 'این آیتم هنوز منتشر نشده.',
+    marketWordPackImported: '{n} کارت جدید به جعبه‌ی لایتنرت اضافه شد!', marketCoinsAdded: '{n} سکه به کیف پولت اضافه شد!',
+    marketCouponLabel: 'کد تخفیف', marketCouponPlaceholder: 'کد تخفیف رو وارد کن...', marketCouponApply: 'اعمال',
+    marketCouponActive: 'کد تخفیف فعال', marketCouponRemove: 'حذف کد',
+    marketReferralTitle: 'معرفی دوستان', marketReferralYourCode: 'کد معرفی تو',
+    marketReferralPlaceholder: 'کد دوستت رو وارد کن...', marketReferralApply: 'ثبت کد',
+    marketReferralHint: 'کد معرفی خودت رو با دوستات به اشتراک بذار؛ هر دو طرف سکه می‌گیرید.',
   };
 
   /* ============================= LOCAL STORAGE (fallback آفلاین) ============ */
@@ -108,6 +141,7 @@
     VIEW_LOG: 'market_view_log_v2',
     HISTORY: 'market_wallet_history_v2',
     FAVORITES: 'market_favorites_v2',
+    COUPON: 'market_active_coupon_v1',
   };
 
   function lsGet(key, fallback) {
@@ -134,6 +168,9 @@
     walletHistory: lsGet(LS_KEYS.HISTORY, []),
     viewLog: lsGet(LS_KEYS.VIEW_LOG, {}),
     favorites: lsGet(LS_KEYS.FAVORITES, {}),         // { itemId: true }
+    activeCoupon: lsGet(LS_KEYS.COUPON, null),        // { code, kind, value } | null
+    couponMsg: null,
+    referralMsg: null,
     selectedItemId: null,
     _detailModalOpen: false,
     _detailReviews: [],
@@ -149,6 +186,7 @@
     lsSet(LS_KEYS.HISTORY, M.walletHistory);
     lsSet(LS_KEYS.VIEW_LOG, M.viewLog);
     lsSet(LS_KEYS.FAVORITES, M.favorites);
+    lsSet(LS_KEYS.COUPON, M.activeCoupon);
   }
 
   /* ============================= FIREBASE LOAD (کاتالوگ) ==================== */
@@ -220,9 +258,16 @@
     const base = item[field] || 0;
     if (!base || item.free) return 0;
     const d = item.discount;
-    if (!isDiscountLive(d, now)) return base;
-    if (d.kind === 'percent') return Math.max(0, Math.round(base - (base * (d.value || 0) / 100)));
-    return Math.max(0, Math.round(base - (d.value || 0)));
+    let price = isDiscountLive(d, now)
+      ? (d.kind === 'percent' ? Math.max(0, Math.round(base - (base * (d.value || 0) / 100))) : Math.max(0, Math.round(base - (d.value || 0))))
+      : base;
+    // کد تخفیفِ واردشده توسط کاربر (متفاوت از تخفیف سطحِ آیتم بالا) فقط روی قیمتِ تومانی اعمال می‌شه.
+    if (field === 'cashPrice' && M.activeCoupon && price > 0) {
+      price = M.activeCoupon.kind === 'percent'
+        ? Math.max(0, Math.round(price - (price * (M.activeCoupon.value || 0) / 100)))
+        : Math.max(0, Math.round(price - (M.activeCoupon.value || 0)));
+    }
+    return price;
   }
   function discountPercentLabel(item, now) {
     const d = item.discount;
@@ -243,7 +288,13 @@
 
   function visibleItems() {
     const now = Date.now();
-    return M.items.filter((it) => isPublished(it, now));
+    const curLang = typeof global.currentTargetLangCode === 'function' ? global.currentTargetLangCode() : null;
+    return M.items.filter((it) => {
+      if (!isPublished(it, now)) return false;
+      // بسته‌ی کلمات مخصوص یه زبونه؛ فقط وقتی همون زبون فعاله نشونش بده (اگه langCode ست نشده، برای همه نشون بده).
+      if (it.type === 'wordPack' && it.langCode && curLang && it.langCode !== curLang) return false;
+      return true;
+    });
   }
 
   /* ============================= WALLET API =================================
@@ -324,6 +375,63 @@
     onDailyGoalHit() { return this.earn(COIN_RULES.DAILY_GOAL_HIT, 'daily_goal_hit'); },
   };
 
+  /* ============================= کد تخفیف (Coupon) =============================
+     پنل مدیریت این کدها رو زیر market/discountCodes/{CODE} می‌سازه:
+       { kind: 'percent'|'amount', value, expiresAt, maxUses, usedCount, active }
+     کد فعال روی همین دستگاه (localStorage) نگه داشته می‌شه و روی effectivePriceField
+     برای قیمت تومانی همه‌ی آیتم‌ها اعمال می‌شه (نگاه کن به تابع effectivePriceField بالا). */
+  const couponApi = {
+    async redeem(codeRaw) {
+      const code = String(codeRaw || '').trim().toUpperCase();
+      if (!code) return { ok: false, reason: 'empty' };
+      if (!Adapters.isFirebaseReady()) return { ok: false, reason: 'offline' };
+      const db = Adapters.db();
+      const snap = await db.ref('market/discountCodes/' + code).once('value');
+      const data = snap.val();
+      if (!data || data.active === false) return { ok: false, reason: 'not_found' };
+      const now = Date.now();
+      if (data.expiresAt && data.expiresAt < now) return { ok: false, reason: 'expired' };
+      if (data.maxUses && (data.usedCount || 0) >= data.maxUses) return { ok: false, reason: 'exhausted' };
+      M.activeCoupon = { code, kind: data.kind === 'amount' ? 'amount' : 'percent', value: data.value || 0 };
+      persistAll();
+      db.ref('market/discountCodes/' + code + '/usedCount').transaction((c) => (c || 0) + 1).catch(() => {});
+      return { ok: true, coupon: M.activeCoupon };
+    },
+    clear() { M.activeCoupon = null; persistAll(); },
+  };
+
+  /* ============================= معرفی دوستان (Referral) =======================
+     کد معرفی همون آیدی یکتای خودِ کاربره (usernames/{id} -> uid که از قبل توی اپ هست).
+     هر کاربر فقط یه‌بار می‌تونه کد یه نفر دیگه رو وارد کنه (با تراکنش اتمیک روی
+     users/{uid}/referredBy تضمین می‌شه). به هر دو طرف سکه پاداش داده می‌شه. */
+  const REFERRAL_RULES = { REFEREE_BONUS: 30, REFERRER_BONUS: 50 };
+  const referralApi = {
+    myCode() { return Adapters.getUserId(); },
+    async redeem(codeRaw) {
+      const code = String(codeRaw || '').trim();
+      const uid = Adapters.getUid();
+      if (!uid) return { ok: false, reason: 'not_logged_in' };
+      if (!code) return { ok: false, reason: 'empty' };
+      if (code === this.myCode()) return { ok: false, reason: 'self' };
+      if (!Adapters.isFirebaseReady()) return { ok: false, reason: 'offline' };
+      const db = Adapters.db();
+      const snap = await db.ref('usernames/' + code).once('value');
+      const refUid = snap.val();
+      if (!refUid) return { ok: false, reason: 'not_found' };
+      if (refUid === uid) return { ok: false, reason: 'self' };
+      const res = await db.ref('users/' + uid + '/referredBy').transaction((cur) => cur || code);
+      if (!res.committed || res.snapshot.val() !== code) return { ok: false, reason: 'already_used' };
+      await walletApi.earn(REFERRAL_RULES.REFEREE_BONUS, 'referral_bonus_new');
+      db.ref('users/' + refUid + '/wallet/coins').transaction((c) => (c || 0) + REFERRAL_RULES.REFERRER_BONUS).catch(() => {});
+      db.ref('users/' + refUid + '/walletHistory').push({ type: 'earn', amount: REFERRAL_RULES.REFERRER_BONUS, reason: 'referral_bonus_referrer:' + uid, at: Date.now() }).catch(() => {});
+      db.ref('users/' + refUid + '/referralCount').transaction((c) => (c || 0) + 1).catch(() => {});
+      const st = Adapters.getAppState();
+      if (st.profile) st.profile.referredBy = code;
+      Adapters.persistProfile();
+      return { ok: true };
+    },
+  };
+
   /* ============================= PURCHASE FLOW ================================
      مطابق سند: رایگان → مالکیت مستقیم؛ سکه → کسر اتمیک سپس مالکیت؛ تومان → mock/Cloud Function.
      پس از هر خرید موفق، salesCount و salesRevenueToman آیتم به‌روزرسانی می‌شود تا
@@ -401,6 +509,32 @@
         st.profile.activeFrame = (item.payload && item.payload.frameId) || item.id;
         Adapters.persistProfile();
       }
+    } else if (item.type === 'wordPack' && item.payload && Array.isArray(item.payload.words)) {
+      const rec = M.purchases[item.id];
+      if (rec && rec.wordPackImported) { showToast(Adapters.t('marketApplied')); return; }
+      const added = Adapters.importCards(item.payload.words);
+      if (rec) rec.wordPackImported = true;
+      persistAll();
+      const uid = Adapters.getUid();
+      if (Adapters.isFirebaseReady() && uid) {
+        Adapters.db().ref('users/' + uid + '/purchases/' + item.id + '/wordPackImported').set(true).catch(() => {});
+      }
+      showToast(Adapters.t('marketWordPackImported', { n: added }));
+      return;
+    } else if (item.type === 'coinPack' && item.payload && item.payload.coins) {
+      const rec = M.purchases[item.id];
+      if (rec && rec.coinPackClaimed) { showToast(Adapters.t('marketApplied')); return; }
+      walletApi.earn(item.payload.coins, 'coin_pack:' + item.id).then(() => {
+        if (rec) rec.coinPackClaimed = true;
+        persistAll();
+        const uid = Adapters.getUid();
+        if (Adapters.isFirebaseReady() && uid) {
+          Adapters.db().ref('users/' + uid + '/purchases/' + item.id + '/coinPackClaimed').set(true).catch(() => {});
+        }
+        showToast(Adapters.t('marketCoinsAdded', { n: item.payload.coins }));
+        render();
+      });
+      return;
     }
     showToast(Adapters.t('marketApplied'));
   }
@@ -754,6 +888,26 @@
         '<div class="market-wallet-sub">' + esc(Adapters.t('marketWallet')) + '</div>' +
       '</div>'
     );
+    html += (
+      '<div class="market-sub-plan" style="margin-bottom:14px">' +
+        '<div style="font-weight:700;font-size:13px;margin-bottom:8px;">' + esc(Adapters.t('marketCouponLabel')) + '</div>' +
+        (M.activeCoupon
+          ? ('<div class="market-history-row"><span>' + esc(Adapters.t('marketCouponActive')) + ': ' + esc(M.activeCoupon.code) + '</span><button class="market-buy-btn secondary" style="width:auto;padding:6px 12px;margin:0;" onclick="Marketplace.clearCoupon()">' + esc(Adapters.t('marketCouponRemove')) + '</button></div>')
+          : ('<div class="market-search-row" style="margin-bottom:0;"><input id="market-coupon-input" class="market-search-input" placeholder="' + esc(Adapters.t('marketCouponPlaceholder')) + '"><button class="market-buy-btn" style="width:auto;padding:0 16px;margin:0;" onclick="Marketplace.redeemCoupon(document.getElementById(\'market-coupon-input\'))">' + esc(Adapters.t('marketCouponApply')) + '</button></div>')) +
+        (M.couponMsg ? ('<div style="font-size:12px;margin-top:8px;color:' + (M.couponMsg.ok ? 'var(--sage-strong)' : 'var(--wine)') + ';">' + esc(M.couponMsg.text) + '</div>') : '') +
+      '</div>'
+    );
+    html += (
+      '<div class="market-sub-plan" style="margin-bottom:14px">' +
+        '<div style="font-weight:700;font-size:13px;margin-bottom:6px;">' + esc(Adapters.t('marketReferralTitle')) + '</div>' +
+        '<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">' + esc(Adapters.t('marketReferralHint')) + '</div>' +
+        '<div class="market-history-row" style="margin-bottom:8px;"><span>' + esc(Adapters.t('marketReferralYourCode')) + '</span><b style="letter-spacing:0.5px;">' + esc(referralApi.myCode() || '—') + '</b></div>' +
+        ((Adapters.getAppState().profile && Adapters.getAppState().profile.referredBy)
+          ? ('<div style="font-size:12px;color:var(--sage-strong);">✓ کد دوستت رو قبلاً ثبت کردی</div>')
+          : ('<div class="market-search-row" style="margin-bottom:0;"><input id="market-referral-input" class="market-search-input" placeholder="' + esc(Adapters.t('marketReferralPlaceholder')) + '"><button class="market-buy-btn" style="width:auto;padding:0 16px;margin:0;" onclick="Marketplace.redeemReferral(document.getElementById(\'market-referral-input\'))">' + esc(Adapters.t('marketReferralApply')) + '</button></div>')) +
+        (M.referralMsg ? ('<div style="font-size:12px;margin-top:8px;color:' + (M.referralMsg.ok ? 'var(--sage-strong)' : 'var(--wine)') + ';">' + esc(M.referralMsg.text) + '</div>') : '') +
+      '</div>'
+    );
     const ownedIds = Object.keys(M.purchases).filter((id) => M.purchases[id].active !== false);
     if (!ownedIds.length) {
       html += '<div class="market-empty">هنوز چیزی نخریدی. برو به ویترین یه چیز خوب پیدا کن 🙂</div>';
@@ -1001,6 +1155,7 @@
         if (res && res.ok) {
           showToast(Adapters.t('marketPurchaseSuccess'));
           M._detailModalOpen = false;
+          if (it.type === 'wordPack' || it.type === 'coinPack') activateItem(it);
           render();
         } else if (res && res.reason === 'already_owned') {
           showToast(Adapters.t('marketAlreadyOwned'));
@@ -1015,6 +1170,27 @@
     activate(itemId) {
       const it = M.items.find((x) => x.id === itemId);
       if (it) activateItem(it);
+    },
+
+    redeemCoupon(codeInputEl) {
+      const code = typeof codeInputEl === 'string' ? codeInputEl : (codeInputEl && codeInputEl.value) || '';
+      couponApi.redeem(code).then((res) => {
+        M.couponMsg = res.ok
+          ? { ok: true, text: 'کد تخفیف «' + res.coupon.code + '» فعال شد ✓' }
+          : { ok: false, text: res.reason === 'not_found' ? 'همچین کدی پیدا نشد' : res.reason === 'expired' ? 'این کد منقضی شده' : res.reason === 'exhausted' ? 'ظرفیت این کد تموم شده' : res.reason === 'offline' ? 'برای فعال‌سازی کد باید آنلاین باشی' : 'کد وارد نشد' };
+        render();
+      });
+    },
+    clearCoupon() { couponApi.clear(); M.couponMsg = null; render(); },
+
+    redeemReferral(codeInputEl) {
+      const code = typeof codeInputEl === 'string' ? codeInputEl : (codeInputEl && codeInputEl.value) || '';
+      referralApi.redeem(code).then((res) => {
+        M.referralMsg = res.ok
+          ? { ok: true, text: `کد ثبت شد! ${REFERRAL_RULES.REFEREE_BONUS} سکه گرفتی 🎉` }
+          : { ok: false, text: res.reason === 'self' ? 'این کدِ خودته' : res.reason === 'not_found' ? 'این کد پیدا نشد' : res.reason === 'already_used' ? 'قبلاً یه کد معرفی ثبت کردی' : res.reason === 'offline' ? 'برای ثبت کد باید آنلاین باشی' : 'کد وارد نشد' };
+        render();
+      });
     },
 
     buySubscription(planId) {
