@@ -6752,25 +6752,8 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       placeholder: t('aiModeTeacherPlaceholder'),
       system: () => `You are a real, patient ${teachLangLabel()} teacher, not just an answer machine. When the user asks a question (e.g. why a certain verb or tense is used, what the difference between two words is, or any other point of confusion), act like a real teacher: first give a simple, clear explanation, then one or two examples, compare with similar forms/tenses if useful, and finish by suggesting one or two short exercises (with the answer hidden or hinted) so they can practice. If the user says "explain it more simply" or "explain it for children," make the explanation much simpler. If they say "quiz me," just ask one short question and wait for their answer. Always write in a warm, friendly tone. ${aiLangInstruction()}`
     },
-    voice: {
-      label: t('aiModeVoice'),
-      placeholder: '',
-      system: () => {
-        const langInfo = TRANSLATE_LANGUAGES_FN()[state.aiVoiceLang] || TRANSLATE_LANGUAGES_FN().fa;
-        const topic = (state.aiVoiceTopic || '').trim();
-        const topicRule = topic
-          ? `The topic/theme for this conversation, chosen by the user, is: "${topic}". Actually have the conversation about this topic — ask questions, react, and keep steering the conversation back to it if it drifts too far.`
-          : `No specific topic was chosen; have a warm, natural everyday conversation and feel free to pick a simple, friendly topic yourself if the user seems unsure what to talk about.`;
-        return `You are a warm, natural voice conversation partner inside a language-learning app called "Leitner Box". This is a live spoken call: the user's words came from speech recognition, and your reply will be read aloud by text-to-speech, NOT shown as a chat. So follow these rules strictly:
-- Never use markdown, headers, bullet points, numbered lists, or asterisks. Write only plain, natural spoken sentences, exactly as a person would say them out loud.
-- Keep replies short and conversational (usually 1-4 sentences), like a real phone conversation, unless the user clearly asks for a longer explanation.
-- The user is practicing ${langInfo.label}. ${topicRule}
-- Speak mostly in ${langInfo.label} once the real conversation is underway, but understand whatever language the user speaks to you in (${uiLangNativeName()}, ${langInfo.label}, or any other language) and respond sensibly to it.
-- If the user asks what a word or sentence means, asks for a translation, asks about grammar, seems confused, or clearly can't follow in ${langInfo.label}, immediately and briefly switch to ${uiLangNativeName()} to explain, give one short example if it helps, then gently continue the conversation in ${langInfo.label}. Never leave the user stuck without an explanation in ${uiLangNativeName()} just to stay "in character".
-- If the user replies with just a single word or a very short/minimal utterance in ${langInfo.label} (e.g. just "${langInfo.label === 'Deutsch' || langInfo.label === 'German' ? 'ich' : 'a short word'}"), that's completely normal for a beginner — treat it as their real turn, respond naturally and encouragingly in ${langInfo.label} (helping them complete/extend the thought if useful), and keep the conversation moving. Do not get confused or repeat yourself.
-- Be warm, patient, and encouraging, like a real conversation partner who enjoys talking with them.`;
-      }
-    },
+    // توجه: حالت «مکالمه صوتی» طبق درخواست کاربر کاملاً از منوی هوش مصنوعی حذف شد (کلید voice
+    // اینجا دیگه تعریف نمی‌شه، پس دیگه به‌عنوان یه گزینه/چیپ توی UI نشون داده نمی‌شه).
   }; }
 
   // سوال‌های آماده‌ی «از معلم بپرس» — دقیقاً بر اساس چیزی که کاربر می‌خواد از معلم بپرسه
@@ -8144,88 +8127,290 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     `;
   }
 
-  // ================= فلش‌کارت تصویری (عکس هر کلمه با Gemini ساخته می‌شه) =================
-  // عکس فقط یه بار برای هر کلمه ساخته می‌شه؛ بعد از ساخته‌شدن روی خودِ کارت (card.imageUrl)
-  // کش می‌مونه و دوباره تولید نمی‌شه. برای سبک‌موندنِ دیتابیس، عکسِ base64ِ خروجیِ Gemini رو
-  // مستقیم توی Firebase ذخیره نمی‌کنیم؛ بلافاصله می‌ریزیمش روی همون Cloudinaryِ خودت (uploadToCloudinary
-  // که برای رسانه‌ی چت هم استفاده می‌شه) و فقط لینک کوتاهش رو روی کارت نگه می‌داریم.
-  // چند نسخه‌ی مختلف مدلِ تصویرسازی رو تعریف می‌کنیم تا مثل مدل‌های متنی، بین‌شون (و بین کلیدها) بچرخه؛
-  // این‌جوری اگه سهمیه‌ی رایگانِ یه نسخه تموم بشه، خودکار می‌ره سراغ نسخه‌ی بعدی بدون این‌که کاربر چیزی ببینه.
-  const AVAILABLE_GEMINI_IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image', 'gemini-3-pro-image'];
-  function geminiImageEndpointFor(model){
-    const m = AVAILABLE_GEMINI_IMAGE_MODELS.includes(model) ? model : AVAILABLE_GEMINI_IMAGE_MODELS[0];
-    return `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
-  }
-  function base64ToBlob(b64, mime){
-    return new Blob([base64ToUint8Array(b64)], { type: mime });
-  }
-  async function generateImageWithCombo(prompt, key, model){
-    let res;
-    try {
-      res = await fetch(`${geminiImageEndpointFor(model)}?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
-      });
-    } catch(networkErr){
-      throw new Error('اتصال به سرویس ساخت عکس برقرار نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.');
-    }
-    if (!res.ok){
-      let detail = '';
-      try { const errBody = await res.json(); detail = (errBody && errBody.error && errBody.error.message) || ''; } catch(e){}
-      const err = new Error('ساخت عکس ناموفق بود (کد ' + res.status + ')' + (detail ? ': ' + detail : ''));
-      err.isQuotaOrAuthError = (res.status === 429 || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 503);
-      throw err;
-    }
-    const data = await res.json();
-    const candidate = data && data.candidates && data.candidates[0];
-    const parts = candidate && candidate.content && candidate.content.parts;
-    const imgPart = parts && parts.find((p) => p.inlineData && p.inlineData.data);
-    if (!imgPart){
-      const reason = candidate && candidate.finishReason;
-      throw new Error(reason === 'SAFETY' || reason === 'IMAGE_SAFETY'
-        ? 'به‌خاطر فیلتر ایمنی عکسی ساخته نشد؛ دوباره امتحان کن.'
-        : 'عکسی برنگشت؛ دوباره امتحان کن.');
-    }
-    return base64ToBlob(imgPart.inlineData.data, imgPart.inlineData.mimeType || 'image/png');
-  }
-  async function generateFlashcardImage(card){
-    if (!hasActiveAiKey()) throw new Error(t('aiKeyNeeded'));
-    const prompt = `A simple, clear, colorful flashcard-style illustration representing the ${teachLangLabel()} word "${card.de}" (meaning: "${card.fa}"). Minimal, friendly, educational picture-dictionary style, single clear subject centered in frame, plain simple background, absolutely no text, letters, numbers, or watermarks anywhere in the image.`;
-    const startKey = await pickNextGeminiKey(state.aiGrantedKeys);
-    const startModel = await pickNextGeminiModel(AVAILABLE_GEMINI_IMAGE_MODELS);
-    const keys = (state.aiGrantedKeys && state.aiGrantedKeys.length) ? state.aiGrantedKeys : [startKey];
-    const combos = [];
-    keys.forEach((k) => AVAILABLE_GEMINI_IMAGE_MODELS.forEach((m) => combos.push({ key: k, model: m })));
-    const ordered = [{ key: startKey, model: startModel }, ...combos.filter(c => !(c.key === startKey && c.model === startModel))];
-    // رفع باگ: قبلاً حداکثر ۶ ترکیب کلید/مدل امتحان می‌شد، حتی اگه کاربر بیشتر از ۲ کلید یا کلید+مدل
-    // بیشتری داشت که هنوز سهمیه‌شون تموم نشده بود؛ الان همه‌ی ترکیب‌های موجود امتحان می‌شن تا واقعاً
-    // مطمئن بشیم هیچ کلید/مدلِ در دسترسی نمونده، قبل از این‌که خطا نشون بدیم.
-    let lastErr = null;
-    let blob = null;
-    for (let i = 0; i < ordered.length; i++){
-      const combo = ordered[i];
-      try {
-        blob = await generateImageWithCombo(prompt, combo.key, combo.model);
-        break;
-      } catch(e){
-        lastErr = e;
-        if (!e || !e.isQuotaOrAuthError) throw e;
-      }
-    }
-    if (!blob){
-      const exhaustedErr = new Error('سهمیه‌ی رایگانِ همه‌ی کلیدها/مدل‌های ساخت عکس برای امروز تموم شده. یا یه کلید Gemini جدید اضافه کن، یا برای همین کلیدها سهمیه‌ی پولی (billing) فعال کن، یا بعداً دوباره امتحان کن.');
-      throw (lastErr && lastErr.isQuotaOrAuthError) ? exhaustedErr : (lastErr || new Error('ساخت عکس ناموفق بود.'));
-    }
-    try {
-      return await uploadToCloudinary(blob, 'image');
-    } catch(uploadErr){
-      throw new Error('عکس ساخته شد ولی آپلودش ناموفق بود؛ دوباره امتحان کن.');
-    }
-  }
+const EMOJI_FLASH_BANK = [
+    {e:"🐶",de:"Hund",fa:"سگ"},
+    {e:"🐱",de:"Katze",fa:"گربه"},
+    {e:"🐭",de:"Maus",fa:"موش"},
+    {e:"🦁",de:"Löwe",fa:"شیر"},
+    {e:"🐯",de:"Tiger",fa:"ببر"},
+    {e:"🐻",de:"Bär",fa:"خرس"},
+    {e:"🐼",de:"Panda",fa:"پاندا"},
+    {e:"🦊",de:"Fuchs",fa:"روباه"},
+    {e:"🐰",de:"Hase",fa:"خرگوش"},
+    {e:"🐨",de:"Koala",fa:"کوالا"},
+    {e:"🐷",de:"Schwein",fa:"خوک"},
+    {e:"🐮",de:"Kuh",fa:"گاو"},
+    {e:"🐵",de:"Affe",fa:"میمون"},
+    {e:"🐔",de:"Huhn",fa:"مرغ"},
+    {e:"🐧",de:"Pinguin",fa:"پنگوئن"},
+    {e:"🐦",de:"Vogel",fa:"پرنده"},
+    {e:"🐸",de:"Frosch",fa:"قورباغه"},
+    {e:"🐍",de:"Schlange",fa:"مار"},
+    {e:"🐟",de:"Fisch",fa:"ماهی"},
+    {e:"🐳",de:"Wal",fa:"نهنگ"},
+    {e:"🐬",de:"Delfin",fa:"دلفین"},
+    {e:"🐙",de:"Krake",fa:"اختاپوس"},
+    {e:"🐢",de:"Schildkröte",fa:"لاک‌پشت"},
+    {e:"🐌",de:"Schnecke",fa:"حلزون"},
+    {e:"🐝",de:"Biene",fa:"زنبور"},
+    {e:"🦋",de:"Schmetterling",fa:"پروانه"},
+    {e:"🕷️",de:"Spinne",fa:"عنکبوت"},
+    {e:"🐘",de:"Elefant",fa:"فیل"},
+    {e:"🐴",de:"Pferd",fa:"اسب"},
+    {e:"🐑",de:"Schaf",fa:"گوسفند"},
+    {e:"🐐",de:"Ziege",fa:"بز"},
+    {e:"🐺",de:"Wolf",fa:"گرگ"},
+    {e:"🦉",de:"Eule",fa:"جغد"},
+    {e:"🦆",de:"Ente",fa:"اردک"},
+    {e:"🐫",de:"Kamel",fa:"شتر"},
+    {e:"🦀",de:"Krabbe",fa:"خرچنگ"},
+    {e:"🦐",de:"Garnele",fa:"میگو"},
+    {e:"🦎",de:"Eidechse",fa:"مارمولک"},
+    {e:"🐲",de:"Drache",fa:"اژدها"},
+    {e:"🦒",de:"Giraffe",fa:"زرافه"},
+    {e:"🦓",de:"Zebra",fa:"گورخر"},
+    {e:"🦔",de:"Igel",fa:"جوجه‌تیغی"},
+    {e:"🦇",de:"Fledermaus",fa:"خفاش"},
+    {e:"🦅",de:"Adler",fa:"عقاب"},
+    {e:"🦢",de:"Schwan",fa:"قو"},
+    {e:"🐊",de:"Krokodil",fa:"تمساح"},
+    {e:"🦈",de:"Hai",fa:"کوسه"},
+    {e:"🐿️",de:"Eichhörnchen",fa:"سنجاب"},
+    {e:"🦌",de:"Hirsch",fa:"گوزن"},
+    {e:"🐗",de:"Wildschwein",fa:"گراز"},
+    {e:"🍎",de:"Apfel",fa:"سیب"},
+    {e:"🍌",de:"Banane",fa:"موز"},
+    {e:"🍊",de:"Orange",fa:"پرتقال"},
+    {e:"🍋",de:"Zitrone",fa:"لیمو"},
+    {e:"🍇",de:"Trauben",fa:"انگور"},
+    {e:"🍉",de:"Wassermelone",fa:"هندوانه"},
+    {e:"🍓",de:"Erdbeere",fa:"توت‌فرنگی"},
+    {e:"🍒",de:"Kirsche",fa:"گیلاس"},
+    {e:"🍑",de:"Pfirsich",fa:"هلو"},
+    {e:"🍍",de:"Ananas",fa:"آناناس"},
+    {e:"🥭",de:"Mango",fa:"انبه"},
+    {e:"🥥",de:"Kokosnuss",fa:"نارگیل"},
+    {e:"🥝",de:"Kiwi",fa:"کیوی"},
+    {e:"🍅",de:"Tomate",fa:"گوجه‌فرنگی"},
+    {e:"🥕",de:"Karotte",fa:"هویج"},
+    {e:"🌽",de:"Mais",fa:"ذرت"},
+    {e:"🥔",de:"Kartoffel",fa:"سیب‌زمینی"},
+    {e:"🧅",de:"Zwiebel",fa:"پیاز"},
+    {e:"🧄",de:"Knoblauch",fa:"سیر"},
+    {e:"🍄",de:"Pilz",fa:"قارچ"},
+    {e:"🍞",de:"Brot",fa:"نان"},
+    {e:"🧀",de:"Käse",fa:"پنیر"},
+    {e:"🥚",de:"Ei",fa:"تخم‌مرغ"},
+    {e:"🥩",de:"Fleisch",fa:"گوشت"},
+    {e:"🍗",de:"Hähnchen",fa:"مرغ (غذا)"},
+    {e:"🍕",de:"Pizza",fa:"پیتزا"},
+    {e:"🍔",de:"Burger",fa:"همبرگر"},
+    {e:"🌭",de:"Hotdog",fa:"هات‌داگ"},
+    {e:"🍟",de:"Pommes",fa:"سیب‌زمینی سرخ‌کرده"},
+    {e:"🍝",de:"Nudeln",fa:"پاستا"},
+    {e:"🍚",de:"Reis",fa:"برنج"},
+    {e:"🍲",de:"Suppe",fa:"سوپ"},
+    {e:"🥗",de:"Salat",fa:"سالاد"},
+    {e:"🍰",de:"Kuchen",fa:"کیک"},
+    {e:"🍫",de:"Schokolade",fa:"شکلات"},
+    {e:"🍦",de:"Eis",fa:"بستنی"},
+    {e:"🍪",de:"Keks",fa:"بیسکویت"},
+    {e:"🍯",de:"Honig",fa:"عسل"},
+    {e:"🥛",de:"Milch",fa:"شیر"},
+    {e:"☕",de:"Kaffee",fa:"قهوه"},
+    {e:"🍵",de:"Tee",fa:"چای"},
+    {e:"🧃",de:"Saft",fa:"آب‌میوه"},
+    {e:"💧",de:"Wasser",fa:"آب"},
+    {e:"🍷",de:"Wein",fa:"شراب"},
+    {e:"🍺",de:"Bier",fa:"آبجو"},
+    {e:"🥐",de:"Hörnchen",fa:"کروسان"},
+    {e:"🥞",de:"Pfannkuchen",fa:"پنکیک"},
+    {e:"🌮",de:"Taco",fa:"تاکو"},
+    {e:"🥜",de:"Erdnuss",fa:"بادام‌زمینی"},
+    {e:"☀️",de:"Sonne",fa:"خورشید"},
+    {e:"🌙",de:"Mond",fa:"ماه"},
+    {e:"⭐",de:"Stern",fa:"ستاره"},
+    {e:"☁️",de:"Wolke",fa:"ابر"},
+    {e:"🌧️",de:"Regen",fa:"باران"},
+    {e:"❄️",de:"Schnee",fa:"برف"},
+    {e:"⚡",de:"Blitz",fa:"رعد و برق"},
+    {e:"🌈",de:"Regenbogen",fa:"رنگین‌کمان"},
+    {e:"🔥",de:"Feuer",fa:"آتش"},
+    {e:"🌳",de:"Baum",fa:"درخت"},
+    {e:"🌸",de:"Blume",fa:"گل"},
+    {e:"🌹",de:"Rose",fa:"رز"},
+    {e:"🍃",de:"Blatt",fa:"برگ"},
+    {e:"⛰️",de:"Berg",fa:"کوه"},
+    {e:"🌊",de:"Meer",fa:"دریا"},
+    {e:"🏞️",de:"Fluss",fa:"رودخانه"},
+    {e:"🏝️",de:"Insel",fa:"جزیره"},
+    {e:"🏜️",de:"Wüste",fa:"کویر"},
+    {e:"🌲",de:"Wald",fa:"جنگل"},
+    {e:"🌋",de:"Vulkan",fa:"آتشفشان"},
+    {e:"🌍",de:"Erde",fa:"زمین"},
+    {e:"🌪️",de:"Sturm",fa:"طوفان"},
+    {e:"⛄",de:"Schneemann",fa:"آدم‌برفی"},
+    {e:"🌾",de:"Feld",fa:"مزرعه"},
+    {e:"🪨",de:"Stein",fa:"سنگ"},
+    {e:"👁️",de:"Auge",fa:"چشم"},
+    {e:"👂",de:"Ohr",fa:"گوش"},
+    {e:"👃",de:"Nase",fa:"بینی"},
+    {e:"👄",de:"Mund",fa:"دهان"},
+    {e:"✋",de:"Hand",fa:"دست"},
+    {e:"🦶",de:"Fuß",fa:"پا"},
+    {e:"🦵",de:"Bein",fa:"ساق پا"},
+    {e:"🦷",de:"Zahn",fa:"دندان"},
+    {e:"🧠",de:"Gehirn",fa:"مغز"},
+    {e:"❤️",de:"Herz",fa:"قلب"},
+    {e:"🏠",de:"Haus",fa:"خانه"},
+    {e:"🔑",de:"Schlüssel",fa:"کلید"},
+    {e:"🚪",de:"Tür",fa:"در"},
+    {e:"🛏️",de:"Bett",fa:"تخت"},
+    {e:"🪑",de:"Stuhl",fa:"صندلی"},
+    {e:"💡",de:"Lampe",fa:"لامپ"},
+    {e:"⏰",de:"Uhr",fa:"ساعت"},
+    {e:"📱",de:"Telefon",fa:"تلفن"},
+    {e:"💻",de:"Computer",fa:"کامپیوتر"},
+    {e:"📺",de:"Fernseher",fa:"تلویزیون"},
+    {e:"📖",de:"Buch",fa:"کتاب"},
+    {e:"✏️",de:"Bleistift",fa:"مداد"},
+    {e:"✂️",de:"Schere",fa:"قیچی"},
+    {e:"👜",de:"Tasche",fa:"کیف"},
+    {e:"☂️",de:"Regenschirm",fa:"چتر"},
+    {e:"👓",de:"Brille",fa:"عینک"},
+    {e:"🎩",de:"Hut",fa:"کلاه"},
+    {e:"👕",de:"Hemd",fa:"پیراهن"},
+    {e:"👟",de:"Schuh",fa:"کفش"},
+    {e:"🧦",de:"Socken",fa:"جوراب"},
+    {e:"💍",de:"Ring",fa:"حلقه"},
+    {e:"👑",de:"Krone",fa:"تاج"},
+    {e:"🎁",de:"Geschenk",fa:"هدیه"},
+    {e:"🔔",de:"Glocke",fa:"زنگ"},
+    {e:"🕯️",de:"Kerze",fa:"شمع"},
+    {e:"🪞",de:"Spiegel",fa:"آینه"},
+    {e:"🧼",de:"Seife",fa:"صابون"},
+    {e:"🪥",de:"Zahnbürste",fa:"مسواک"},
+    {e:"🧹",de:"Besen",fa:"جارو"},
+    {e:"🔨",de:"Hammer",fa:"چکش"},
+    {e:"🔧",de:"Schraubenschlüssel",fa:"آچار"},
+    {e:"🔒",de:"Schloss",fa:"قفل"},
+    {e:"💰",de:"Geld",fa:"پول"},
+    {e:"🪙",de:"Münze",fa:"سکه"},
+    {e:"💳",de:"Karte",fa:"کارت"},
+    {e:"✉️",de:"Umschlag",fa:"پاکت نامه"},
+    {e:"📰",de:"Zeitung",fa:"روزنامه"},
+    {e:"🧺",de:"Korb",fa:"سبد"},
+    {e:"🧴",de:"Flasche",fa:"بطری"},
+    {e:"🪟",de:"Fenster",fa:"پنجره"},
+    {e:"🚗",de:"Auto",fa:"ماشین"},
+    {e:"🚌",de:"Bus",fa:"اتوبوس"},
+    {e:"🚆",de:"Zug",fa:"قطار"},
+    {e:"✈️",de:"Flugzeug",fa:"هواپیما"},
+    {e:"🚢",de:"Schiff",fa:"کشتی"},
+    {e:"🚲",de:"Fahrrad",fa:"دوچرخه"},
+    {e:"🏍️",de:"Motorrad",fa:"موتورسیکلت"},
+    {e:"🚕",de:"Taxi",fa:"تاکسی"},
+    {e:"🚚",de:"Lastwagen",fa:"کامیون"},
+    {e:"🚀",de:"Rakete",fa:"موشک"},
+    {e:"🚁",de:"Hubschrauber",fa:"هلیکوپتر"},
+    {e:"🛶",de:"Boot",fa:"قایق"},
+    {e:"🛴",de:"Roller",fa:"اسکوتر"},
+    {e:"🚑",de:"Krankenwagen",fa:"آمبولانس"},
+    {e:"🚓",de:"Polizeiauto",fa:"ماشین پلیس"},
+    {e:"⚽",de:"Fußball",fa:"فوتبال"},
+    {e:"🏀",de:"Basketball",fa:"بسکتبال"},
+    {e:"🎾",de:"Tennis",fa:"تنیس"},
+    {e:"🏊",de:"Schwimmen",fa:"شنا"},
+    {e:"🏃",de:"Laufen",fa:"دویدن"},
+    {e:"🎸",de:"Gitarre",fa:"گیتار"},
+    {e:"🎹",de:"Klavier",fa:"پیانو"},
+    {e:"🎤",de:"Mikrofon",fa:"میکروفون"},
+    {e:"📷",de:"Kamera",fa:"دوربین"},
+    {e:"🖌️",de:"Pinsel",fa:"قلم‌مو"},
+    {e:"🎨",de:"Palette",fa:"پالت رنگ"},
+    {e:"🏆",de:"Pokal",fa:"جام"},
+    {e:"🥇",de:"Medaille",fa:"مدال"},
+    {e:"🎯",de:"Ziel",fa:"هدف"},
+    {e:"🎮",de:"Videospiel",fa:"بازی ویدیویی"},
+    {e:"👶",de:"Baby",fa:"نوزاد"},
+    {e:"👦",de:"Junge",fa:"پسر"},
+    {e:"👧",de:"Mädchen",fa:"دختر"},
+    {e:"👨",de:"Mann",fa:"مرد"},
+    {e:"👩",de:"Frau",fa:"زن"},
+    {e:"👪",de:"Familie",fa:"خانواده"},
+    {e:"👨‍🏫",de:"Lehrer",fa:"معلم"},
+    {e:"👨‍⚕️",de:"Arzt",fa:"پزشک"},
+    {e:"👮",de:"Polizist",fa:"پلیس"},
+    {e:"👨‍🚒",de:"Feuerwehrmann",fa:"آتش‌نشان"},
+    {e:"👨‍🌾",de:"Bauer",fa:"کشاورز"},
+    {e:"👨‍🍳",de:"Koch",fa:"آشپز"},
+    {e:"🤴",de:"König",fa:"پادشاه"},
+    {e:"👸",de:"Königin",fa:"ملکه"},
+    {e:"👼",de:"Engel",fa:"فرشته"},
+    {e:"❓",de:"Frage",fa:"سؤال"},
+    {e:"❗",de:"Ausrufezeichen",fa:"علامت تعجب"},
+    {e:"✅",de:"Richtig",fa:"درست"},
+    {e:"❌",de:"Falsch",fa:"غلط"},
+    {e:"⚠️",de:"Warnung",fa:"هشدار"},
+    {e:"♻️",de:"Recycling",fa:"بازیافت"},
+    {e:"🌐",de:"Welt",fa:"جهان"},
+    {e:"🚩",de:"Flagge",fa:"پرچم"},
+    {e:"🧭",de:"Kompass",fa:"قطب‌نما"},
+    {e:"🔭",de:"Teleskop",fa:"تلسکوپ"},
+    {e:"🧲",de:"Magnet",fa:"آهنربا"},
+    {e:"🔴",de:"Rot",fa:"قرمز"},
+    {e:"🔵",de:"Blau",fa:"آبی"},
+    {e:"🟢",de:"Grün",fa:"سبز"},
+    {e:"🟡",de:"Gelb",fa:"زرد"},
+    {e:"🟣",de:"Lila",fa:"بنفش"},
+    {e:"🟠",de:"Orange",fa:"نارنجی"},
+    {e:"⚫",de:"Schwarz",fa:"مشکی"},
+    {e:"⚪",de:"Weiß",fa:"سفید"},
+    {e:"🟤",de:"Braun",fa:"قهوه‌ای"},
+    {e:"1️⃣",de:"Eins",fa:"یک"},
+    {e:"2️⃣",de:"Zwei",fa:"دو"},
+    {e:"3️⃣",de:"Drei",fa:"سه"},
+    {e:"4️⃣",de:"Vier",fa:"چهار"},
+    {e:"5️⃣",de:"Fünf",fa:"پنج"},
+    {e:"6️⃣",de:"Sechs",fa:"شش"},
+    {e:"7️⃣",de:"Sieben",fa:"هفت"},
+    {e:"8️⃣",de:"Acht",fa:"هشت"},
+    {e:"9️⃣",de:"Neun",fa:"نه"},
+    {e:"🔟",de:"Zehn",fa:"ده"},
+    {e:"😀",de:"Glücklich",fa:"خوشحال"},
+    {e:"😢",de:"Traurig",fa:"ناراحت"},
+    {e:"😡",de:"Wütend",fa:"عصبانی"},
+    {e:"😱",de:"Erschrocken",fa:"ترسیده"},
+    {e:"😴",de:"Müde",fa:"خسته"},
+    {e:"😍",de:"Verliebt",fa:"عاشق"},
+    {e:"🤒",de:"Krank",fa:"بیمار"},
+    {e:"😂",de:"Lachen",fa:"خنده"},
+    {e:"🌅",de:"Sonnenaufgang",fa:"طلوع خورشید"},
+    {e:"🌇",de:"Sonnenuntergang",fa:"غروب خورشید"},
+    {e:"🏙️",de:"Stadt",fa:"شهر"},
+    {e:"🏫",de:"Schule",fa:"مدرسه"},
+    {e:"🏥",de:"Krankenhaus",fa:"بیمارستان"},
+    {e:"🏦",de:"Bank",fa:"بانک"},
+    {e:"🏨",de:"Hotel",fa:"هتل"},
+    {e:"🏟️",de:"Stadion",fa:"استادیوم"},
+    {e:"⛪",de:"Kirche",fa:"کلیسا"},
+    {e:"🕌",de:"Moschee",fa:"مسجد"},
+    {e:"🏰",de:"Schloss",fa:"قلعه"},
+    {e:"🗼",de:"Turm",fa:"برج"},
+    {e:"🌉",de:"Brücke",fa:"پل"},
+    {e:"🚦",de:"Ampel",fa:"چراغ راهنما"},
+    {e:"🛣️",de:"Straße",fa:"خیابان"},
+    {e:"🅿️",de:"Parkplatz",fa:"پارکینگ"}
+  ];
+  // ================= فلش‌کارت تصویری (استیکر/ایموجی) =================
+  // رفع باگ: قبلاً این بخش برای هر کلمه یه عکس با Gemini می‌ساخت و آپلودش می‌کرد که هم کند بود
+  // هم گاهی آپلودش (Cloudinary) شکست می‌خورد و عکس بالا نمی‌اومد. الان کاملاً بدون هوش مصنوعی و
+  // بدون آپلود کار می‌کنه: یه بانکِ ثابت و آماده از ۲۵۰+ ایموجی/استیکر با کلمه‌ی آلمانی و معنی فارسیش
+  // (EMOJI_FLASH_BANK بالا) داریم؛ هر دور چند تا استیکر رندوم انتخاب می‌شه، کاربر باید کلمه‌ی
+  // آلمانی‌ش رو حدس بزنه. هیچ کلید/اینترنتِ AI لازم نیست و هیچ‌وقت خراب نمی‌شه.
   function startImageFlashcards(){
-    const pool = state.cards.filter((c) => c.type === 'word' && matchesCategory(c, state.studyCategoryFilter));
-    state.imageFlashQueue = shuffle(pool).map((c) => c.id).slice(0, 15);
+    const pool = shuffle(EMOJI_FLASH_BANK.map((_, i) => i));
+    state.imageFlashQueue = pool.slice(0, 15);
     state.imageFlashIndex = 0;
     state.imageFlashError = null;
     state.imageFlashChecked = false;
@@ -8233,38 +8418,21 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.studyType = 'imageFlash';
     state.view = 'study';
     render();
-    loadImageFlashcardImage();
-  }
-  async function loadImageFlashcardImage(){
-    const card = state.cards.find((c) => c.id === state.imageFlashQueue[state.imageFlashIndex]);
-    if (!card || card.imageUrl){ render(); return; }
-    state.imageFlashLoading = true;
-    state.imageFlashError = null;
-    render();
-    try {
-      const url = await generateFlashcardImage(card);
-      card.imageUrl = url;
-      persistCards();
-    } catch(e){
-      state.imageFlashError = (e && e.message) || 'ساخت عکس ناموفق بود.';
-    }
-    state.imageFlashLoading = false;
-    render();
   }
   function checkImageFlashAnswer(){
     if (state.imageFlashChecked) return;
-    const card = state.cards.find((c) => c.id === state.imageFlashQueue[state.imageFlashIndex]);
-    if (!card) return;
+    const item = EMOJI_FLASH_BANK[state.imageFlashQueue[state.imageFlashIndex]];
+    if (!item) return;
     const input = document.getElementById('imageFlashGuess');
     const guess = input ? input.value : '';
     state.imageFlashChecked = true;
-    state.imageFlashCorrect = !!guess.trim() && normalizeDe(guess) === normalizeDe(card.de);
+    state.imageFlashCorrect = !!guess.trim() && normalizeDe(guess) === normalizeDe(item.de);
     render();
     const nextInput = document.getElementById('imageFlashGuess');
     if (nextInput) nextInput.focus();
   }
   function imageFlashGuessKeydown(ev){
-    if (ev.key === 'Enter'){ ev.preventDefault(); checkImageFlashAnswer(); }
+    if (ev.key === 'Enter') checkImageFlashAnswer();
   }
   function imageFlashNext(){
     state.imageFlashIndex += 1;
@@ -8272,7 +8440,6 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.imageFlashChecked = false;
     state.imageFlashCorrect = false;
     render();
-    if (state.imageFlashIndex < state.imageFlashQueue.length) loadImageFlashcardImage();
   }
   function imageFlashPrev(){
     if (state.imageFlashIndex <= 0) return;
@@ -8281,24 +8448,32 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.imageFlashChecked = false;
     state.imageFlashCorrect = false;
     render();
-    loadImageFlashcardImage();
+  }
+  // دکمه‌ی رفرش: همون سؤالای الان رو ول می‌کنه و یه دستهٔ کاملاً جدید و رندوم از استیکرها میاره.
+  function refreshImageFlashcards(){
+    const pool = shuffle(EMOJI_FLASH_BANK.map((_, i) => i));
+    state.imageFlashQueue = pool.slice(0, 15);
+    state.imageFlashIndex = 0;
+    state.imageFlashError = null;
+    state.imageFlashChecked = false;
+    state.imageFlashCorrect = false;
+    render();
   }
   function renderImageFlashcards(){
     const total = state.imageFlashQueue.length;
     if (!total){
-      return `<div class="panel" style="text-align:center"><div class="hint-text" style="margin-bottom:12px">کلمه‌ای برای فلش‌کارت تصویری نیست؛ اول چند تا کلمه اضافه کن.</div><button class="btn-secondary" onclick="goStudyTab()">بازگشت</button></div>`;
+      return `<div class="panel" style="text-align:center"><div class="hint-text" style="margin-bottom:12px">استیکری برای نمایش نیست.</div><button class="btn-secondary" onclick="goStudyTab()">بازگشت</button></div>`;
     }
     if (state.imageFlashIndex >= total){
-      return `
-        <div class="panel" style="text-align:center">
-          <div class="deck-title" style="margin-bottom:10px">تمومه! 🎉</div>
-          <button class="btn-primary" style="margin-bottom:10px" onclick="startImageFlashcards()">دوباره</button>
-          <button class="btn-secondary" style="margin-top:0" onclick="goStudyTab()">بازگشت</button>
-        </div>
-      `;
+      return `<div class="panel" style="text-align:center">
+        <div class="deck-title" style="margin-bottom:8px">🎉 تمومه!</div>
+        <div class="hint-text" style="margin-bottom:14px">${faNum(total)} استیکر رو مرور کردی.</div>
+        <button class="btn-primary" style="margin-bottom:8px" onclick="refreshImageFlashcards()">${icon('refresh',16)} دور جدید با استیکرهای جدید</button>
+        <button class="btn-secondary" onclick="goStudyTab()">بازگشت</button>
+      </div>`;
     }
-    const card = state.cards.find((c) => c.id === state.imageFlashQueue[state.imageFlashIndex]);
-    if (!card) return `<div class="panel"><div class="hint-text">کارت پیدا نشد.</div><button class="btn-secondary" onclick="imageFlashNext()">رد کردن</button></div>`;
+    const item = EMOJI_FLASH_BANK[state.imageFlashQueue[state.imageFlashIndex]];
+    if (!item) return `<div class="panel"><div class="hint-text">استیکر پیدا نشد.</div><button class="btn-secondary" onclick="imageFlashNext()">رد کردن</button></div>`;
     const checked = state.imageFlashChecked;
     let answerAreaHtml;
     if (!checked){
@@ -8311,21 +8486,20 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
         <div style="text-align:center;padding:10px 12px;border-radius:12px;margin-bottom:10px;background:${state.imageFlashCorrect ? 'var(--sage-tint, #e4f3e6)' : 'var(--wine-tint, #fbe6e6)'};color:${state.imageFlashCorrect ? 'var(--sage-strong)' : 'var(--wine)'};font-weight:700">
           ${state.imageFlashCorrect ? '✅ درست بود!' : '❌ اشتباه بود'}
         </div>
-        <div style="text-align:center;direction:ltr;font-size:19px;font-weight:700;margin-bottom:4px">${esc(card.de)}</div>
-        <div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px">${esc(card.fa)}</div>
+        <div style="text-align:center;direction:ltr;font-size:19px;font-weight:700;margin-bottom:4px">${esc(item.de)}</div>
+        <div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px">${esc(item.fa)}</div>
       `;
     }
     return `
       <div class="panel">
-        <div class="progress-label">فلش‌کارت تصویری ${faNum(state.imageFlashIndex + 1)} / ${faNum(total)}</div>
-        <div style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);display:flex;align-items:center;justify-content:center;margin-bottom:14px">
-          ${state.imageFlashLoading ? `<span class="ai-typing-dots"><span></span><span></span><span></span></span>`
-            : card.imageUrl ? `<img src="${esc(card.imageUrl)}" style="width:100%;height:100%;object-fit:cover" alt="">`
-            : state.imageFlashError ? `<div class="hint-text" style="padding:14px;text-align:center;color:var(--wine)">${esc(state.imageFlashError)}</div>`
-            : `<div class="hint-text">در انتظار...</div>`}
+        <div class="progress-label" style="display:flex;align-items:center;justify-content:space-between">
+          <span>فلش‌کارت تصویری ${faNum(state.imageFlashIndex + 1)} / ${faNum(total)}</span>
+          <button class="icon-btn" title="دور جدید با استیکرهای جدید" onclick="refreshImageFlashcards()">${icon('refresh',16)}</button>
+        </div>
+        <div style="width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:88px">
+          ${esc(item.e)}
         </div>
         ${answerAreaHtml}
-        ${state.imageFlashError ? `<button class="btn-secondary" style="margin-bottom:8px" onclick="loadImageFlashcardImage()">تلاش دوباره برای ساخت عکس</button>` : ''}
         <div style="display:flex;gap:8px">
           ${state.imageFlashIndex > 0 ? `<button class="btn-secondary" style="margin-top:0;flex:1" onclick="imageFlashPrev()">${icon('chevronRight',16)} قبلی</button>` : ''}
           ${checked ? `<button class="btn-primary" style="margin-top:0;flex:1" onclick="imageFlashNext()">بعدی ${icon('chevronLeft',16)}</button>` : ''}
@@ -8335,7 +8509,6 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     `;
   }
 
-  // ================= آموزش گرامر مرحله‌ای (درس‌ها لحظه‌ای با AI ساخته می‌شن) =================
   function openGrammarCourse(){
     state.studyType = 'grammarCourse';
     state.view = 'study';

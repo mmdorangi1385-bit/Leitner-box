@@ -943,11 +943,14 @@
 
   function renderOwnedCard(it) {
     const img = it.previewUrls && it.previewUrls[0];
+    const rec = M.purchases[it.id];
+    const boughtAt = rec && rec.purchasedAt ? new Date(rec.purchasedAt).toLocaleString('fa-IR') : '';
     return (
       '<div class="market-card">' +
         '<div class="market-card-img-wrap">' + (img ? '<img src="' + esc(img) + '">' : '') + '</div>' +
         '<div class="market-card-body">' +
           '<div class="market-card-title">' + esc(it.name) + '</div>' +
+          (boughtAt ? '<div style="font-size:10.5px;color:var(--muted);margin:2px 0 6px;">خرید: ' + esc(boughtAt) + '</div>' : '') +
           '<button class="market-buy-btn owned" style="padding:8px;font-size:12px;" onclick="Marketplace.activate(\'' + it.id + '\')">' + esc(Adapters.t('marketApply')) + '</button>' +
         '</div>' +
       '</div>'
