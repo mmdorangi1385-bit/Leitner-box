@@ -34,7 +34,7 @@
     --ivory: #ede6d6; --text: #ede6d6;
     --ink: #2b2a28; --muted: #9aa0b4; --brass: #c9a66b; --brass-dark: #a9824f;
     --wine: #b65c5c; --sage: #8fa37a; --sage-strong: #3fa15a; --violet: #8B6FC9;
-    --teal: #3fc1c9; --teal-dark: #2b969d;
+    --teal: #3fc1c9; --teal-dark: #2b969d; --indigo: #6f7bd6; --coral: #e0784f;
     --border: #333854; --border2: #3c4260; --divider: #292d40; --placeholder: #6b7189;
   }
   [data-theme="light"] {
@@ -141,6 +141,19 @@
   .nav-btn.active { background: var(--panel2); color: var(--brass); }
 
   .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .panel.panel-compact { padding: 12px 14px; margin-bottom: 12px; }
+  .panel-compact .deck-title { font-size: 14.5px; }
+  .panel-compact .deck-sub { font-size: 10px; }
+  .panel-compact .drawer { height: 40px; }
+  .panel-compact .drawer-tab { width: 36px; font-size: 14px; }
+  .panel-compact .drawer-title { font-size: 12px; }
+  .panel-compact .drawer-interval { font-size: 10px; }
+  .panel-compact .drawer-cabinet { gap: 6px; margin-bottom: 12px; }
+  .panel-compact .btn-primary, .panel-compact .btn-secondary { padding: 10px; font-size: 13px; }
+
+  .practice-tile-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .practice-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: none; border-radius: 14px; padding: 14px 8px; min-height: 76px; cursor: pointer; color: #fff; font-family: 'Vazirmatn', Tahoma, sans-serif; font-weight: 700; font-size: 12.5px; text-align: center; }
+  .practice-tile svg { flex-shrink: 0; }
 
   .action-row { display: flex; gap: 10px; margin-bottom: 18px; }
   .action-chip { flex: 1; display: flex; align-items: center; gap: 8px; background: var(--panel2); border: 1px solid var(--border2); border-radius: 12px; padding: 10px 12px; cursor: pointer; text-align: start; }
@@ -606,8 +619,8 @@
 .duel-result-box { background: var(--panel2); border: 1px solid var(--border2); border-radius: 16px; padding: 20px; text-align: center; display: flex; flex-direction: column; gap: 12px; }
 .duel-score-row { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
 .duel-result-line { font-size: 17px; font-weight: 700; margin-top: 6px; }
-.group-avatar-wrap { display: flex; align-items: center; justify-content: center; background: var(--panel2); border-radius: 50%; color: var(--brass); }
-.group-msg-sender { font-size: 10.5px; font-weight: 700; color: var(--brass); margin-bottom: 2px; }
+.group-avatar-wrap { display: flex; align-items: center; justify-content: center; background: var(--panel2); border-radius: 50%; color: var(--brass); overflow: hidden; }
+.group-msg-sender { display: flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; color: var(--brass); margin-bottom: 3px; }
 
 /* --- Firebase auth overlay --- */
 #auth-overlay { position: fixed; inset: 0; background: var(--bg); z-index: 500; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
@@ -785,6 +798,22 @@
       return keys[Math.floor(Math.random() * keys.length)];
     }
   }
+  // چرخش نسخه‌ی مدل هم دقیقاً مثل چرخش کلید (aiConfig/geminiModelRotationIndex): این‌جوری
+  // درخواست‌ها بین همه‌ی نسخه‌های Gemini که تعریف کردیم پخش می‌شن و سقف رایگانِ هیچ‌کدوم به‌تنهایی
+  // زود پر نمی‌شه؛ کاربر دیگه لازم نیست خودش دستی بره مدل رو عوض کنه.
+  async function pickNextGeminiModel(models){
+    if (!models || !models.length) return DEFAULT_GEMINI_MODEL;
+    if (models.length === 1) return models[0];
+    try {
+      const idxRef = fbDb.ref('aiConfig/geminiModelRotationIndex');
+      const txResult = await idxRef.transaction((cur) => (((typeof cur === 'number' ? cur : 0) + 1) % 1000000));
+      const idx = (txResult && txResult.committed && txResult.snapshot && typeof txResult.snapshot.val() === 'number')
+        ? txResult.snapshot.val() : Math.floor(Math.random() * models.length);
+      return models[idx % models.length];
+    } catch(e){
+      return models[Math.floor(Math.random() * models.length)];
+    }
+  }
   const DAILY_GOALS_KEY = 'leitner_daily_goals_v1';
   const DAILY_PROGRESS_KEY = 'leitner_daily_progress_v1';
   const DEFAULT_DAILY_GOALS = { word: 10, sentence: 5, pronun: 10 };
@@ -834,6 +863,24 @@
   function friendAvatarImg(avatarId, size){
     const src = AVATAR_IMAGES[avatarId] || AVATAR_IMAGES.a1;
     return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+  }
+  // آواتار پیش‌فرض گروه، دقیقاً شبیه تلگرام: دایره‌ی رنگی با حرف اول اسم گروه؛ رنگش از
+  // روی اسم گروه به‌صورت ثابت انتخاب می‌شه (هر گروه همیشه همون رنگ رو داره).
+  const GROUP_AVATAR_COLORS = ['var(--brass)','var(--wine)','var(--sage-strong)','var(--violet)','var(--teal)','var(--indigo)','var(--coral)','var(--teal-dark)'];
+  function groupAvatarColor(name){
+    let hash = 0;
+    const s = String(name || '');
+    for (let i = 0; i < s.length; i++) hash = (hash * 31 + s.charCodeAt(i)) >>> 0;
+    return GROUP_AVATAR_COLORS[hash % GROUP_AVATAR_COLORS.length];
+  }
+  function groupAvatarBadge(g, size){
+    const name = (g && g.name) || '';
+    const letter = name.trim().charAt(0) || '#';
+    const fontSize = Math.round(size * 0.42);
+    if (g && g.photoUrl){
+      return `<img src="${esc(g.photoUrl)}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+    }
+    return `<div style="width:${size}px;height:${size}px;border-radius:50%;background:${groupAvatarColor(name)};display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:${fontSize}px;flex-shrink:0">${esc(letter)}</div>`;
   }
   function goFriends(){ stopListening(); state.view = 'friends'; render(); }
 
@@ -2487,7 +2534,8 @@
     chatUploading: false, chatRecording: false,
     duelsInfo: {}, showDuelModal: false, duelLang: null, duelMode: 'words', duelSending: false, duelAccepting: null, activeDuel: null,
     myGroups: [], showCreateGroupModal: false, groupSelectedFriendUids: [], groupCreating: false,
-    openGroupId: null, groupChats: {}, groupUploading: false,
+    openGroupId: null, groupChats: {}, groupUploading: false, groupRecording: false,
+    showGroupInfoModal: false, showGroupAddMemberModal: false, groupInfoBusy: false,
     blockedUsers: [], openUserFriendProfile: null, friendSearchPreview: null, friendSearchLoading: false,
     leaderboardTab: 'league', leaderboardEntries: null, leaderboardLoading: false,
     streakYear: new Date().getFullYear(), streakMonth: new Date().getMonth(),
@@ -2509,6 +2557,7 @@
     liveMode: false, liveCallActive: false, liveStatus: 'idle', liveError: null, liveUserText: '', liveModelText: '',
     correctorText: '', correctorResult: null, correctorLoading: false, correctorError: null,
     imageFlashQueue: [], imageFlashIndex: 0, imageFlashLoading: false, imageFlashError: null,
+    imageFlashChecked: false, imageFlashCorrect: false,
     grammarCourseStep: 'level', grammarCourseLevel: null, grammarCourseTopics: [], grammarCourseTopicsLoading: false,
     grammarCourseTopicsError: null, grammarCourseCurrentTopic: '', grammarCourseLesson: null,
     grammarCourseLessonLoading: false, grammarCourseLessonError: null, grammarCourseShowAnswers: {},
@@ -4223,10 +4272,164 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
   }
 
   function groupMemberCount(g){ return Object.keys(g.members || {}).length; }
+  function currentOpenGroup(){ return state.myGroups.find(x => x.id === state.openGroupId); }
+  function isGroupOwner(g){ return !!g && g.ownerUid === myUid(); }
+
+  function openGroupInfoModal(){ state.showGroupInfoModal = true; render(); }
+  function closeGroupInfoModal(){ state.showGroupInfoModal = false; render(); }
+
+  async function renameGroupPrompt(){
+    const g = currentOpenGroup();
+    if (!g || !isGroupOwner(g)) return;
+    const name = prompt('اسم جدید گروه:', g.name);
+    if (!name || !name.trim() || name.trim() === g.name) return;
+    try { await fbDb.ref('groups/' + g.id + '/name').set(name.trim()); }
+    catch(e){ console.error(e); alert('تغییر اسم گروه ناموفق بود.'); }
+  }
+
+  async function leaveCurrentGroup(){
+    const g = currentOpenGroup();
+    const uid = myUid();
+    if (!g || !uid) return;
+    if (!confirm('از این گروه خارج بشی؟')) return;
+    state.groupInfoBusy = true; render();
+    try {
+      if (isGroupOwner(g) && groupMemberCount(g) > 1){
+        alert('چون سازنده‌ی گروهی، اول باید مالکیتش رو به یکی دیگه بدی یا کل گروه رو حذف کنی.');
+        state.groupInfoBusy = false; render();
+        return;
+      }
+      await fbDb.ref('groups/' + g.id + '/members/' + uid).remove();
+      await fbDb.ref('groups/' + g.id + '/memberInfo/' + uid).remove();
+      await fbDb.ref('userGroups/' + uid + '/' + g.id).remove();
+      if (isGroupOwner(g)) await fbDb.ref('groups/' + g.id).remove();
+      state.showGroupInfoModal = false;
+      closeGroupChat();
+    } catch(e){
+      console.error(e);
+      alert('خروج از گروه ناموفق بود.');
+    }
+    state.groupInfoBusy = false;
+    render();
+  }
+
+  async function deleteCurrentGroup(){
+    const g = currentOpenGroup();
+    if (!g || !isGroupOwner(g)) return;
+    if (!confirm('کل گروه برای همه‌ی اعضا حذف بشه؟ این کار برگشت‌پذیر نیست.')) return;
+    state.groupInfoBusy = true; render();
+    try {
+      const memberUids = Object.keys(g.members || {});
+      await Promise.all(memberUids.map((uid) => fbDb.ref('userGroups/' + uid + '/' + g.id).remove()));
+      await fbDb.ref('groupChats/' + g.id).remove();
+      await fbDb.ref('groups/' + g.id).remove();
+      state.showGroupInfoModal = false;
+      closeGroupChat();
+    } catch(e){
+      console.error(e);
+      alert('حذف گروه ناموفق بود.');
+    }
+    state.groupInfoBusy = false;
+    render();
+  }
+
+  function openGroupAddMemberModal(){
+    state.groupSelectedFriendUids = [];
+    state.showGroupAddMemberModal = true;
+    render();
+  }
+  function closeGroupAddMemberModal(){ state.showGroupAddMemberModal = false; render(); }
+
+  async function confirmAddMembersToGroup(){
+    const g = currentOpenGroup();
+    if (!g || !state.groupSelectedFriendUids.length) return;
+    state.groupInfoBusy = true; render();
+    try {
+      const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
+      await Promise.all(state.groupSelectedFriendUids.map(async (fuid) => {
+        const f = state.userFriends.find(fr => fr.uid === fuid);
+        if (!f) return;
+        await fbDb.ref('groups/' + g.id + '/members/' + fuid).set(true);
+        await fbDb.ref('groups/' + g.id + '/memberInfo/' + fuid).set({ username: f.username, avatar: f.avatar || 'a1' });
+        await fbDb.ref('groupInviteBox/' + fuid + '/' + g.id).set({ groupId: g.id, name: g.name, invitedByUsername: myUsername, invitedByUid: myUid() });
+      }));
+      state.showGroupAddMemberModal = false;
+    } catch(e){
+      console.error(e);
+      alert('افزودن عضو ناموفق بود.');
+    }
+    state.groupInfoBusy = false;
+    render();
+  }
+
+  function renderGroupAddMemberModal(){
+    if (!state.showGroupAddMemberModal) return '';
+    const g = currentOpenGroup();
+    const existingUids = g ? Object.keys(g.members || {}) : [];
+    const candidates = state.userFriends.filter(f => !existingUids.includes(f.uid));
+    const rows = candidates.map(f => `
+      <div class="friend-row" onclick="toggleGroupSelectedFriend('${esc(f.uid)}')">
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38)}</div>
+        <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc(f.name)}</div>
+        <input type="checkbox" ${state.groupSelectedFriendUids.includes(f.uid) ? 'checked' : ''} onclick="event.stopPropagation();toggleGroupSelectedFriend('${esc(f.uid)}')">
+      </div>
+    `).join('');
+    return `
+      <div class="modal-backdrop" onclick="closeGroupAddMemberModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div class="deck-header" style="margin-bottom:2px">
+            <span class="deck-title">${icon('plus', 16)} افزودن عضو</span>
+            <button class="modal-close-btn" onclick="closeGroupAddMemberModal()">${icon('close', 15)}</button>
+          </div>
+          ${rows ? `<div class="friend-list" style="margin-top:10px">${rows}</div>` : `<div class="hint-text" style="margin-top:10px">همه‌ی دوستانت از قبل عضو این گروه هستن.</div>`}
+          <button class="btn-primary" style="margin-top:16px;width:100%" ${state.groupInfoBusy || !state.groupSelectedFriendUids.length ? 'disabled' : ''} onclick="confirmAddMembersToGroup()">${state.groupInfoBusy ? 'در حال افزودن...' : 'افزودن'}</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderGroupInfoModal(){
+    if (!state.showGroupInfoModal) return '';
+    const g = currentOpenGroup();
+    if (!g) return '';
+    const owner = isGroupOwner(g);
+    const memberRows = Object.keys(g.memberInfo || {}).map((uid) => {
+      const info = g.memberInfo[uid];
+      const isOwnerRow = uid === g.ownerUid;
+      return `
+        <div class="friend-row">
+          <div class="friend-avatar-wrap">${friendAvatarImg((info && info.avatar) || 'a1', 38)}</div>
+          <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc((info && info.username) || uid)}</div>
+          ${isOwnerRow ? `<span class="hint-text" style="margin:0">مالک</span>` : ''}
+        </div>
+      `;
+    }).join('');
+    return `
+      <div class="modal-backdrop" onclick="closeGroupInfoModal()">
+        <div class="modal-card" onclick="event.stopPropagation()">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;margin-bottom:10px">
+            ${groupAvatarBadge(g, 64)}
+            <div style="display:flex;align-items:center;gap:6px">
+              <div class="deck-title" style="margin:0">${esc(g.name)}</div>
+              ${owner ? `<button class="modal-close-btn" style="width:28px;height:28px;border-radius:8px" onclick="renameGroupPrompt()" title="تغییر اسم گروه">${icon('edit', 13)}</button>` : ''}
+            </div>
+            <div class="hint-text" style="margin:0">${faNum(groupMemberCount(g))} عضو</div>
+          </div>
+          <label class="hint-text" style="display:block;margin-bottom:4px">اعضا</label>
+          <div class="friend-list">${memberRows}</div>
+          <button class="btn-secondary" style="margin-top:14px" onclick="openGroupAddMemberModal()">${icon('plus', 14)} افزودن عضو</button>
+          <button class="btn-secondary" ${state.groupInfoBusy ? 'disabled' : ''} onclick="leaveCurrentGroup()">${icon('close', 14)} خروج از گروه</button>
+          ${owner ? `<button class="btn-secondary" style="color:var(--wine)" ${state.groupInfoBusy ? 'disabled' : ''} onclick="deleteCurrentGroup()">${icon('trash', 14)} حذف کامل گروه</button>` : ''}
+        </div>
+      </div>
+      ${renderGroupAddMemberModal()}
+    `;
+  }
+
   function renderGroupsSection(){
     const rows = state.myGroups.map(g => `
       <div class="friend-row" onclick="openGroupChat('${esc(g.id)}')">
-        <div class="friend-avatar-wrap group-avatar-wrap">${icon('message', 20)}</div>
+        <div class="friend-avatar-wrap group-avatar-wrap">${groupAvatarBadge(g, 40)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:13.5px">${esc(g.name)}</div>
           <div class="hint-text" style="margin-top:1px">${faNum(groupMemberCount(g))} عضو</div>
@@ -4247,12 +4450,16 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
   function openGroupChat(groupId){
     state.openGroupId = groupId;
     state.openChatUsername = null;
+    state.showGroupInfoModal = false;
+    state.showGroupAddMemberModal = false;
     render();
     attachGroupChatListener(groupId);
   }
   function closeGroupChat(){
     detachGroupChatListener();
     state.openGroupId = null;
+    state.showGroupInfoModal = false;
+    state.showGroupAddMemberModal = false;
     render();
   }
   function attachGroupChatListener(groupId){
@@ -4264,7 +4471,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
       const m = snap.val();
       if (!state.groupChats[groupId]) state.groupChats[groupId] = [];
       state.groupChats[groupId].push({
-        id: snap.key, sender: m.sender === myUid() ? 'me' : 'other',
+        id: snap.key, sender: m.sender === myUid() ? 'me' : 'other', senderUid: m.sender,
         senderUsername: m.senderUsername || '', text: m.text,
         type: m.type || 'text', url: m.url || null, size: m.size || null, ts: m.timestamp,
       });
@@ -4296,6 +4503,71 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
   function handleGroupChatInputKeydown(e){
     if (e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendGroupMessage(); }
   }
+  function triggerGroupMediaPicker(){
+    const input = document.getElementById('groupMediaInput');
+    if (input) input.click();
+  }
+  async function handleGroupMediaSelected(event){
+    const file = event.target.files && event.target.files[0];
+    event.target.value = '';
+    if (!file) return;
+    const isVideo = file.type.startsWith('video/');
+    const isImage = file.type.startsWith('image/');
+    if (!isVideo && !isImage) { alert('فقط عکس یا ویدیو رو می‌تونی از این‌جا بفرستی.'); return; }
+    const maxMb = isVideo ? 40 : 10;
+    if (file.size > maxMb * 1024 * 1024) { alert(`حجم فایل نباید بیشتر از ${maxMb} مگابایت باشه.`); return; }
+    await uploadAndSendGroupMedia(file, isVideo ? 'video' : 'image');
+  }
+  async function uploadAndSendGroupMedia(fileOrBlob, type){
+    const groupId = state.openGroupId;
+    const uid = myUid();
+    if (!groupId || !uid || !firebaseReady){
+      alert('ارسال فایل الان ممکن نیست.');
+      return;
+    }
+    const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
+    state.groupUploading = true; render();
+    try {
+      const url = await uploadToCloudinary(fileOrBlob, type);
+      const size = fileOrBlob.size || 0;
+      await fbDb.ref('groupChats/' + groupId).push({ sender: uid, senderUsername: myUsername, type, url, size, timestamp: Date.now() });
+      bumpMediaStat(type, size);
+    } catch(e){
+      console.error('uploadAndSendGroupMedia error', e);
+      alert('ارسال فایل ناموفق بود.');
+    }
+    state.groupUploading = false; render();
+  }
+  let groupVoiceRecorder = null;
+  let groupVoiceChunks = [];
+  async function toggleGroupVoiceRecording(){
+    if (state.groupRecording){ stopGroupVoiceRecording(); return; }
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ alert('مرورگرت از ضبط صدا پشتیبانی نمی‌کنه.'); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      groupVoiceChunks = [];
+      const preferredType = (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported('audio/webm')) ? 'audio/webm' : '';
+      groupVoiceRecorder = preferredType ? new MediaRecorder(stream, { mimeType: preferredType }) : new MediaRecorder(stream);
+      groupVoiceRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) groupVoiceChunks.push(e.data); };
+      groupVoiceRecorder.onstop = async () => {
+        stream.getTracks().forEach(tr => tr.stop());
+        const blob = new Blob(groupVoiceChunks, { type: groupVoiceRecorder.mimeType || 'audio/webm' });
+        groupVoiceChunks = [];
+        if (blob.size > 0) await uploadAndSendGroupMedia(blob, 'audio');
+      };
+      groupVoiceRecorder.start();
+      state.groupRecording = true;
+      render();
+    } catch(e){
+      console.error('toggleGroupVoiceRecording error', e);
+      alert('دسترسی به میکروفون ممکن نشد.');
+    }
+  }
+  function stopGroupVoiceRecording(){
+    if (groupVoiceRecorder && state.groupRecording){ try { groupVoiceRecorder.stop(); } catch(e){} }
+    state.groupRecording = false;
+    render();
+  }
   function deleteGroupMessage(groupId, id){
     if (!confirm('این پیام حذف بشه؟ برای بقیه‌ی اعضا هم دیگه نمایش داده نمی‌شه.')) return;
     fbDb.ref('groupChats/' + groupId + '/' + id).remove().catch((e) => {
@@ -4308,7 +4580,18 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     const cls = m.sender === 'me' ? 'ai-msg-user' : 'ai-msg-model';
     const canDelete = m.sender === 'me' && m.id;
     const delBtn = canDelete ? `<button class="chat-msg-del-btn" onclick="event.stopPropagation();deleteGroupMessage('${esc(groupId)}','${esc(m.id)}')" aria-label="حذف پیام" title="حذف پیام">${icon('trash', 12)}</button>` : '';
-    const senderLine = m.sender === 'other' ? `<div class="group-msg-sender">${esc(m.senderUsername || '')}</div>` : '';
+    const g = currentOpenGroup();
+    const senderInfo = (m.sender === 'other' && g && m.senderUid) ? g.memberInfo[m.senderUid] : null;
+    const senderLine = m.sender === 'other' ? `<div class="group-msg-sender">${senderInfo ? friendAvatarImg(senderInfo.avatar || 'a1', 16) : ''}<span>${esc(m.senderUsername || '')}</span></div>` : '';
+    if (m.type === 'image') {
+      return `<div class="ai-msg ${cls} chat-media-msg">${delBtn}${senderLine}<img src="${esc(m.url)}" class="chat-media-img" onclick="window.open('${esc(m.url)}','_blank')" alt="عکس ارسالی"></div>`;
+    }
+    if (m.type === 'video') {
+      return `<div class="ai-msg ${cls} chat-media-msg">${delBtn}${senderLine}<video src="${esc(m.url)}" class="chat-media-video" controls playsinline></video></div>`;
+    }
+    if (m.type === 'audio') {
+      return `<div class="ai-msg ${cls} chat-media-msg chat-audio-msg">${delBtn}${senderLine}${icon('mic', 14)} <audio src="${esc(m.url)}" controls></audio></div>`;
+    }
     return `<div class="ai-msg ${cls}">${delBtn}${senderLine}${esc(m.text)}</div>`;
   }
 
@@ -4320,20 +4603,25 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
       <div class="ai-page">
         <div class="ai-page-header">
           <button class="ai-back-btn" onclick="closeGroupChat()" aria-label="${t('aiBackBtn')}">${icon('close', 18)}</button>
-          <div class="ai-page-title">
-            <span>${icon('message', 17)} ${esc(g ? g.name : '')}</span>
-            <span class="chat-header-hint">${g ? faNum(groupMemberCount(g)) : ''} عضو</span>
+          <div class="ai-page-title chat-header-clickable" onclick="openGroupInfoModal()" role="button" tabindex="0">
+            <span style="display:flex;align-items:center;gap:6px">${g ? groupAvatarBadge(g, 22) : ''}<span>${esc(g ? g.name : '')}</span></span>
+            <span class="chat-header-hint">${g ? faNum(groupMemberCount(g)) : ''} عضو · مشاهده اطلاعات گروه</span>
           </div>
         </div>
         <div class="ai-messages" id="groupChatMessages">
           ${messages.length === 0 ? `<div class="ai-empty">${icon('message', 26)}<div>هنوز پیامی رد و بدل نشده. اولین پیام رو بفرست!</div></div>` : ''}
           ${messages.map(m => renderGroupMessageBubble(m, groupId)).join('')}
         </div>
+        ${state.groupUploading ? `<div class="chat-upload-hint">${icon('cloud', 12)} در حال ارسال فایل...</div>` : ''}
         <div class="ai-input-row">
+          <button class="chat-icon-btn" onclick="triggerGroupMediaPicker()" aria-label="ارسال عکس یا ویدیو" ${state.groupUploading ? 'disabled' : ''}>${icon('image', 18)}</button>
+          <button class="chat-icon-btn ${state.groupRecording ? 'recording' : ''}" onclick="toggleGroupVoiceRecording()" aria-label="${state.groupRecording ? 'پایان ضبط و ارسال' : 'ضبط پیام صوتی'}" ${state.groupUploading ? 'disabled' : ''}>${icon('mic', 18)}</button>
           <textarea id="groupChatInput" rows="1" placeholder="پیام خود را بنویسید..." onkeydown="handleGroupChatInputKeydown(event)"></textarea>
           <button class="ai-send-btn" onclick="sendGroupMessage()" aria-label="${t('aiSend')}">${icon('send', 18)}</button>
         </div>
+        <input type="file" id="groupMediaInput" accept="image/*,video/*" style="display:none" onchange="handleGroupMediaSelected(event)">
       </div>
+      ${renderGroupInfoModal()}
     `;
   }
 
@@ -4955,6 +5243,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
       ${renderDeckSection('word')}
       ${renderDeckSection('sentence')}
       ${renderPronunHomePanel(pronunCount)}
+      ${renderPracticeTileGrid()}
     `;
   }
   function renderHomeChatChip(){
@@ -5023,9 +5312,8 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
   }
   function renderPronunHomePanel(count){
     return `
-      <div class="panel">
+      <div class="panel panel-compact">
         <div class="deck-header"><span class="deck-title" style="color:var(--teal)">${t('pronunTitle')}</span><span class="deck-sub">${tf('pronunCardsCount', {n: faNum(count)})}</span></div>
-        <div class="hint-text">${tf('pronunHomeHint', {lang: targetLangLabel()})}</div>
         <button class="btn-primary pronun-cta" ${count===0?'disabled':''} onclick="startSession('pronun')">${icon('volume',18)} ${t('pronunStartBtn')}</button>
       </div>
     `;
@@ -5056,7 +5344,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     const ctaClass = type==='sentence' ? 'btn-primary sentence-cta' : 'btn-primary';
     const levelBadge = type==='word' ? renderLevelBadge() : '';
     return `
-      <div class="panel">
+      <div class="panel panel-compact">
         <div class="deck-header"><span class="deck-title" style="color:${colors[3]}">${title}${levelBadge}</span><span class="deck-sub">${tf('deckCountLine', {total: faNum(total), type: typeLabel(type), due: faNum(dc)})}</span></div>
         ${drawers}
         <button class="${ctaClass}" ${dc===0?'disabled':''} onclick="startSession('${type}')">${dc===0 ? t('nothingToday') : tf('startStudyBtn', {n: faNum(dc)})}</button>
@@ -5173,6 +5461,31 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     `;
   }
 
+  // ================= کاشی‌های تمرین (رنگ‌های منحصربه‌فرد، هم توی صفحه اصلی هم توی تمرین) =================
+  function PRACTICE_TILES(){
+    return [
+      { id: 'pronun',        emoji: '🔊', label: t('studyPronunBtn'),      color: 'var(--teal)',       onclick: "startSession('pronun')" },
+      { id: 'quiz',          emoji: '🎯', label: 'آزمون چهارگزینه‌ای',    color: 'var(--brass)',      onclick: "openQuizChooser()" },
+      { id: 'dictation',     emoji: '🎧', label: 'دیکته و شنیداری',       color: 'var(--violet)',     onclick: "startDictationSession()" },
+      { id: 'grammarCheck',  emoji: '✍️', label: 'تصحیح گرامر هنگام تایپ', color: 'var(--sage-strong)', onclick: "openGrammarCorrector()" },
+      { id: 'imageFlash',    emoji: '🖼️', label: 'فلش‌کارت تصویری',       color: 'var(--wine)',       onclick: "startImageFlashcards()" },
+      { id: 'grammarCourse', emoji: '📘', label: 'آموزش گرامر مرحله‌ای',  color: 'var(--teal-dark)',  onclick: "openGrammarCourse()" },
+      { id: 'placement',     emoji: '🧭', label: 'آزمون تعیین سطح',       color: 'var(--indigo)',     onclick: "openPlacementTest()" },
+      { id: 'officialExams', emoji: '🏅', label: 'آزمون‌های رسمی',        color: 'var(--coral)',      onclick: "openOfficialExams()" },
+    ];
+  }
+  function renderPracticeTileGrid(){
+    return `
+      <div class="practice-tile-grid">
+        ${PRACTICE_TILES().map(tile => `
+          <button class="practice-tile" style="background:${tile.color}" onclick="${tile.onclick}">
+            <span style="font-size:22px">${tile.emoji}</span>
+            <span>${esc(tile.label)}</span>
+          </button>
+        `).join('')}
+      </div>
+    `;
+  }
   function renderStudyChooser(){
     const wd = dueCountFor('word', state.studyCategoryFilter), sd = dueCountFor('sentence', state.studyCategoryFilter);
     return `
@@ -5181,16 +5494,9 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         <select class="select-input" style="margin-bottom:16px" onchange="setStudyCategoryFilter(this.value)">${renderCategoryOptions(state.studyCategoryFilter, true)}</select>
         <div class="hint-text" style="margin-bottom:14px">${t('studyWhichSection')}</div>
         <button class="btn-primary" style="margin-bottom:10px" onclick="startSession('word')">${tf('studyWordBtn', {n: faNum(wd)})}</button>
-        <button class="btn-primary sentence-cta" style="margin-bottom:10px" onclick="startSession('sentence')">${tf('studySentenceBtn', {n: faNum(sd)})}</button>
-        <button class="btn-secondary" style="margin-top:0;margin-bottom:10px" onclick="startSession('pronun')">${icon('volume',16)} ${t('studyPronunBtn')}</button>
-        <button class="btn-secondary" style="margin-top:0;margin-bottom:10px" onclick="openQuizChooser()">${icon('target',16)} آزمون چهارگزینه‌ای</button>
-        <button class="btn-secondary" style="margin-top:0" onclick="startDictationSession()">${icon('mic',16)} دیکته و شنیداری</button>
-        <button class="btn-secondary" style="margin-top:10px" onclick="openGrammarCorrector()">✍️ تصحیح گرامر هنگام تایپ</button>
-        <button class="btn-secondary" style="margin-top:10px" onclick="startImageFlashcards()">🖼️ فلش‌کارت تصویری</button>
-        <button class="btn-secondary" style="margin-top:10px" onclick="openGrammarCourse()">📘 آموزش گرامر مرحله‌ای</button>
-        <button class="btn-secondary" style="margin-top:10px" onclick="openPlacementTest()">🎯 آزمون تعیین سطح</button>
-        <button class="btn-secondary" style="margin-top:10px" onclick="openOfficialExams()">🏅 آزمون‌های رسمی</button>
+        <button class="btn-primary sentence-cta" style="margin-bottom:14px" onclick="startSession('sentence')">${tf('studySentenceBtn', {n: faNum(sd)})}</button>
       </div>
+      ${renderPracticeTileGrid()}
     `;
   }
   function setStudyCategoryFilter(v){ state.studyCategoryFilter = v; render(); }
@@ -6156,7 +6462,11 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
         const errBody = await res.json();
         if (errBody && errBody.error && errBody.error.message) msg = errBody.error.message;
       } catch(e){}
-      throw new Error(msg);
+      const err = new Error(msg);
+      // این‌ها یعنی همین ترکیبِ کلید/مدل به سقفش خورده یا دسترسی نداره؛ به‌جای نشون‌دادن خطا به
+      // کاربر، باید یه ترکیب دیگه امتحان بشه (نه هر خطایی — مثلاً خطای محتوای پرامپت رو نباید دوباره امتحان کرد).
+      err.isQuotaOrAuthError = (res.status === 429 || res.status === 401 || res.status === 403 || res.status === 503);
+      throw err;
     }
     const data = await res.json();
     const cand = data && data.candidates && data.candidates[0];
@@ -6169,10 +6479,37 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
 
   // نقطه‌ی ورود مشترک: همیشه از Gemini با کلید اعطاشده‌ی مدیر استفاده می‌کنه. همه‌ی بخش‌های
   // اپ (چت، مکالمه‌ی صوتی، مثال‌سازی، توضیح جمله) باید فقط از این تابع استفاده کنن.
+  // خودکار بین همه‌ی کلیدها × همه‌ی نسخه‌های مدل می‌چرخه: تا وقتی یه ترکیب به سقف رایگانش نخورده،
+  // کاربر هیچ‌وقت خطای «سقف تموم شد» نمی‌بینه و لازم نیست خودش دستی چیزی رو عوض کنه.
+  function buildGeminiComboList(){
+    const keys = (state.aiGrantedKeys && state.aiGrantedKeys.length) ? state.aiGrantedKeys : [''];
+    const models = AVAILABLE_GEMINI_MODELS.includes(state.aiGrantedModel)
+      ? [state.aiGrantedModel, ...AVAILABLE_GEMINI_MODELS.filter(m => m !== state.aiGrantedModel)]
+      : AVAILABLE_GEMINI_MODELS.slice();
+    const combos = [];
+    keys.forEach((k) => models.forEach((m) => combos.push({ key: k, model: m })));
+    return combos;
+  }
   async function runAiPrompt(systemPrompt, userPrompt, imageDataUrl){
     if (!hasAdminGrantedAiAccess()) throw new Error(t('aiKeyNeeded'));
-    const key = await pickNextGeminiKey(state.aiGrantedKeys);
-    return runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, key, state.aiGrantedModel);
+    const startKey = await pickNextGeminiKey(state.aiGrantedKeys);
+    const startModel = await pickNextGeminiModel(AVAILABLE_GEMINI_MODELS);
+    const combos = buildGeminiComboList();
+    // ترکیبِ چرخش‌یافته رو اول لیست می‌ذاریم، بقیه‌ی ترکیب‌ها به‌عنوان پشتیبان برای وقتی به سقف خوردیم
+    const ordered = [{ key: startKey, model: startModel }, ...combos.filter(c => !(c.key === startKey && c.model === startModel))];
+    const maxAttempts = Math.min(ordered.length, 8);
+    let lastErr = null;
+    for (let i = 0; i < maxAttempts; i++){
+      const combo = ordered[i];
+      try {
+        return await runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, combo.key, combo.model);
+      } catch(e){
+        lastErr = e;
+        if (!e || !e.isQuotaOrAuthError) throw e; // خطای دیگه (مثلاً محتوای پرامپت) رو نباید دوباره امتحان کرد
+        // وگرنه همین ترکیب به سقفش خورده؛ بی‌سروصدا برو سراغ ترکیب بعدی
+      }
+    }
+    throw lastErr || new Error(t('orNoModelReply'));
   }
 
   // --- صدای واقعیِ خودِ هوش مصنوعی (Gemini TTS) ---
@@ -6915,9 +7252,13 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       render();
       return;
     }
-    let key;
-    try { key = await pickNextGeminiKey(state.aiGrantedKeys); } catch(e){ key = (state.aiGrantedKeys && state.aiGrantedKeys[0]) || ''; }
-    if (!key){
+    // به‌جای یه کلید ثابت، لیستِ چرخشیِ همه‌ی کلیدها رو می‌سازیم؛ اگه یکی به سقفش خورد و تماس
+    // واقعاً وصل نشد، خودکار و بی‌سروصدا کلید بعدی رو امتحان می‌کنیم (بدون این‌که کاربر بفهمه).
+    let startKey;
+    try { startKey = await pickNextGeminiKey(state.aiGrantedKeys); } catch(e){ startKey = (state.aiGrantedKeys && state.aiGrantedKeys[0]) || ''; }
+    const allKeys = (state.aiGrantedKeys && state.aiGrantedKeys.length) ? state.aiGrantedKeys : [startKey];
+    const orderedKeys = [startKey, ...allKeys.filter(k => k !== startKey)].filter(Boolean);
+    if (!orderedKeys.length){
       state.liveError = t('aiKeyNeeded');
       state.liveCallActive = false;
       state.liveStatus = 'idle';
@@ -6925,16 +7266,23 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       render();
       return;
     }
-    const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${key}`;
-    try { liveWs = new WebSocket(wsUrl); }
-    catch(e){
-      state.liveError = 'اتصال زنده برقرار نشد.';
+    connectLiveWithKeys(orderedKeys, 0);
+  }
+  function connectLiveWithKeys(keys, idx){
+    if (!state.liveCallActive) return;
+    if (idx >= keys.length){
+      state.liveError = 'اتصال زنده برقرار نشد؛ همه‌ی کلیدهای هوش مصنوعی رو امتحان کردیم. بعداً دوباره امتحان کن.';
       state.liveCallActive = false;
       state.liveStatus = 'idle';
       stopLiveMic();
       render();
       return;
     }
+    const key = keys[idx];
+    const wsUrl = `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${key}`;
+    try { liveWs = new WebSocket(wsUrl); }
+    catch(e){ connectLiveWithKeys(keys, idx + 1); return; }
+    let settled = false; // یعنی تماس واقعاً وصل شد و پیکربندی فرستاده شد؛ بعد از این دیگه نباید خاموش کلید عوض کنیم
     liveWs.onopen = () => {
       if (!state.liveCallActive) return;
       liveWs.send(JSON.stringify({
@@ -6947,22 +7295,31 @@ Special case: if — and only if — the user is clearly asking for the meaning/
           inputAudioTranscription: {},
         }
       }));
+      settled = true;
       startLiveMicStreaming();
       state.liveStatus = 'listening';
       render();
     };
     liveWs.onmessage = handleLiveServerMessage;
     liveWs.onerror = () => {
+      if (!settled){
+        try { liveWs.close(); } catch(e){}
+        connectLiveWithKeys(keys, idx + 1);
+        return;
+      }
       state.liveError = 'خطا در اتصال زنده؛ ممکنه کلید هوش مصنوعی به Live API دسترسی نداشته باشه. دوباره امتحان کن.';
       render();
     };
     liveWs.onclose = () => {
-      if (state.liveCallActive){
-        state.liveCallActive = false;
-        state.liveStatus = 'idle';
-        stopLiveMic();
-        render();
+      if (!state.liveCallActive) return;
+      if (!settled){
+        connectLiveWithKeys(keys, idx + 1);
+        return;
       }
+      state.liveCallActive = false;
+      state.liveStatus = 'idle';
+      stopLiveMic();
+      render();
     };
   }
   function teardownLiveResources(){
@@ -6990,8 +7347,6 @@ Special case: if — and only if — the user is clearly asking for the meaning/
   function renderLiveCallPage(){
     const status = state.liveStatus;
     const statusLabel = status === 'connecting' ? 'در حال اتصال...' : status === 'listening' ? 'در حال گوش دادن...' : status === 'speaking' ? 'در حال صحبت کردن...' : 'آماده';
-    const orbCls = status === 'connecting' ? 'thinking' : status;
-    const micIcon = status === 'speaking' ? 'volume' : status === 'connecting' ? 'ai' : 'mic';
     return `
       <div class="ai-page">
         <div class="ai-page-header">
@@ -7004,13 +7359,7 @@ Special case: if — and only if — the user is clearly asking for the meaning/
             ${state.liveUserText ? `<div class="voice-user-line">${icon('mic',12)} ${esc(state.liveUserText)}</div>` : ''}
             ${state.liveModelText ? `<div class="voice-model-line">${esc(state.liveModelText)}</div>` : ''}
           </div>
-          <div>
-            <div class="ai-voice-orb-wrap ${orbCls}">
-              <div class="ai-voice-ring"></div>
-              <button class="ai-voice-orb ${orbCls}" disabled aria-label="${statusLabel}">${icon(micIcon, 40)}</button>
-            </div>
-            <div class="ai-voice-status">${esc(statusLabel)}</div>
-          </div>
+          <div class="ai-voice-status" style="margin-top:18px">${esc(statusLabel)}</div>
           ${state.liveError ? `<div class="preview-warn">${esc(state.liveError)}</div>` : ''}
           <div class="ai-voice-controls">
             <div class="hint-text" style="text-align:center;margin-bottom:10px">هر وقت خواستی وسط حرفش بپری، فقط شروع کن به حرف زدن</div>
@@ -7659,7 +8008,11 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     const text = v.trim();
     if (!text){ render(); return; }
     render();
-    correctorDebounceTimer = setTimeout(() => { runGrammarCorrection(text); }, 1200);
+    // اگه کاربر تازه یه کلمه رو با فاصله/نقطه‌گذاری تموم کرده، زودتر (اما نه فوری) تصحیح می‌کنیم؛
+    // وگرنه صبر می‌کنیم تا واقعاً دستش برای مدتی وایسه، تا وسط تایپ‌کردنِ خودِ کلمه پیشنهاد ندیم.
+    const justFinishedWord = /[\s.,!?؛،؟]$/.test(v);
+    const delay = justFinishedWord ? 1500 : 2800;
+    correctorDebounceTimer = setTimeout(() => { runGrammarCorrection(text); }, delay);
   }
   async function runGrammarCorrection(text){
     if (state.studyType !== 'grammarCheck') return; // کاربر از صفحه خارج شده
@@ -7720,33 +8073,82 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
   // کش می‌مونه و دوباره تولید نمی‌شه. برای سبک‌موندنِ دیتابیس، عکسِ base64ِ خروجیِ Gemini رو
   // مستقیم توی Firebase ذخیره نمی‌کنیم؛ بلافاصله می‌ریزیمش روی همون Cloudinaryِ خودت (uploadToCloudinary
   // که برای رسانه‌ی چت هم استفاده می‌شه) و فقط لینک کوتاهش رو روی کارت نگه می‌داریم.
-  const GEMINI_IMAGE_MODEL = 'gemini-3.1-flash-image';
-  const GEMINI_IMAGE_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_IMAGE_MODEL}:generateContent`;
+  // چند نسخه‌ی مختلف مدلِ تصویرسازی رو تعریف می‌کنیم تا مثل مدل‌های متنی، بین‌شون (و بین کلیدها) بچرخه؛
+  // این‌جوری اگه سهمیه‌ی رایگانِ یه نسخه تموم بشه، خودکار می‌ره سراغ نسخه‌ی بعدی بدون این‌که کاربر چیزی ببینه.
+  const AVAILABLE_GEMINI_IMAGE_MODELS = ['gemini-3.1-flash-image', 'gemini-2.5-flash-image', 'gemini-3-pro-image'];
+  function geminiImageEndpointFor(model){
+    const m = AVAILABLE_GEMINI_IMAGE_MODELS.includes(model) ? model : AVAILABLE_GEMINI_IMAGE_MODELS[0];
+    return `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent`;
+  }
   function base64ToBlob(b64, mime){
     return new Blob([base64ToUint8Array(b64)], { type: mime });
   }
+  async function generateImageWithCombo(prompt, key, model){
+    let res;
+    try {
+      res = await fetch(`${geminiImageEndpointFor(model)}?key=${key}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
+      });
+    } catch(networkErr){
+      throw new Error('اتصال به سرویس ساخت عکس برقرار نشد؛ اینترنتت رو چک کن و دوباره امتحان کن.');
+    }
+    if (!res.ok){
+      let detail = '';
+      try { const errBody = await res.json(); detail = (errBody && errBody.error && errBody.error.message) || ''; } catch(e){}
+      const err = new Error('ساخت عکس ناموفق بود (کد ' + res.status + ')' + (detail ? ': ' + detail : ''));
+      err.isQuotaOrAuthError = (res.status === 429 || res.status === 401 || res.status === 403 || res.status === 404 || res.status === 503);
+      throw err;
+    }
+    const data = await res.json();
+    const candidate = data && data.candidates && data.candidates[0];
+    const parts = candidate && candidate.content && candidate.content.parts;
+    const imgPart = parts && parts.find((p) => p.inlineData && p.inlineData.data);
+    if (!imgPart){
+      const reason = candidate && candidate.finishReason;
+      throw new Error(reason === 'SAFETY' || reason === 'IMAGE_SAFETY'
+        ? 'به‌خاطر فیلتر ایمنی عکسی ساخته نشد؛ دوباره امتحان کن.'
+        : 'عکسی برنگشت؛ دوباره امتحان کن.');
+    }
+    return base64ToBlob(imgPart.inlineData.data, imgPart.inlineData.mimeType || 'image/png');
+  }
   async function generateFlashcardImage(card){
     if (!hasActiveAiKey()) throw new Error(t('aiKeyNeeded'));
-    const key = await pickNextGeminiKey(state.aiGrantedKeys);
     const prompt = `A simple, clear, colorful flashcard-style illustration representing the ${teachLangLabel()} word "${card.de}" (meaning: "${card.fa}"). Minimal, friendly, educational picture-dictionary style, single clear subject centered in frame, plain simple background, absolutely no text, letters, numbers, or watermarks anywhere in the image.`;
-    const res = await fetch(`${GEMINI_IMAGE_ENDPOINT}?key=${key}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }], generationConfig: { responseModalities: ['TEXT', 'IMAGE'] } })
-    });
-    if (!res.ok) throw new Error('ساخت عکس ناموفق بود (کد ' + res.status + ')');
-    const data = await res.json();
-    const parts = data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts;
-    const imgPart = parts && parts.find((p) => p.inlineData && p.inlineData.data);
-    if (!imgPart) throw new Error('عکسی برنگشت؛ دوباره امتحان کن.');
-    const blob = base64ToBlob(imgPart.inlineData.data, imgPart.inlineData.mimeType || 'image/png');
-    return await uploadToCloudinary(blob, 'image');
+    const startKey = await pickNextGeminiKey(state.aiGrantedKeys);
+    const startModel = await pickNextGeminiModel(AVAILABLE_GEMINI_IMAGE_MODELS);
+    const keys = (state.aiGrantedKeys && state.aiGrantedKeys.length) ? state.aiGrantedKeys : [startKey];
+    const combos = [];
+    keys.forEach((k) => AVAILABLE_GEMINI_IMAGE_MODELS.forEach((m) => combos.push({ key: k, model: m })));
+    const ordered = [{ key: startKey, model: startModel }, ...combos.filter(c => !(c.key === startKey && c.model === startModel))];
+    const maxAttempts = Math.min(ordered.length, 6);
+    let lastErr = null;
+    let blob = null;
+    for (let i = 0; i < maxAttempts; i++){
+      const combo = ordered[i];
+      try {
+        blob = await generateImageWithCombo(prompt, combo.key, combo.model);
+        break;
+      } catch(e){
+        lastErr = e;
+        if (!e || !e.isQuotaOrAuthError) throw e;
+      }
+    }
+    if (!blob) throw lastErr || new Error('ساخت عکس ناموفق بود.');
+    try {
+      return await uploadToCloudinary(blob, 'image');
+    } catch(uploadErr){
+      throw new Error('عکس ساخته شد ولی آپلودش ناموفق بود؛ دوباره امتحان کن.');
+    }
   }
   function startImageFlashcards(){
     const pool = state.cards.filter((c) => c.type === 'word' && matchesCategory(c, state.studyCategoryFilter));
     state.imageFlashQueue = shuffle(pool).map((c) => c.id).slice(0, 15);
     state.imageFlashIndex = 0;
     state.imageFlashError = null;
+    state.imageFlashChecked = false;
+    state.imageFlashCorrect = false;
     state.studyType = 'imageFlash';
     state.view = 'study';
     render();
@@ -7768,9 +8170,26 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.imageFlashLoading = false;
     render();
   }
+  function checkImageFlashAnswer(){
+    if (state.imageFlashChecked) return;
+    const card = state.cards.find((c) => c.id === state.imageFlashQueue[state.imageFlashIndex]);
+    if (!card) return;
+    const input = document.getElementById('imageFlashGuess');
+    const guess = input ? input.value : '';
+    state.imageFlashChecked = true;
+    state.imageFlashCorrect = !!guess.trim() && normalizeDe(guess) === normalizeDe(card.de);
+    render();
+    const nextInput = document.getElementById('imageFlashGuess');
+    if (nextInput) nextInput.focus();
+  }
+  function imageFlashGuessKeydown(ev){
+    if (ev.key === 'Enter'){ ev.preventDefault(); checkImageFlashAnswer(); }
+  }
   function imageFlashNext(){
     state.imageFlashIndex += 1;
     state.imageFlashError = null;
+    state.imageFlashChecked = false;
+    state.imageFlashCorrect = false;
     render();
     if (state.imageFlashIndex < state.imageFlashQueue.length) loadImageFlashcardImage();
   }
@@ -7778,6 +8197,8 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     if (state.imageFlashIndex <= 0) return;
     state.imageFlashIndex -= 1;
     state.imageFlashError = null;
+    state.imageFlashChecked = false;
+    state.imageFlashCorrect = false;
     render();
     loadImageFlashcardImage();
   }
@@ -7797,6 +8218,22 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     }
     const card = state.cards.find((c) => c.id === state.imageFlashQueue[state.imageFlashIndex]);
     if (!card) return `<div class="panel"><div class="hint-text">کارت پیدا نشد.</div><button class="btn-secondary" onclick="imageFlashNext()">رد کردن</button></div>`;
+    const checked = state.imageFlashChecked;
+    let answerAreaHtml;
+    if (!checked){
+      answerAreaHtml = `
+        <input class="mfield" id="imageFlashGuess" style="text-align:center;direction:ltr;font-size:16px;margin-bottom:10px" placeholder="${esc(tf('typeGuess', {lang: targetLangLabel()}))}" onkeydown="imageFlashGuessKeydown(event)" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+        <button class="btn-primary" style="margin-bottom:10px" onclick="checkImageFlashAnswer()">بررسی</button>
+      `;
+    } else {
+      answerAreaHtml = `
+        <div style="text-align:center;padding:10px 12px;border-radius:12px;margin-bottom:10px;background:${state.imageFlashCorrect ? 'var(--sage-tint, #e4f3e6)' : 'var(--wine-tint, #fbe6e6)'};color:${state.imageFlashCorrect ? 'var(--sage-strong)' : 'var(--wine)'};font-weight:700">
+          ${state.imageFlashCorrect ? '✅ درست بود!' : '❌ اشتباه بود'}
+        </div>
+        <div style="text-align:center;direction:ltr;font-size:19px;font-weight:700;margin-bottom:4px">${esc(card.de)}</div>
+        <div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px">${esc(card.fa)}</div>
+      `;
+    }
     return `
       <div class="panel">
         <div class="progress-label">فلش‌کارت تصویری ${faNum(state.imageFlashIndex + 1)} / ${faNum(total)}</div>
@@ -7806,12 +8243,11 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
             : state.imageFlashError ? `<div class="hint-text" style="padding:14px;text-align:center;color:var(--wine)">${esc(state.imageFlashError)}</div>`
             : `<div class="hint-text">در انتظار...</div>`}
         </div>
-        <div style="text-align:center;direction:ltr;font-size:19px;font-weight:700;margin-bottom:4px">${esc(card.de)}</div>
-        <div style="text-align:center;color:var(--muted);font-size:14px;margin-bottom:14px">${esc(card.fa)}</div>
+        ${answerAreaHtml}
         ${state.imageFlashError ? `<button class="btn-secondary" style="margin-bottom:8px" onclick="loadImageFlashcardImage()">تلاش دوباره برای ساخت عکس</button>` : ''}
         <div style="display:flex;gap:8px">
           ${state.imageFlashIndex > 0 ? `<button class="btn-secondary" style="margin-top:0;flex:1" onclick="imageFlashPrev()">${icon('chevronRight',16)} قبلی</button>` : ''}
-          <button class="btn-primary" style="margin-top:0;flex:1" onclick="imageFlashNext()">بعدی ${icon('chevronLeft',16)}</button>
+          ${checked ? `<button class="btn-primary" style="margin-top:0;flex:1" onclick="imageFlashNext()">بعدی ${icon('chevronLeft',16)}</button>` : ''}
         </div>
         <button class="btn-secondary" style="margin-top:10px" onclick="goStudyTab()">پایان</button>
       </div>
@@ -8740,53 +9176,14 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
           <div class="ai-voice-topic-wrap">
             <label class="ai-voice-topic-label">${t('aiVoiceTopicLabel')}</label>
             <textarea class="ai-voice-topic-input" id="aiVoiceTopicInput" placeholder="${esc(t('aiVoiceTopicPlaceholder'))}" rows="3">${esc(state.aiVoiceTopic || '')}</textarea>
-            <button class="btn-primary" onclick="startVoiceTopicConversation()">${t('aiVoiceTopicStart')}</button>
-            <button class="ai-voice-topic-skip" onclick="startVoiceTopicConversation(true)">${t('aiVoiceTopicSkip')}</button>
-            <button class="btn-secondary" style="margin-top:10px" onclick="startLiveCallFromTopic()">⚡ حالت آنی (Beta) — استریم واقعی مثل ChatGPT Voice</button>
+            <button class="btn-primary" onclick="startLiveCallFromTopic()">${t('aiVoiceTopicStart')}</button>
+            <button class="ai-voice-topic-skip" onclick="startLiveCallFromTopic(true)">${t('aiVoiceTopicSkip')}</button>
           </div>
         </div>
         ${renderAiHistoryModal()}
       `;
     }
-    if (state.liveMode) return renderLiveCallPage();
-    return `
-      <div class="ai-page">
-        <div class="ai-page-header">
-          <button class="ai-back-btn" onclick="closeAiPage()" aria-label="${t('aiBackBtn')}">${icon('close', 18)}</button>
-          <div class="ai-page-title">${icon('ai', 17)} ${t('aiModeVoice')}</div>
-          <button class="ai-history-btn" onclick="openAiHistoryModal()" title="${t('aiPastChats')}">${icon('history', 16)}</button>
-        </div>
-        <div class="ai-quick-row">
-          ${Object.keys(AI_MODES_FN()).filter(k => k !== 'chat').map(k => `<button class="ai-quick-chip ${state.aiMode===k?'active':''}" onclick="setAiMode('${k}')">${esc(AI_MODES_FN()[k].label)}</button>`).join('')}
-        </div>
-        ${langChipsHtml}
-        ${state.aiVoiceTopic ? `<div class="ai-voice-topic-pill" onclick="changeVoiceTopic()">${icon('edit',12)} ${esc(state.aiVoiceTopic)}</div>` : `<div class="ai-voice-topic-pill" onclick="changeVoiceTopic()">${icon('edit',12)} ${t('aiVoiceChangeTopic')}</div>`}
-        <div class="ai-voice-body">
-          <div class="ai-voice-caption">
-            ${shownUser ? `<div class="voice-user-line">${icon('mic',12)} ${esc(shownUser)}</div>` : ''}
-            ${state.aiVoiceLastModel && status !== 'listening' ? `<div class="voice-model-line">${esc(state.aiVoiceLastModel)}</div>` : ''}
-          </div>
-          <div>
-            <div class="ai-voice-orb-wrap ${status}">
-              <div class="ai-voice-ring"></div>
-              <button class="ai-voice-orb ${status}" onclick="toggleVoiceListening()" aria-label="${t('aiVoiceTapToTalk')}" ${status==='thinking'?'disabled':''}>
-                ${icon(micIcon, 40)}
-              </button>
-            </div>
-            <div class="ai-voice-status">${esc(statusLabel)}</div>
-          </div>
-          ${state.aiError ? `<div class="preview-warn">${esc(state.aiError)}</div>` : ''}
-          <div class="ai-voice-controls">
-            <div class="ai-voice-toggle-row" onclick="toggleVoiceAutoContinue()">
-              <span>${t('aiVoiceAutoContinue')}</span>
-              <div class="ai-voice-switch ${state.aiVoiceAutoContinue?'on':''}"><span></span></div>
-            </div>
-            <button class="ai-voice-end-btn" onclick="endVoiceCall()" aria-label="${t('aiVoiceEndCall')}">${icon('close', 22)}</button>
-          </div>
-        </div>
-      </div>
-      ${renderAiHistoryModal()}
-    `;
+    return renderLiveCallPage();
   }
 
   // اگه متن پیام مدل یه JSON کارت «معنی کلمه» باشه، پارسش می‌کنیم؛ وگرنه null برمی‌گردونه (پیام معمولی)
