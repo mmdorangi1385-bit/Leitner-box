@@ -860,9 +860,21 @@
     { id: 'a9' }, { id: 'a10' }, { id: 'a11' }, { id: 'a12' },
   ];
   // --- دوستان (چت) ---
-  function friendAvatarImg(avatarId, size){
+  // frameId اختیاریه: قابِ پروفایلی که همون کاربر (نه لزوماً کاربر فعلی) فعال کرده، تا همه‌جای
+  // اپ که آواتارِ یه کاربرِ دیگه (دوست، عضو گروه، ردیفِ لیدربورد و ...) نشون داده می‌شه، دقیقاً
+  // همون قابی که خودش انتخاب کرده دورش دیده بشه.
+  function friendAvatarImg(avatarId, size, frameId){
     const src = AVATAR_IMAGES[avatarId] || AVATAR_IMAGES.a1;
-    return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+    const inner = `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+    const frameUrl = frameId && (typeof Marketplace !== 'undefined' && Marketplace.frameUrlForId) ? Marketplace.frameUrlForId(frameId) : null;
+    if (frameUrl){
+      const frameSize = Math.round(size * 1.28);
+      return `<div style="position:relative;width:${frameSize}px;height:${frameSize}px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <div style="position:relative;width:${size}px;height:${size}px;border-radius:50%;overflow:hidden">${inner}</div>
+        <img src="${frameUrl}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none" alt="">
+      </div>`;
+    }
+    return inner;
   }
   // آواتار پیش‌فرض گروه، دقیقاً شبیه تلگرام: دایره‌ی رنگی با حرف اول اسم گروه؛ رنگش از
   // روی اسم گروه به‌صورت ثابت انتخاب می‌شه (هر گروه همیشه همون رنگ رو داره).
@@ -1048,6 +1060,34 @@
   }
   // adminXpBonus: امتیاز اضافه‌ای که مدیر از پنل مدیریت به کاربر می‌ده (جمع می‌شه روی XP واقعی، کم نمی‌کنه از منطق اصلی)
   function totalXp(){ return state.stats.word.correct + state.stats.sentence.correct + state.stats.pronun.correct + (state.adminXpBonus || 0); }
+  // رفع باگ: مارکت‌پلیس تابع‌های Marketplace.wallet.onXpEarned/onDailyLogin/onDailyGoalHit رو برای
+  // تبدیل XP/فعالیتِ روزانه به سکه آماده کرده بود، ولی هیچ‌جای این فایل صداش نمی‌زدیم — در نتیجه
+  // موجودیِ سکه‌ی کاربر همیشه صفر می‌موند و «خرید با سکه» عملاً همیشه شکست می‌خورد. این تابع بعد از
+  // هر پاسخِ درست صدا زده می‌شه و دلتای XPِ تازه رو (با همون نسبتِ XP_TO_COIN_RATIO=۱۰ در
+  // marketplace.js) به سکه تبدیل می‌کنه؛ baseline رو توی پروفایل نگه می‌داریم تا XPهای کسری هم
+  // در طول زمان درست جمع بشن (نه این‌که هر بار floor(1/10)=۰ گم بشه).
+  function syncXpCoins(){
+    if (typeof Marketplace === 'undefined' || !Marketplace.wallet) return;
+    const RATIO = 10;
+    const xp = totalXp();
+    const baseline = (state.profile && typeof state.profile.xpCoinBaseline === 'number') ? state.profile.xpCoinBaseline : 0;
+    if (xp <= baseline) return;
+    const coinsDue = Math.floor(xp / RATIO) - Math.floor(baseline / RATIO);
+    if (state.profile) { state.profile.xpCoinBaseline = xp; persistProfile(); }
+    if (coinsDue > 0) Marketplace.wallet.onXpEarned(coinsDue * RATIO);
+  }
+  // پاداشِ سکه‌ی ورودِ روزانه (Marketplace.wallet.onDailyLogin) — قبلاً هیچ‌جا صدا زده نمی‌شد.
+  // چون marketplace.js بعد از این اسکریپت لود می‌شه، این تابع رو توی window 'load' صدا می‌زنیم
+  // تا مطمئن باشیم Marketplace از قبل تعریف شده؛ با تاریخِ آخرین پاداش روی پروفایل جلوی
+  // چندبار-گرفتنِ پاداش توی یه روز رو می‌گیریم.
+  function checkDailyLoginCoinBonus(){
+    if (typeof Marketplace === 'undefined' || !Marketplace.wallet || !state.profile) return;
+    const today = todayStr();
+    if (state.profile.lastCoinLoginDate === today) return;
+    state.profile.lastCoinLoginDate = today;
+    persistProfile();
+    Marketplace.wallet.onDailyLogin();
+  }
   // سطح زبانی (مبتدی/A1/A2/B1/B2+) بر اساس تعداد پاسخ‌های درستِ همون زبان — چون state.stats مخصوص زبان فعلیه، این خودش جدا-جدا برای هر زبانه
   function langLevelLabel(correctCount){
     if (correctCount < 100) return 'مبتدی';
@@ -3553,6 +3593,9 @@
         avatar: state.profile.avatar || 'a1',
         userId: state.profile.userId || '',
         xp: totalXp(),
+        // قابِ پروفایلِ فعالِ کاربر هم اینجا سینک می‌شه تا دوست‌ها/لیدربورد/گروه بتونن دقیقاً
+        // همون قابی که خودِ کاربر انتخاب کرده رو دورِ آواتارش ببینن، نه فقط خودِ کاربر.
+        activeFrame: state.profile.activeFrame || null,
         updatedAt: Date.now()
       }).catch((e) => console.error('leaderboard sync error', e));
     }, 1500);
@@ -4240,12 +4283,12 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     try {
       const myUsername = (state.profile && (state.profile.userId || state.profile.name)) || 'کاربر';
       const members = { [uid]: true };
-      const memberInfo = { [uid]: { username: myUsername, avatar: (state.profile && state.profile.avatar) || 'a1' } };
+      const memberInfo = { [uid]: { username: myUsername, avatar: (state.profile && state.profile.avatar) || 'a1', frame: (state.profile && state.profile.activeFrame) || null } };
       state.groupSelectedFriendUids.forEach((fuid) => {
         const f = state.userFriends.find(fr => fr.uid === fuid);
         if (!f) return;
         members[fuid] = true;
-        memberInfo[fuid] = { username: f.username, avatar: f.avatar || 'a1' };
+        memberInfo[fuid] = { username: f.username, avatar: f.avatar || 'a1', frame: f.frame || null };
       });
       const groupRef = fbDb.ref('groups').push();
       await groupRef.set({ name, ownerUid: uid, ownerUsername: myUsername, members, memberInfo, createdAt: Date.now() });
@@ -4267,7 +4310,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     if (!state.showCreateGroupModal) return '';
     const rows = state.userFriends.map(f => `
       <div class="friend-row" onclick="toggleGroupSelectedFriend('${esc(f.uid)}')">
-        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38)}</div>
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38, f.frame)}</div>
         <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc(f.name)}</div>
         <input type="checkbox" ${state.groupSelectedFriendUids.includes(f.uid) ? 'checked' : ''} onclick="event.stopPropagation();toggleGroupSelectedFriend('${esc(f.uid)}')">
       </div>
@@ -4368,7 +4411,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
         const f = state.userFriends.find(fr => fr.uid === fuid);
         if (!f) return;
         await fbDb.ref('groups/' + g.id + '/members/' + fuid).set(true);
-        await fbDb.ref('groups/' + g.id + '/memberInfo/' + fuid).set({ username: f.username, avatar: f.avatar || 'a1' });
+        await fbDb.ref('groups/' + g.id + '/memberInfo/' + fuid).set({ username: f.username, avatar: f.avatar || 'a1', frame: f.frame || null });
         await fbDb.ref('groupInviteBox/' + fuid + '/' + g.id).set({ groupId: g.id, name: g.name, invitedByUsername: myUsername, invitedByUid: myUid() });
       }));
       state.showGroupAddMemberModal = false;
@@ -4387,7 +4430,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     const candidates = state.userFriends.filter(f => !existingUids.includes(f.uid));
     const rows = candidates.map(f => `
       <div class="friend-row" onclick="toggleGroupSelectedFriend('${esc(f.uid)}')">
-        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38)}</div>
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 38, f.frame)}</div>
         <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc(f.name)}</div>
         <input type="checkbox" ${state.groupSelectedFriendUids.includes(f.uid) ? 'checked' : ''} onclick="event.stopPropagation();toggleGroupSelectedFriend('${esc(f.uid)}')">
       </div>
@@ -4416,7 +4459,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
       const isOwnerRow = uid === g.ownerUid;
       return `
         <div class="friend-row">
-          <div class="friend-avatar-wrap">${friendAvatarImg((info && info.avatar) || 'a1', 38)}</div>
+          <div class="friend-avatar-wrap">${friendAvatarImg((info && info.avatar) || 'a1', 38, info && info.frame)}</div>
           <div style="flex:1;min-width:0;font-size:13px;font-weight:600">${esc((info && info.username) || uid)}</div>
           ${isOwnerRow ? `<span class="hint-text" style="margin:0">مالک</span>` : ''}
         </div>
@@ -4600,7 +4643,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     const delBtn = canDelete ? `<button class="chat-msg-del-btn" onclick="event.stopPropagation();deleteGroupMessage('${esc(groupId)}','${esc(m.id)}')" aria-label="حذف پیام" title="حذف پیام">${icon('trash', 12)}</button>` : '';
     const g = currentOpenGroup();
     const senderInfo = (m.sender === 'other' && g && m.senderUid) ? g.memberInfo[m.senderUid] : null;
-    const senderLine = m.sender === 'other' ? `<div class="group-msg-sender">${senderInfo ? friendAvatarImg(senderInfo.avatar || 'a1', 16) : ''}<span>${esc(m.senderUsername || '')}</span></div>` : '';
+    const senderLine = m.sender === 'other' ? `<div class="group-msg-sender">${senderInfo ? friendAvatarImg(senderInfo.avatar || 'a1', 16, senderInfo.frame) : ''}<span>${esc(m.senderUsername || '')}</span></div>` : '';
     if (m.type === 'image') {
       return `<div class="ai-msg ${cls} chat-media-msg">${delBtn}${senderLine}<img src="${esc(m.url)}" class="chat-media-img" onclick="window.open('${esc(m.url)}','_blank')" alt="عکس ارسالی"></div>`;
     }
@@ -4690,6 +4733,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
         return {
           ...makeFriendRecord(username), uid: fuid,
           name: (prof && prof.name) || username, avatar: (prof && prof.avatar) || 'a1',
+          frame: (prof && prof.activeFrame) || null,
           level: info.level
         };
       }));
@@ -4801,8 +4845,20 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     fr: 'Bonjour - صبح بخیر', it: 'Buongiorno - صبح بخیر'
   };
   function addExampleText(){ return TARGET_LANG_EXAMPLES[currentTargetLangCode()] || TARGET_LANG_EXAMPLES.de; }
+  // قاب فعلاً فعال (activeFrame) رو غیرفعال می‌کنه تا آواتار بدون قاب نمایش داده بشه.
+  function clearProfileFrame(){
+    if (typeof Marketplace !== 'undefined' && Marketplace.clearFrame) Marketplace.clearFrame();
+    render();
+  }
+  // یکی از قاب‌های مالکِ کاربر رو به‌عنوان قابِ فعال انتخاب/اعمال می‌کنه (از همون منطقِ
+  // Marketplace.activate که قبلاً برای صفحه‌ی مارکت استفاده می‌شد).
+  function pickProfileFrame(frameId){
+    if (typeof Marketplace !== 'undefined' && Marketplace.activate) Marketplace.activate(frameId);
+    render();
+  }
   function renderAvatarModal(){
     if (!state.showAvatarModal) return '';
+    const ownedFrames = (typeof Marketplace !== 'undefined' && Marketplace.getOwnedFrames) ? Marketplace.getOwnedFrames() : [];
     return `
       <div class="modal-backdrop" onclick="closeAvatarModal()">
         <div class="modal-card" onclick="event.stopPropagation()">
@@ -4815,6 +4871,23 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
               <button class="avatar-choice ${!state.profile.customAvatar && state.profile.avatar===a.id ? 'active' : ''}" style="padding:0;overflow:hidden" onclick="pickProfileAvatar('${a.id}')"><img src="${AVATAR_IMAGES[a.id]}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;display:block"></button>
             `).join('')}
           </div>
+          ${ownedFrames.length ? `
+            <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border)">
+              <h3 style="margin:0 0 10px 0;font-size:14px">قاب پروفایل</h3>
+              <div class="avatar-grid">
+                <button class="avatar-choice ${ownedFrames.every(f => !f.active) ? 'active' : ''}" style="display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--muted)" onclick="clearProfileFrame()">بدون قاب</button>
+                ${ownedFrames.map(f => `
+                  <button class="avatar-choice ${f.active ? 'active' : ''}" style="padding:2px;position:relative" onclick="pickProfileFrame('${f.id}')" title="${esc(f.name)}">
+                    <div style="position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center">
+                      <div style="width:70%;height:70%;border-radius:50%;background:var(--panel2)"></div>
+                      <img src="${esc(f.fileUrl)}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none" alt="">
+                    </div>
+                  </button>
+                `).join('')}
+              </div>
+              <p class="hint-text" style="margin:10px 0 0;text-align:center">قابِ انتخاب‌شده روی عکس پروفایلت (اینجا و همه‌جای اپ که آواتارت دیده می‌شه) نمایش داده می‌شه.</p>
+            </div>
+          ` : ''}
         </div>
       </div>
     `;
@@ -4979,8 +5052,18 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
   }
   function incrementDailyProgress(type){
     ensureDailyProgressFresh();
-    state.dailyProgress = { ...state.dailyProgress, [type]: (state.dailyProgress[type] || 0) + 1 };
+    const prevVal = state.dailyProgress[type] || 0;
+    const goal = state.dailyGoals ? (state.dailyGoals[type] || 0) : 0;
+    state.dailyProgress = { ...state.dailyProgress, [type]: prevVal + 1 };
     persistDailyProgress();
+    syncXpCoins();
+    // اولین باری که توی همون روز، هدفِ روزانه‌ی یکی از بخش‌ها (کلمه/جمله/تلفظ) کامل می‌شه،
+    // یه پاداشِ سکه‌ی یک‌باره (Marketplace.wallet.onDailyGoalHit) می‌گیره — قبلاً هیچ‌جا صدا زده نمی‌شد.
+    if (goal > 0 && prevVal < goal && (prevVal + 1) >= goal && !state.dailyProgress.goalCoinAwardedDate) {
+      state.dailyProgress = { ...state.dailyProgress, goalCoinAwardedDate: state.dailyProgress.date };
+      persistDailyProgress();
+      if (typeof Marketplace !== 'undefined' && Marketplace.wallet) Marketplace.wallet.onDailyGoalHit();
+    }
   }
   function decrementDailyProgress(type){
     ensureDailyProgressFresh();
@@ -5684,7 +5767,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
   function renderFriends(){
     const myFriendRows = state.userFriends.map(f => `
       <div class="friend-row" onclick="openUserFriendProfile('${esc(f.username)}')">
-        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 46)}</div>
+        <div class="friend-avatar-wrap">${friendAvatarImg(f.avatar || 'a1', 46, f.frame)}</div>
         <div style="flex:1;min-width:0">
           <div style="font-weight:700;font-size:13.5px">${esc(f.name)}</div>
           <div class="hint-text" style="margin-top:1px">${t('profileLevel')} ${faNum(f.level||1)}</div>
@@ -5695,7 +5778,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
     const preview = state.friendSearchPreview ? `
       <div class="request-row" style="margin-top:10px;cursor:pointer" onclick="event.stopPropagation()">
         <div style="display:flex;align-items:center;gap:10px">
-          <div class="friend-avatar-wrap" style="width:40px;height:40px;flex-shrink:0">${friendAvatarImg(state.friendSearchPreview.profile.avatar || 'a1', 40)}</div>
+          <div class="friend-avatar-wrap" style="width:40px;height:40px;flex-shrink:0">${friendAvatarImg(state.friendSearchPreview.profile.avatar || 'a1', 40, state.friendSearchPreview.profile.activeFrame)}</div>
           <div>
             <b style="font-size:13px">${esc(state.friendSearchPreview.profile.name || state.friendSearchPreview.username)}</b>
             <div style="font-size:11px;color:var(--muted)">@${esc(state.friendSearchPreview.username)} · ${t('profileLevel')} ${faNum(computeLevelInfo(state.friendSearchPreview.profile.xp||0).level)}</div>
@@ -5809,7 +5892,7 @@ Ich möchte einen Kaffee, bitte - من یک قهوه می‌خواهم لطفا�
         return `
           <div class="friend-row" style="${isMe ? 'background:var(--panel2);border-radius:10px' : ''}">
             <div class="box-chip" style="flex-shrink:0">${faNum(idx+1)}</div>
-            <div class="friend-avatar-wrap">${friendAvatarImg(e.avatar || 'a1', 40)}</div>
+            <div class="friend-avatar-wrap">${friendAvatarImg(e.avatar || 'a1', 40, e.activeFrame)}</div>
             <div style="flex:1;min-width:0">
               <div style="font-weight:700;font-size:13.5px">${esc(e.name || e.userId || 'کاربر')}${isMe ? ` (${t('navProfile')})` : ''}</div>
               <div class="hint-text" style="margin-top:1px">${t('profileLevel')} ${faNum(lv)} · ${faNum(e.xp||0)} XP</div>
@@ -6472,7 +6555,9 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
         }),
       });
     } catch(e){
-      throw new Error(t('orConnFailed'));
+      const connErr = new Error(t('orConnFailed'));
+      connErr.isRetryableCombo = true;
+      throw connErr;
     }
     if (!res.ok){
       let msg = tf('orErrorCode', {code: res.status});
@@ -6483,9 +6568,10 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
         if (errBody && errBody.error && errBody.error.message) msg = errBody.error.message;
       } catch(e){}
       const err = new Error(msg);
-      // این‌ها یعنی همین ترکیبِ کلید/مدل به سقفش خورده یا دسترسی نداره؛ به‌جای نشون‌دادن خطا به
-      // کاربر، باید یه ترکیب دیگه امتحان بشه (نه هر خطایی — مثلاً خطای محتوای پرامپت رو نباید دوباره امتحان کرد).
-      err.isQuotaOrAuthError = (res.status === 429 || res.status === 401 || res.status === 403 || res.status === 503);
+      // کاربر هیچ‌وقت نباید ارورِ «این مدل کار نمی‌کنه» رو ببینه: هر خطایی از این ترکیبِ کلید/مدل
+      // (چه سقف تموم‌شده، چه کلید نامعتبر، چه هر کدِ دیگه) باید باعث بشه بی‌سروصدا بریم سراغ ترکیب بعدی؛
+      // فقط وقتی که واقعاً همه‌ی ترکیب‌ها (همه‌ی کلیدها × همه‌ی مدل‌ها) شکست خوردن، خطا نشون داده می‌شه.
+      err.isRetryableCombo = true;
       throw err;
     }
     const data = await res.json();
@@ -6493,7 +6579,11 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
     const content = cand && cand.content && cand.content.parts
       ? cand.content.parts.map(p => p.text || '').join('').trim()
       : '';
-    if (!content) throw new Error(t('orNoModelReply'));
+    if (!content){
+      const emptyErr = new Error(t('orNoModelReply'));
+      emptyErr.isRetryableCombo = true;
+      throw emptyErr;
+    }
     return content;
   }
 
@@ -6517,16 +6607,20 @@ IMPORTANT — an image is attached to this message. Analyze the ENTIRE image tho
     const combos = buildGeminiComboList();
     // ترکیبِ چرخش‌یافته رو اول لیست می‌ذاریم، بقیه‌ی ترکیب‌ها به‌عنوان پشتیبان برای وقتی به سقف خوردیم
     const ordered = [{ key: startKey, model: startModel }, ...combos.filter(c => !(c.key === startKey && c.model === startModel))];
-    const maxAttempts = Math.min(ordered.length, 8);
+    // عمداً سقفی روی تعداد تلاش نمی‌ذاریم: تا وقتی حتی یک ترکیبِ کلید/مدل باقی مونده که امتحان
+    // نشده، کاربر نباید هیچ ارورِ «این مدل کار نمی‌کنه»ای رو ببینه — فقط بعد از تمومِ همه‌ی ترکیب‌ها
+    // (که خیلی بعیده پیش بیاد) خطای نهایی برمی‌گرده.
     let lastErr = null;
-    for (let i = 0; i < maxAttempts; i++){
+    for (let i = 0; i < ordered.length; i++){
       const combo = ordered[i];
       try {
         return await runGeminiPrompt(systemPrompt, userPrompt, imageDataUrl, combo.key, combo.model);
       } catch(e){
         lastErr = e;
-        if (!e || !e.isQuotaOrAuthError) throw e; // خطای دیگه (مثلاً محتوای پرامپت) رو نباید دوباره امتحان کرد
-        // وگرنه همین ترکیب به سقفش خورده؛ بی‌سروصدا برو سراغ ترکیب بعدی
+        // تقریباً هر خطایی (سقف تموم‌شده، کلید نامعتبر، پاسخ خالی، قطعی اتصال) به‌عنوان «این ترکیب
+        // کار نکرد» در نظر گرفته می‌شه و بی‌سروصدا می‌ره سراغ ترکیب بعدی؛ فقط وقتی مطمئنیم مشکل از
+        // خودِ درخواستِ کاربره نه از مدل (پرچمِ isRetryableCombo نیست)، بلافاصله بالا پرتاب می‌شه.
+        if (e && e.isRetryableCombo === false) throw e;
       }
     }
     throw lastErr || new Error(t('orNoModelReply'));
@@ -8969,12 +9063,12 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
         : '';
       const sys = `You are an expert on official, internationally recognized ${teachLangLabel()} language proficiency exams. ${aiLangInstruction()}
 Respond with ONLY a single pure JSON object, no markdown, no code fences, no commentary, exactly in this shape:
-{"exams":[{"name":"...","description":"...","levels":"...","samples":[{"question":"...","answer":"..."}]}]}
+{"exams":[{"name":"...","description":"...","levels":"...","samples":[{"question":"...","answer":"...","cefr":"A1"}]}]}
 Rules:
 - List 3-5 real, well-known official ${teachLangLabel()} proficiency exams (e.g. equivalents of IELTS/TOEFL/Cambridge for English, Goethe-Zertifikat/TestDaF for German, DELF/DALF for French, DELE/SIELE for Spanish, etc — whichever real official exams actually exist for ${teachLangLabel()}). Return an empty exams array only if ${teachLangLabel()} genuinely has no well-known standardized international exam.
 - "description": 1-2 sentences in ${uiLangNativeName()} about who administers it and what it's typically used for (visa, university admission, work, etc).
 - "levels": which CEFR levels or score ranges it covers, in ${uiLangNativeName()}.
-- "samples": exactly 2 short realistic sample questions representative of that exam's actual style, with correct answers, written appropriately (mix of ${teachLangLabel()} and ${uiLangNativeName()} as natural for that exam type).${previousSamplesNote}
+- "samples": exactly 2 short realistic sample questions representative of that exam's actual style, with correct answers, written appropriately (mix of ${teachLangLabel()} and ${uiLangNativeName()} as natural for that exam type). Each sample MUST also include "cefr": the CEFR level of exactly that one question (one of "A1","A2","B1","B2","C1","C2") based on its real difficulty — not necessarily the same for every sample, since a single exam can span multiple levels.${previousSamplesNote}
 Never wrap the JSON in markdown code fences, never add commentary before or after it.`;
       const reply = await runAiPrompt(sys, isRefresh ? 'Give me new sample questions for the official exams.' : 'List the official exams.', null);
       const parsed = extractJson(reply);
@@ -9012,7 +9106,10 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
             <div class="hint-text" style="margin-bottom:8px;color:var(--brass)">سطح: ${esc(ex.levels)}</div>
             ${(ex.samples || []).map((s, si) => `
               <div style="background:var(--panel2);border-radius:10px;padding:10px;margin-bottom:6px">
-                <div style="font-size:13px;margin-bottom:4px">${faNum(si + 1)}. ${esc(s.question)}</div>
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px">
+                  <div style="font-size:13px;flex:1">${faNum(si + 1)}. ${esc(s.question)}</div>
+                  ${s.cefr ? `<span style="flex-shrink:0;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--brass);color:#fff;white-space:nowrap">${esc(s.cefr)}</span>` : ''}
+                </div>
                 <div class="hint-text" style="margin:0;color:var(--sage-strong)">${esc(s.answer)}</div>
               </div>
             `).join('')}
@@ -10146,6 +10243,7 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
       const el = document.getElementById('splash');
       if (el) { el.classList.add('hide'); setTimeout(() => el.remove(), 500); }
     }, 6200);
+    checkDailyLoginCoinBonus();
   });
 </script>
 
