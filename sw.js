@@ -3,7 +3,7 @@
 // ولی این فایل دست‌نخورده بمونه، کاربرهایی که قبلاً اپ رو باز کرده‌ن همچنان نسخه‌ی قدیمیِ
 // کش‌شده رو می‌بینن. پس هر بار که تغییر مهمی توی اپ می‌دیم (مثل همین آپدیت نوتیفیکیشن‌ها)،
 // باید CACHE_NAME رو عوض کنیم تا کش قدیمی پاک بشه و نسخه‌ی تازه جایگزینش بشه.
-const CACHE_NAME = 'leitner-cache-v40';
+const CACHE_NAME = 'leitner-cache-v41';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-hero.png', './icon-header.png', './icon-badge.png', './words_a1.json', './words_a2.json', './words_b1.json', './marketplace.js', './marketplace.css'];
 
 self.addEventListener('install', (event) => {
