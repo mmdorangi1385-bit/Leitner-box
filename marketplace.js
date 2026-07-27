@@ -1101,6 +1101,21 @@
       if (r) r.classList.remove('hide');
       if (!M._initialized) { M._initialized = true; refreshAll(); } else { refreshAll(); }
     },
+    // مثل open() دیتا رو بارگذاری می‌کنه ولی هیچ رابط کاربری‌ای باز نمی‌کنه؛ برای جاهایی مثل
+    // صفحه‌ی پروفایل که باید بدونن کاربر چه آیتم‌هایی (مثلاً قاب پروفایل) رو مالکه، بدون این‌که
+    // کاربر لزوماً وارد صفحه‌ی مارکت شده باشه.
+    ensureLoaded() {
+      if (M._initialized) return;
+      M._initialized = true;
+      M._loading = true;
+      Promise.all([loadCatalog(), loadUserData()]).then(() => {
+        M._loading = false;
+        renderIfOpen();
+        // اپ اصلی (index.html) هم باید دوباره رندر بشه تا اگه فریمی فعاله، همون لحظه دور
+        // آواتار نشون داده بشه، نه فقط وقتی کاربر بعداً وارد صفحه‌ای بشه که دوباره رندر می‌کنه.
+        if (typeof global.render === 'function') global.render();
+      });
+    },
     close() {
       M._open = false;
       const r = root();
@@ -1109,6 +1124,19 @@
     setTab(tab) { M.activeTab = tab; render(); },
     setCategory(cat) { M.activeCategory = cat; render(); },
     setSearch(q) { M.searchQuery = q; render(); },
+
+    // برمی‌گردونه: لینک عکسِ قابِ فعلاً انتخاب‌شده‌ی کاربر (اگه فریمی خریده/فعال کرده و واقعاً
+    // مالکشه)، وگرنه null. index.html این رو صدا می‌زنه تا دور آواتار کاربر قاب رو نشون بده —
+    // قبلاً activeFrame فقط نوشته می‌شد ولی هیچ‌جا برای نمایش خونده نمی‌شد.
+    getOwnedFrameUrl() {
+      const st = Adapters.getAppState();
+      const frameId = st && st.profile && st.profile.activeFrame;
+      if (!frameId) return null;
+      const it = M.items.find((x) => x.id === frameId || (x.payload && x.payload.frameId === frameId));
+      if (!it || it.type !== 'frame') return null;
+      if (!isOwned(it.id)) return null;
+      return it.fileUrl || null;
+    },
 
     openDetail(itemId) {
       M.selectedItemId = itemId;

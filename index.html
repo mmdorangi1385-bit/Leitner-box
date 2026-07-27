@@ -1013,12 +1013,27 @@
     reader.readAsDataURL(file);
   }
   function avatarHtml(size){
+    let inner;
     if (state.profile && state.profile.customAvatar){
-      return `<img src="${state.profile.customAvatar}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+      inner = `<img src="${state.profile.customAvatar}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+    } else {
+      const av = DEFAULT_AVATARS.find(a => state.profile && a.id === state.profile.avatar) || DEFAULT_AVATARS[0];
+      const src = AVATAR_IMAGES[av.id] || AVATAR_IMAGES.a1;
+      inner = `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
     }
-    const av = DEFAULT_AVATARS.find(a => state.profile && a.id === state.profile.avatar) || DEFAULT_AVATARS[0];
-    const src = AVATAR_IMAGES[av.id] || AVATAR_IMAGES.a1;
-    return `<img src="${src}" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;display:block">`;
+    // رفع باگ: قبلاً وقتی کاربر یه «قاب پروفایل» از مارکت می‌خرید و فعالش می‌کرد، فقط روی
+    // پروفایلِ داخلی ذخیره می‌شد (activeFrame) ولی هیچ‌جا واقعاً دور آواتار نمایش داده نمی‌شد.
+    // اینجا اگه کاربر قابی مالک و فعال کرده باشه، عکسِ قاب رو به‌صورت یه لایه‌ی بزرگ‌تر دور
+    // آواتار می‌ذاریم (قاب معمولاً کمی از خودِ آواتار بزرگ‌تر طراحی می‌شه تا لبه‌ها دیده بشن).
+    const frameUrl = (typeof Marketplace !== 'undefined' && Marketplace.getOwnedFrameUrl) ? Marketplace.getOwnedFrameUrl() : null;
+    if (frameUrl){
+      const frameSize = Math.round(size * 1.28);
+      return `<div style="position:relative;width:${frameSize}px;height:${frameSize}px;display:flex;align-items:center;justify-content:center">
+        <div style="position:relative;width:${size}px;height:${size}px;border-radius:50%;overflow:hidden">${inner}</div>
+        <img src="${esc(frameUrl)}" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none" alt="">
+      </div>`;
+    }
+    return inner;
   }
 
   // --- لول و لیگ ---
@@ -3446,6 +3461,9 @@
         await syncOnLogin();
         initSocialListeners();
         initPresence();
+        // بدون این، اگه کاربر قابی خریده باشه ولی این جلسه سراغ تب مارکت نره، فریم دورِ
+        // آواتارش نمایش داده نمی‌شد چون M.items/purchases هنوز لود نشده بودن.
+        if (typeof Marketplace !== 'undefined' && Marketplace.ensureLoaded) Marketplace.ensureLoaded();
       } else if (wasGuest) {
         state.authGuest = true;
         hideAuthOverlay();
@@ -5041,6 +5059,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
     support: '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3v5z"/><path d="M3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3v5z"/>',
     video: '<polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/>',
     shoppingBag: '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+    refresh: '<polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/>',
   };
   function icon(name, size){ return svgIcon(PATHS[name], size); }
 
@@ -5104,6 +5123,7 @@ Return strictly a valid JSON object without markdown wrappers or conversational 
       ${state.activeDuel ? renderDuelGame() : ''}
     `;
   }
+  window.render = render; // expose for marketplace.js so it can refresh the main app view (e.g. after an equipped frame loads)
 
   function toggleHeaderMenu(){ state.showHeaderMenu = !state.showHeaderMenu; render(); }
   function closeHeaderMenu(){ state.showHeaderMenu = false; render(); }
@@ -7176,24 +7196,66 @@ Special case: if — and only if — the user is clearly asking for the meaning/
     if (livePlaybackCtx) livePlaybackQueueTime = livePlaybackCtx.currentTime;
   }
   function stopLiveMic(){
+    if (liveWatchdogTimer){ clearInterval(liveWatchdogTimer); liveWatchdogTimer = null; }
     if (liveProcessorNode){ try { liveProcessorNode.disconnect(); } catch(e){} liveProcessorNode = null; }
     if (liveSourceNode){ try { liveSourceNode.disconnect(); } catch(e){} liveSourceNode = null; }
     if (liveAudioCtx){ try { liveAudioCtx.close(); } catch(e){} liveAudioCtx = null; }
     if (liveMicStream){ liveMicStream.getTracks().forEach((tr) => tr.stop()); liveMicStream = null; }
   }
+  let liveWatchdogTimer = null;
+  let liveLastAudioProcessAt = 0;
+  const LIVE_WATCHDOG_MS = 4000; // اگه این‌همه بین دو تیکه صدا فاصله بیفته، یعنی موتور صدا (باگ شناخته‌شده‌ی کروم/اندروید) خاموش شده
   function startLiveMicStreaming(){
     const AC = window.AudioContext || window.webkitAudioContext;
     liveAudioCtx = new AC({ sampleRate: 16000 });
     liveSourceNode = liveAudioCtx.createMediaStreamSource(liveMicStream);
     liveProcessorNode = liveAudioCtx.createScriptProcessor(4096, 1, 1);
+    liveLastAudioProcessAt = Date.now();
     liveProcessorNode.onaudioprocess = (e) => {
+      liveLastAudioProcessAt = Date.now();
       if (!liveWs || liveWs.readyState !== WebSocket.OPEN) return;
-      const input = e.inputBuffer.getChannelData(0);
-      const pcm16 = floatTo16BitPCM(input);
-      liveWs.send(JSON.stringify({ realtimeInput: { audio: { data: arrayBufferToBase64(pcm16.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
+      try {
+        const input = e.inputBuffer.getChannelData(0);
+        const pcm16 = floatTo16BitPCM(input);
+        liveWs.send(JSON.stringify({ realtimeInput: { audio: { data: arrayBufferToBase64(pcm16.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
+      } catch(sendErr){
+        // یه خطای تکی توی فرستادنِ یه تیکه صدا نباید کل تماس رو خراب کنه؛ فقط این تیکه رو رد می‌کنیم
+      }
     };
     liveSourceNode.connect(liveProcessorNode);
     liveProcessorNode.connect(liveAudioCtx.destination); // فقط برای زنده نگه‌داشتن گراف؛ چیزی توی outputBuffer نمی‌نویسیم پس صدایی پخش نمی‌شه
+    // رفع باگ: توی برخی مرورگرهای اندروید (به‌خصوص کروم/وب‌ویو)، onaudioprocess بعد از چند ثانیه
+    // بدون هیچ خطایی از کار می‌افته و میکروفون عملاً خاموش می‌مونه ولی هیچ‌جا نشون داده نمی‌شه.
+    // این واچ‌داگ هر چند ثانیه چک می‌کنه که آیا صدا واقعاً داره پردازش می‌شه؛ اگه نه، خودکار موتور
+    // صدا رو از نو می‌سازه تا مکالمه بدون این‌که کاربر بفهمه ادامه پیدا کنه.
+    if (liveWatchdogTimer) clearInterval(liveWatchdogTimer);
+    liveWatchdogTimer = setInterval(() => {
+      if (!state.liveCallActive || !liveMicStream){ clearInterval(liveWatchdogTimer); liveWatchdogTimer = null; return; }
+      if (Date.now() - liveLastAudioProcessAt > LIVE_WATCHDOG_MS){
+        // ساده‌ترین و مطمئن‌ترین راه برای رفع این باگ: کل موتور صدا رو از صفر می‌سازیم
+        // (استریمِ میکروفون خودش دست نمی‌خوره، فقط AudioContext/گراف پردازش دوباره ساخته می‌شه)
+        try { if (liveProcessorNode) liveProcessorNode.disconnect(); } catch(err){}
+        try { if (liveSourceNode) liveSourceNode.disconnect(); } catch(err){}
+        try { if (liveAudioCtx) liveAudioCtx.close(); } catch(err){}
+        try {
+          liveAudioCtx = new AC({ sampleRate: 16000 });
+          liveSourceNode = liveAudioCtx.createMediaStreamSource(liveMicStream);
+          liveProcessorNode = liveAudioCtx.createScriptProcessor(4096, 1, 1);
+          liveLastAudioProcessAt = Date.now();
+          liveProcessorNode.onaudioprocess = (e2) => {
+            liveLastAudioProcessAt = Date.now();
+            if (!liveWs || liveWs.readyState !== WebSocket.OPEN) return;
+            try {
+              const input2 = e2.inputBuffer.getChannelData(0);
+              const pcm16b = floatTo16BitPCM(input2);
+              liveWs.send(JSON.stringify({ realtimeInput: { audio: { data: arrayBufferToBase64(pcm16b.buffer), mimeType: 'audio/pcm;rate=16000' } } }));
+            } catch(sendErr2){}
+          };
+          liveSourceNode.connect(liveProcessorNode);
+          liveProcessorNode.connect(liveAudioCtx.destination);
+        } catch(rebuildErr){}
+      }
+    }, 2000);
   }
   function handleLiveServerMessage(evt){
     let msg;
@@ -7236,6 +7298,18 @@ Special case: if — and only if — the user is clearly asking for the meaning/
       state.liveError = 'مرورگرت از ضبط صدا پشتیبانی نمی‌کنه.';
       render();
       return;
+    }
+    // رفع باگ: بقیه‌ی قابلیت‌های صوتی قبل از شروع، وضعیت مجوز میکروفون رو چک/درخواست می‌کنن؛
+    // این تابع قبلاً این کار رو نمی‌کرد و مستقیم می‌رفت سراغ getUserMedia — اگه مرورگر مجوز رو
+    // بی‌صدا رد می‌کرد یا کاربر قبلاً رد کرده بود، تماس بدون هیچ پیام خطایی «آماده» نشون داده می‌شد
+    // اما هیچ صدایی گرفته/فرستاده نمی‌شد.
+    if (state.micPermState !== 'granted'){
+      await requestMicPermission();
+      if (state.micPermState !== 'granted'){
+        state.liveError = t('alertMicNeededVoice');
+        render();
+        return;
+      }
     }
     state.liveCallActive = true;
     state.liveStatus = 'connecting';
@@ -7981,7 +8055,6 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
   // ================= تصحیح گرامر هنگام تایپ =================
   // هر بار کاربر تایپ می‌کنه، یه تایمر ۱.۲ ثانیه‌ای ریست می‌شه؛ فقط وقتی واقعاً مکث کرد
   // (نه هر keystroke) درخواست به AI می‌ره — هم برای جلوگیری از هزینه‌ی زیاد، هم UX روون‌تر.
-  let correctorDebounceTimer = null;
   function openGrammarCorrector(){
     state.studyType = 'grammarCheck';
     state.view = 'study';
@@ -8000,19 +8073,20 @@ Field rules:
 - "explanation": if hasErrors is true, briefly explain (in ${uiLangNativeName()}) the 1-3 most important mistakes and why the correction is right, in a short friendly sentence or two; if hasErrors is false, write one short encouraging sentence in ${uiLangNativeName()}.
 Never wrap the JSON in markdown code fences, never add commentary before or after it.`;
   }
+  // رفع باگ: قبلاً این تابع خودش (با یه تایمر کوتاه) تصحیح رو شروع می‌کرد، حتی اگه کاربر فقط
+  // یه حرف نوشته بود و هنوز داشت کلمه رو تموم می‌کرد؛ این باعث می‌شد وسط تایپ‌کردن، تصحیح
+  // پرش کنه و اجازه‌ی کامل نوشتن رو ندیم. الان فقط متن رو ذخیره می‌کنیم و تصحیح فقط با زدنِ
+  // دکمه‌ی «بررسی» (checkCorrectorText) شروع می‌شه.
   function onCorrectorInput(v){
     state.correctorText = v;
     state.correctorResult = null;
     state.correctorError = null;
-    if (correctorDebounceTimer) clearTimeout(correctorDebounceTimer);
-    const text = v.trim();
-    if (!text){ render(); return; }
     render();
-    // اگه کاربر تازه یه کلمه رو با فاصله/نقطه‌گذاری تموم کرده، زودتر (اما نه فوری) تصحیح می‌کنیم؛
-    // وگرنه صبر می‌کنیم تا واقعاً دستش برای مدتی وایسه، تا وسط تایپ‌کردنِ خودِ کلمه پیشنهاد ندیم.
-    const justFinishedWord = /[\s.,!?؛،؟]$/.test(v);
-    const delay = justFinishedWord ? 1500 : 2800;
-    correctorDebounceTimer = setTimeout(() => { runGrammarCorrection(text); }, delay);
+  }
+  function checkCorrectorText(){
+    const text = (state.correctorText || '').trim();
+    if (!text) return;
+    runGrammarCorrection(text);
   }
   async function runGrammarCorrection(text){
     if (state.studyType !== 'grammarCheck') return; // کاربر از صفحه خارج شده
@@ -8039,17 +8113,19 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.correctorText = '';
     state.correctorResult = null;
     state.correctorError = null;
-    if (correctorDebounceTimer) clearTimeout(correctorDebounceTimer);
     render();
   }
   function renderGrammarCorrector(){
     const r = state.correctorResult;
     return `
       <div class="panel">
-        <div class="deck-title" style="margin-bottom:8px">✍️ تصحیح گرامر هنگام تایپ</div>
-        <div class="hint-text" style="margin-bottom:12px">هر چی می‌نویسی رو به ${esc(teachLangLabel())} تایپ کن؛ چند ثانیه بعد از این‌که دستت وایساد، خودش تصحیحش می‌کنه.</div>
+        <div class="deck-title" style="margin-bottom:8px">✍️ تصحیح گرامر</div>
+        <div class="hint-text" style="margin-bottom:12px">هر چی می‌خوای رو به ${esc(teachLangLabel())} تایپ کن؛ هر وقت آماده بود، دکمه‌ی «بررسی» رو بزن.</div>
         <textarea class="ai-voice-topic-input" style="direction:ltr;min-height:110px" placeholder="اینجا بنویس..." oninput="onCorrectorInput(this.value)">${esc(state.correctorText || '')}</textarea>
-        ${state.correctorText ? `<button class="btn-secondary" style="margin-top:8px" onclick="clearCorrectorText()">پاک کردن</button>` : ''}
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn-primary" style="margin-top:0;flex:1" ${(!state.correctorText || !state.correctorText.trim() || state.correctorLoading) ? 'disabled' : ''} onclick="checkCorrectorText()">بررسی</button>
+          ${state.correctorText ? `<button class="btn-secondary" style="margin-top:0;width:auto;padding:0 16px" onclick="clearCorrectorText()">پاک کردن</button>` : ''}
+        </div>
         ${state.correctorLoading ? `
           <div style="text-align:center;padding:14px 0">
             <span class="ai-typing-dots"><span></span><span></span><span></span></span>
@@ -8122,10 +8198,12 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     const combos = [];
     keys.forEach((k) => AVAILABLE_GEMINI_IMAGE_MODELS.forEach((m) => combos.push({ key: k, model: m })));
     const ordered = [{ key: startKey, model: startModel }, ...combos.filter(c => !(c.key === startKey && c.model === startModel))];
-    const maxAttempts = Math.min(ordered.length, 6);
+    // رفع باگ: قبلاً حداکثر ۶ ترکیب کلید/مدل امتحان می‌شد، حتی اگه کاربر بیشتر از ۲ کلید یا کلید+مدل
+    // بیشتری داشت که هنوز سهمیه‌شون تموم نشده بود؛ الان همه‌ی ترکیب‌های موجود امتحان می‌شن تا واقعاً
+    // مطمئن بشیم هیچ کلید/مدلِ در دسترسی نمونده، قبل از این‌که خطا نشون بدیم.
     let lastErr = null;
     let blob = null;
-    for (let i = 0; i < maxAttempts; i++){
+    for (let i = 0; i < ordered.length; i++){
       const combo = ordered[i];
       try {
         blob = await generateImageWithCombo(prompt, combo.key, combo.model);
@@ -8135,7 +8213,10 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
         if (!e || !e.isQuotaOrAuthError) throw e;
       }
     }
-    if (!blob) throw lastErr || new Error('ساخت عکس ناموفق بود.');
+    if (!blob){
+      const exhaustedErr = new Error('سهمیه‌ی رایگانِ همه‌ی کلیدها/مدل‌های ساخت عکس برای امروز تموم شده. یا یه کلید Gemini جدید اضافه کن، یا برای همین کلیدها سهمیه‌ی پولی (billing) فعال کن، یا بعداً دوباره امتحان کن.');
+      throw (lastErr && lastErr.isQuotaOrAuthError) ? exhaustedErr : (lastErr || new Error('ساخت عکس ناموفق بود.'));
+    }
     try {
       return await uploadToCloudinary(blob, 'image');
     } catch(uploadErr){
@@ -8701,12 +8782,18 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     render();
     if (!state.officialExamsData || state.officialExamsLangCache !== currentTargetLangCode()) loadOfficialExams();
   }
-  async function loadOfficialExams(){
+  async function loadOfficialExams(isRefresh){
     if (!hasActiveAiKey()){ state.officialExamsError = t('aiKeyNeeded'); render(); return; }
     state.officialExamsLoading = true;
     state.officialExamsError = null;
     render();
     try {
+      // رفع درخواست: وقتی این تابع برای «رفرش» (نه اولین بارگذاری) صدا زده می‌شه، صراحتاً از هوش
+      // مصنوعی می‌خوایم سوال‌های نمونه‌ی تازه و متفاوت از قبلی‌ها بده؛ وگرنه چون پرامپت هر بار تقریباً
+      // یکسانه، مدل معمولاً همون سوال‌های قبلی رو دوباره برمی‌گردوند و دکمه‌ی رفرش عملاً بی‌اثر بود.
+      const previousSamplesNote = (isRefresh && state.officialExamsData && state.officialExamsData.length)
+        ? `\nThe user already saw these exact sample questions and wants NEW, DIFFERENT ones this time (still realistic and representative of each exam's real style, just not repeats):\n${state.officialExamsData.map((ex) => (ex.samples || []).map((s) => '- ' + s.question).join('\n')).join('\n')}`
+        : '';
       const sys = `You are an expert on official, internationally recognized ${teachLangLabel()} language proficiency exams. ${aiLangInstruction()}
 Respond with ONLY a single pure JSON object, no markdown, no code fences, no commentary, exactly in this shape:
 {"exams":[{"name":"...","description":"...","levels":"...","samples":[{"question":"...","answer":"..."}]}]}
@@ -8714,9 +8801,9 @@ Rules:
 - List 3-5 real, well-known official ${teachLangLabel()} proficiency exams (e.g. equivalents of IELTS/TOEFL/Cambridge for English, Goethe-Zertifikat/TestDaF for German, DELF/DALF for French, DELE/SIELE for Spanish, etc — whichever real official exams actually exist for ${teachLangLabel()}). Return an empty exams array only if ${teachLangLabel()} genuinely has no well-known standardized international exam.
 - "description": 1-2 sentences in ${uiLangNativeName()} about who administers it and what it's typically used for (visa, university admission, work, etc).
 - "levels": which CEFR levels or score ranges it covers, in ${uiLangNativeName()}.
-- "samples": exactly 2 short realistic sample questions representative of that exam's actual style, with correct answers, written appropriately (mix of ${teachLangLabel()} and ${uiLangNativeName()} as natural for that exam type).
+- "samples": exactly 2 short realistic sample questions representative of that exam's actual style, with correct answers, written appropriately (mix of ${teachLangLabel()} and ${uiLangNativeName()} as natural for that exam type).${previousSamplesNote}
 Never wrap the JSON in markdown code fences, never add commentary before or after it.`;
-      const reply = await runAiPrompt(sys, 'List the official exams.', null);
+      const reply = await runAiPrompt(sys, isRefresh ? 'Give me new sample questions for the official exams.' : 'List the official exams.', null);
       const parsed = extractJson(reply);
       if (parsed && Array.isArray(parsed.exams)){
         state.officialExamsData = parsed.exams;
@@ -8730,10 +8817,16 @@ Never wrap the JSON in markdown code fences, never add commentary before or afte
     state.officialExamsLoading = false;
     render();
   }
+  function refreshOfficialExams(){ loadOfficialExams(true); }
   function renderOfficialExams(){
     return `
       <div class="panel">
-        <div class="deck-title" style="margin-bottom:10px">🏅 آزمون‌های رسمی ${esc(teachLangLabel())}</div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px">
+          <div class="deck-title" style="margin-bottom:0">🏅 آزمون‌های رسمی ${esc(teachLangLabel())}</div>
+          ${(!state.officialExamsLoading && state.officialExamsData && state.officialExamsData.length) ? `
+            <button class="btn-secondary" style="width:auto;padding:7px 14px;margin-top:0;flex-shrink:0" onclick="refreshOfficialExams()">${icon('refresh',15)} رفرش سوالات</button>
+          ` : ''}
+        </div>
         ${state.officialExamsLoading ? `
           <div style="text-align:center;padding:20px 0"><span class="ai-typing-dots"><span></span><span></span><span></span></span></div>
         ` : state.officialExamsError ? `
