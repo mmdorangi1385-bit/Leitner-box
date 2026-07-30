@@ -51,8 +51,18 @@
     isFirebaseReady() { return !!global.firebaseReady && !!global.fbDb; },
     db() { return global.fbDb || null; },
     firebase() { return global.firebase || null; },
-    applyThemeColor(color) { if (typeof global.applyThemeColor === 'function') global.applyThemeColor(color); },
-    applyThemeMode(mode) { if (typeof global.applyThemeMode === 'function') global.applyThemeMode(mode); },
+    // نکته‌ی مهم: قبلاً اینجا global.applyThemeColor/applyThemeMode صدا زده می‌شد که فقط
+    // پیش‌نمایشِ لحظه‌ای بود و هیچ‌جا ذخیره نمی‌شد؛ در نتیجه با رفرش یا حتی رندر بعدی، تمِ
+    // خریداری‌شده خودش رو از دست می‌داد. الان از setThemeColor/setThemeMode (که هم اعمال
+    // می‌کنن هم توی localStorage/state ذخیره می‌کنن) استفاده می‌کنیم تا واقعاً «سرِ جاش» بمونه.
+    applyThemeColor(color) {
+      if (typeof global.setThemeColor === 'function') global.setThemeColor(color);
+      else if (typeof global.applyThemeColor === 'function') global.applyThemeColor(color);
+    },
+    applyThemeMode(mode) {
+      if (typeof global.setThemeMode === 'function') global.setThemeMode(mode);
+      else if (typeof global.applyThemeMode === 'function') global.applyThemeMode(mode);
+    },
     persistProfile() { if (typeof global.persistProfile === 'function') global.persistProfile(); },
     getUserId() {
       const st = this.getAppState();
@@ -61,11 +71,12 @@
     // بسته‌ی کلمات خریداری‌شده رو مستقیم توی جعبه لایتنر کاربر (state.cards واقعی اپ) وارد می‌کنه.
     // کارت‌هایی که از قبل با همون متن و نوع وجود دارن، دوباره اضافه نمی‌شن (جلوگیری از تکراری).
     // برمی‌گردونه: تعداد کارت‌هایی که واقعاً تازه اضافه شدن.
-    importCards(words) {
+    importCards(words, categoryName) {
       if (typeof global.persistCards !== 'function' || !Array.isArray(words)) return 0;
       const st = this.getAppState();
       const today = typeof global.todayStr === 'function' ? global.todayStr() : new Date().toISOString().slice(0, 10);
       const nowIso = new Date().toISOString();
+      const cat = (categoryName && typeof global.findOrCreateNamedCategory === 'function') ? global.findOrCreateNamedCategory(categoryName) : null;
       st.cards = st.cards || [];
       const existing = new Set(st.cards.map((c) => (c.de || '').trim().toLowerCase() + '|' + (c.type || 'word')));
       const newCards = [];
@@ -74,7 +85,7 @@
         const key = String(w.de).trim().toLowerCase() + '|' + (w.type || 'word');
         if (existing.has(key)) return;
         existing.add(key);
-        newCards.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, de: String(w.de).trim(), fa: String(w.fa).trim(), box: 1, nextReview: today, createdAt: nowIso, type: w.type === 'sentence' ? 'sentence' : 'word', categoryId: null });
+        newCards.push({ id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`, de: String(w.de).trim(), fa: String(w.fa).trim(), box: 1, nextReview: today, createdAt: nowIso, type: w.type === 'sentence' ? 'sentence' : 'word', categoryId: cat ? cat.id : null });
       });
       if (!newCards.length) return 0;
       st.cards = [...st.cards, ...newCards];
@@ -512,7 +523,7 @@
     } else if (item.type === 'wordPack' && item.payload && Array.isArray(item.payload.words)) {
       const rec = M.purchases[item.id];
       if (rec && rec.wordPackImported) { showToast(Adapters.t('marketApplied')); return; }
-      const added = Adapters.importCards(item.payload.words);
+      const added = Adapters.importCards(item.payload.words, item.name);
       if (rec) rec.wordPackImported = true;
       persistAll();
       const uid = Adapters.getUid();
@@ -1222,7 +1233,10 @@
         if (res && res.ok) {
           showToast(Adapters.t('marketPurchaseSuccess'));
           M._detailModalOpen = false;
-          if (it.type === 'wordPack' || it.type === 'coinPack') activateItem(it);
+          // درخواست کاربر: هر آیتمی که خریده می‌شه باید خودکار «سرِ جاش» بره — تم فعال بشه،
+          // فریم روی پروفایل بشینه، بسته‌کلمات به جعبه اضافه بشه، بسته‌سکه به کیف‌پول برسه —
+          // نه این‌که کاربر مجبور باشه بعد از خرید یه دکمه‌ی «فعال‌سازی» جدا هم بزنه.
+          if (it.type === 'wordPack' || it.type === 'coinPack' || it.type === 'theme' || it.type === 'frame') activateItem(it);
           render();
         } else if (res && res.reason === 'already_owned') {
           showToast(Adapters.t('marketAlreadyOwned'));
