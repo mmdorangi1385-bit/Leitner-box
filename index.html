@@ -3449,6 +3449,7 @@
     if (adminXpBonusRef) { adminXpBonusRef.off(); adminXpBonusRef = null; }
     if (permissionsRef) { permissionsRef.off(); permissionsRef = null; }
     if (userIdMaxChangesRef) { userIdMaxChangesRef.off(); userIdMaxChangesRef = null; }
+    detachUserDataListener();
     fbAuth.signOut().catch(() => {});
     state.authUser = null;
     state.syncStatus = 'idle';
@@ -3589,9 +3590,41 @@
     render();
   }
 
+  // این متغیر «اکو»ی نوشته‌ی خودِ همین دستگاه رو نگه می‌داره: وقتی uploadSyncNow چیزی می‌نویسه،
+  // فایربیس همون رویداد رو به لیسنر realtime خودمون هم برمی‌گردونه؛ بدون این چک، دستگاه دوباره
+  // داده‌ی خودش رو روی خودش اعمال می‌کرد و مسیر تشخیص "این داده از یه دستگاه دیگه اومده یا نه" رو
+  // گم می‌کرد.
+  let lastUploadedSavedAt = null;
   async function uploadSyncNow(){
     if (!firebaseReady || !state.authUser) return;
-    await userDataRef(state.authUser.uid).set(buildSyncPayload());
+    const payload = buildSyncPayload();
+    lastUploadedSavedAt = payload.savedAt;
+    await userDataRef(state.authUser.uid).set(payload);
+  }
+
+  // رفع باگ اصلیِ «تغییرات یه دستگاه به دستگاه‌های دیگه نمی‌رسه»:
+  // قبلاً userDataRef فقط یک‌بار موقع لاگین با once('value') خونده می‌شد. یعنی اگه کاربر با دو
+  // گوشی هم‌زمان لاگین بود، وقتی توی گوشی A کلمه/دسته اضافه می‌کرد، بعد از ۲.۵ ثانیه به فایربیس
+  // آپلود می‌شد ولی گوشی B هیچ‌وقت خبردار نمی‌شد چون گوش‌نده‌ی زنده‌ای روی این مسیر نداشت — فقط با
+  // خروج و ورود دوباره (که اونم به‌خاطر confirm تعارض داده، ممکن بود داده‌ی محلیِ گوشی B رو انتخاب
+  // کنه و اصلاً چیزی از گوشی A نگیره) به‌روز می‌شد. الان یه لیسنر زنده وصل می‌کنیم که هر تغییری رو —
+  // چه از همین دستگاه (که با چک savedAt نادیده گرفته می‌شه) چه از دستگاه دیگه — بلافاصله دریافت
+  // و روی state اعمال می‌کنه.
+  let userDataListenerRef = null;
+  function attachUserDataListener(){
+    if (!firebaseReady || !state.authUser) return;
+    detachUserDataListener();
+    userDataListenerRef = userDataRef(state.authUser.uid);
+    userDataListenerRef.on('value', (snap) => {
+      const remote = snap.val();
+      if (!remote) return;
+      // اگه این همون داده‌ای هست که خودمون همین الان آپلودش کردیم، دوباره اعمالش نکن.
+      if (remote.savedAt && remote.savedAt === lastUploadedSavedAt) return;
+      applySyncData(remote);
+    });
+  }
+  function detachUserDataListener(){
+    if (userDataListenerRef) { userDataListenerRef.off(); userDataListenerRef = null; }
   }
 
   // اولین لاگین: اگه هم روی گوشی داده هست و هم توی فایربیس، از کاربر می‌پرسیم کدوم رو نگه داره
@@ -3623,6 +3656,7 @@
     attachPermissionsListener();
     attachUserIdMaxChangesListener();
     attachAiAccessListener();
+    attachUserDataListener();
     render();
   }
 

@@ -351,30 +351,47 @@
     },
 
     // کسر اتمیک؛ اگر موجودی کافی نباشد، تراکنش abort می‌شود و false برمی‌گردد.
+    //
+    // رفع باگ «۱۰۰۰۰ سکه دارم ولی می‌گه سکه نداری»:
+    // فایربیس تابعِ transaction رو همیشه اول یه‌بار با مقدارِ *کشِ محلی* صدا می‌زنه؛ اگه دقیقاً
+    // همین مسیر (users/{uid}/wallet/coins) قبلاً روی این دستگاه cache نشده باشه (که با توجه به
+    // این‌که loadUserData فقط والدش یعنی «wallet» رو once می‌خونه، خیلی وقت‌ها همینه)، این صدازدنِ
+    // اول با cur=null انجام می‌شد. کدِ قبلی همون‌جا فرض می‌کرد موجودی صفره و چون صفر از قیمت کمتره
+    // بلافاصله abort می‌کرد (return بدون مقدار) — و abort یعنی لغوِ قطعیِ تراکنش، نه «صبر کن مقدار
+    // واقعی رو از سرور بگیر». در نتیجه فایربیس هیچ‌وقت فرصت نمی‌کرد با موجودیِ واقعیِ سرور (۱۰۰۰۰)
+    // دوباره امتحان کنه و خرید همیشه با پیغام «سکه نداری» شکست می‌خورد، حتی با موجودیِ کافی.
+    // رفعش: قبل از تراکنش، همین مسیر رو با once('value') می‌خونیم تا کشِ محلی گرم بشه و اولین
+    // صدازدنِ transaction همون مقدارِ واقعی رو ببینه، نه null.
     spend(amount, reason) {
       const uid = Adapters.getUid();
       if (Adapters.isFirebaseReady() && uid) {
         const ref = Adapters.db().ref('users/' + uid + '/wallet/coins');
-        return ref.transaction((cur) => {
+        return ref.once('value').catch(() => null).then(() => ref.transaction((cur) => {
           const bal = cur || 0;
-          if (bal < amount) return; // abort: undefined یعنی لغو تراکنش
+          if (bal < amount) return; // abort واقعی: این‌بار cur مقدارِ واقعیِ سرورِ
           return bal - amount;
-        }).then((res) => {
-          if (!res.committed) return false;
+        })).then((res) => {
+          if (!res.committed) return { ok: false, reason: 'insufficient_coins' };
           const newBal = res.snapshot.val();
           M.wallet.coins = newBal;
           M.wallet.lastUpdated = Date.now();
           this._writeHistory({ type: 'spend', amount: -amount, reason, at: Date.now() });
           renderIfOpen();
-          return true;
-        }).catch(() => false);
+          return { ok: true };
+        }).catch((e) => {
+          // قبلاً هر خطایی (مثلاً permission-denied توی Security Rules یا قطعیِ شبکه) هم به همین
+          // "سکه نداری" ترجمه می‌شد که کاملاً گمراه‌کننده بود. الان جدا نگه‌ش می‌داریم و توی
+          // کنسول لاگ می‌کنیم تا اگه دوباره پیش اومد، دلیلِ واقعی معلوم باشه.
+          console.error('Marketplace: wallet spend failed', e);
+          return { ok: false, reason: 'error', error: e };
+        });
       }
-      if ((M.wallet.coins || 0) < amount) return Promise.resolve(false);
+      if ((M.wallet.coins || 0) < amount) return Promise.resolve({ ok: false, reason: 'insufficient_coins' });
       M.wallet.coins -= amount;
       M.wallet.lastUpdated = Date.now();
       this._writeHistory({ type: 'spend', amount: -amount, reason, at: Date.now() });
       renderIfOpen();
-      return Promise.resolve(true);
+      return Promise.resolve({ ok: true });
     },
 
     onXpEarned(xpAmount) {
@@ -475,8 +492,8 @@
     if (isOwned(item.id)) return Promise.resolve({ ok: false, reason: 'already_owned' });
     const now = Date.now();
     const price = effectivePriceField(item, 'coinPrice', now);
-    return walletApi.spend(price, 'purchase:' + item.id).then((success) => {
-      if (!success) return { ok: false, reason: 'insufficient_coins' };
+    return walletApi.spend(price, 'purchase:' + item.id).then((res) => {
+      if (!res.ok) return res;
       recordPurchase(item, 'coins', price);
       return { ok: true };
     });
